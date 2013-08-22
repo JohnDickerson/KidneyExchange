@@ -1,6 +1,20 @@
+# Kidney Exchange #
+*.csv
+*.input
+
+# Java #
 *.class
+
+# System #
+*~
+*.lock
+*.~lock*
+*.DS_Store
+*.swp
+*.out
 
 # Package Files #
 *.jar
 *.war
 *.ear
+/bin
