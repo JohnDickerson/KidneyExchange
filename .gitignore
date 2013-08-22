@@ -2,8 +2,12 @@
 *.csv
 *.input
 
-# Java #
+# Java and Eclipse #
+*.jar
+*.war
+*.ear
 *.class
+/bin
 
 # System #
 *~
@@ -13,8 +17,6 @@
 *.swp
 *.out
 
-# Package Files #
-*.jar
-*.war
-*.ear
-/bin
+# Exceptions #
+!lib/*
+lib/cplex.jar  # do not include CPLEX (licensing? who knows)

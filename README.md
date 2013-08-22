@@ -29,6 +29,6 @@ _Optimizing Kidney Exchange with Transplant Chains: Theory and Reality_.  John P
 
 _Clearing Algorithms for Barter Exchange Markets: Enabling Nationwide Kidney Exchanges_.  David J. Abraham, Avrim Blum, Tuomas Sandholm.  **EC-2007**.  [Link](http://www.cs.cmu.edu/~dabraham/papers/abs07.pdf "Carnegie Mellon University link")
 
-_Increasing the Opportunity of Live Kidney Donation by Matching for Two and Three Way Exchanges_. S. L. Saidman, Alvin Roth, Tayfun S&ouml;nmez, Utku &Uuml;nver, Frank Delmonico.  **Transplantation, 2006**.
+_Increasing the Opportunity of Live Kidney Donation by Matching for Two and Three Way Exchanges_. S. L. Saidman, Alvin Roth, Tayfun S&ouml;nmez, Utku &Uuml;nver, Frank Delmonico.  **Transplantation, 2006**.  [Link](http://kuznets.fas.harvard.edu/~aroth/papers/SaidmanRothSonmezUnverDelmonico.Transplantation.2006.pdf "Harvard link")
 
 _These are admittedly me-centric references!  Make sure to click around: [Itai Ashlagi](http://web.mit.edu/iashlagi/www/), [Avrim Blum](http://www.cs.cmu.edu/~avrim/), [John Dickerson](http://cs.cmu.edu/~dickerson), [David Gamarnik](http://www.mit.edu/~gamarnik/home.html), [David Parkes](http://www.eecs.harvard.edu/~parkes/), [Ariel Procaccia](http://www.cs.cmu.edu/~arielpro/), [Al Roth](http://www.stanford.edu/~alroth/), [Tuomas Sandholm](http://www.cs.cmu.edu/~sandholm/), [Ankit Sharma](https://sites.google.com/site/ankitsharmahomepage/),  [Tayfun S&ouml;nmez](https://www2.bc.edu/~sonmezt/), [Utku &Uuml;nver](https://www2.bc.edu/~unver/)._ 
