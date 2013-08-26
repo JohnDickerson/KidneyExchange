@@ -62,7 +62,7 @@ public enum BloodType {
 	public static BloodType getBloodType(String name) {
 		
 		String key = name.trim().toUpperCase();
-		if(strToBlood.containsKey(name)) {
+		if(strToBlood.containsKey(key)) {
 			return strToBlood.get(key);
 		} else {
 			throw new NoSuchElementException(key + " not a recognized blood type.");
