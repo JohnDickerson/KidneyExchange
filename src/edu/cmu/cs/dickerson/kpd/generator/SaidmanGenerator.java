@@ -10,6 +10,29 @@ import edu.cmu.cs.dickerson.kpd.structure.KPDVertex;
 
 public class SaidmanGenerator extends Generator {
 
+	private final double Pr_FEMALE = 0.4090;
+	private final double Pr_MALE = 1 - Pr_FEMALE;
+
+	private final double Pr_SPOUSAL_DONOR = 0.4897;
+	private final double Pr_NONSPOUSAL_DONOR = 1 - Pr_SPOUSAL_DONOR;
+
+	private final double Pr_LOW_PRA = 0.7019;
+	private final double Pr_MED_PRA = 0.2;
+	private final double Pr_HIGH_PRA = 0.0981;
+
+	// Numbers taken from Saidman et al.'s 2006 paper "Increasing
+	// the Opportunity of Live Kidney Donation...", third page.
+	private final double Pr_LOW_PRA_INCOMPATIBILITY = 0.05;
+	private final double Pr_MED_PRA_INCOMPATIBILITY = 0.45;
+	private final double Pr_HIGH_PRA_INCOMPATIBILITY = 0.9;
+
+	private final double Pr_SPOUSAL_PRA_COMPATIBILITY = 0.75;
+
+	private final double Pr_TYPE_A = 0.3373;
+	private final double Pr_TYPE_B = 0.1428;
+	private final double Pr_TYPE_AB = 0.0385;
+	private final double Pr_TYPE_O = 0.4814;
+	
 	public SaidmanGenerator(Random random) {
 		super(random);
 	}
