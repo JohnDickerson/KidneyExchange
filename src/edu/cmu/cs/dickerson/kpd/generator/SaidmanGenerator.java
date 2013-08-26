@@ -6,7 +6,6 @@ import java.util.Random;
 
 import edu.cmu.cs.dickerson.kpd.structure.KPDEdge;
 import edu.cmu.cs.dickerson.kpd.structure.KPDPool;
-import edu.cmu.cs.dickerson.kpd.structure.KPDVertex;
 import edu.cmu.cs.dickerson.kpd.structure.KPDVertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.KPDVertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
