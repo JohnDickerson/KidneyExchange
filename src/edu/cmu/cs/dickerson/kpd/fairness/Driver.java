@@ -1,19 +1,16 @@
 package edu.cmu.cs.dickerson.kpd.fairness;
 
-import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
+import java.util.Random;
+
+import edu.cmu.cs.dickerson.kpd.generator.SaidmanGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.KPDPool;
 
 public class Driver {
 
 	public static void main(String args[]) {
-		
-		System.out.println(BloodType.O.canGiveTo(BloodType.O));
-		System.out.println(BloodType.O.canGiveTo(BloodType.A));
-		System.out.println(BloodType.A.canGiveTo(BloodType.A));
-		System.out.println(BloodType.A.canGiveTo(BloodType.A));
-		System.out.println(BloodType.B.canGiveTo(BloodType.A));
-		System.out.println(BloodType.B.canGiveTo(BloodType.B));
-		System.out.println(BloodType.AB.canGiveTo(BloodType.O));
-		System.out.println(BloodType.AB.canGiveTo(BloodType.AB));
-		
+	
+		Random r = new Random();
+		KPDPool pool = new SaidmanGenerator(r).generate(100, 10);
+		System.out.println(pool);
 	}
 }
