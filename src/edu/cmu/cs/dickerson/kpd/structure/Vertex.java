@@ -1,10 +1,10 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
-public abstract class KPDVertex implements Comparable<KPDVertex> {
+public abstract class Vertex implements Comparable<Vertex> {
 
 	protected final Integer ID;
 	
-	public KPDVertex(Integer ID) {
+	public Vertex(Integer ID) {
 		this.ID = ID;
 	}
 	
@@ -34,7 +34,7 @@ public abstract class KPDVertex implements Comparable<KPDVertex> {
 			return false;
 		}
 		
-		KPDVertex other = (KPDVertex) obj;
+		Vertex other = (Vertex) obj;
 		if (ID != other.ID) {
 			return false;
 		}
@@ -42,7 +42,7 @@ public abstract class KPDVertex implements Comparable<KPDVertex> {
 	}
 	
 	@Override
-	public int compareTo(KPDVertex v) {
+	public int compareTo(Vertex v) {
 		return this.getID().compareTo(v.getID());
 	}
 }

@@ -1,13 +1,13 @@
-package edu.cmu.cs.dickerson.kpd.generator;
+package edu.cmu.cs.dickerson.kpd.structure.generator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import edu.cmu.cs.dickerson.kpd.structure.KPDEdge;
-import edu.cmu.cs.dickerson.kpd.structure.KPDPool;
-import edu.cmu.cs.dickerson.kpd.structure.KPDVertexAltruist;
-import edu.cmu.cs.dickerson.kpd.structure.KPDVertexPair;
+import edu.cmu.cs.dickerson.kpd.structure.Edge;
+import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 /**
@@ -21,7 +21,7 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
  * @author John P. Dickerson
  *
  */
-public class SaidmanGenerator extends Generator {
+public class SaidmanPoolGenerator extends PoolGenerator {
 
 	// Numbers taken from Saidman et al.'s 2006 paper "Increasing
 	// the Opportunity of Live Kidney Donation..."
@@ -42,7 +42,7 @@ public class SaidmanGenerator extends Generator {
 	private final double Pr_TYPE_A = 0.3373;
 	private final double Pr_TYPE_B = 0.1428;
 
-	public SaidmanGenerator(Random random) {
+	public SaidmanPoolGenerator(Random random) {
 		super(random);
 	}
 
@@ -116,7 +116,7 @@ public class SaidmanGenerator extends Generator {
 	 * @param ID unique identifier for the vertex
 	 * @return a patient-donor pair KPDVertexPair
 	 */
-	private KPDVertexPair generatePair(int ID) {
+	private VertexPair generatePair(int ID) {
 
 		// Draw blood types for patient and donor, along with spousal details and probability of PositiveXM
 		BloodType bloodTypePatient = drawBloodType();
@@ -128,7 +128,7 @@ public class SaidmanGenerator extends Generator {
 		boolean compatible = bloodTypeDonor.canGiveTo(bloodTypePatient)    // Donor must be blood type compatible with patient
 				&& !isPositiveCrossmatch(patientCPRA);   // Crossmatch must be negative
 
-		return new KPDVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, compatible);
+		return new VertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, compatible);
 	}
 
 	/**
@@ -136,26 +136,26 @@ public class SaidmanGenerator extends Generator {
 	 * @param ID unique identifier for the vertex
 	 * @return altruistic donor vertex KPDVertexAltruist
 	 */
-	private KPDVertexAltruist generateAltruist(int ID) {
+	private VertexAltruist generateAltruist(int ID) {
 
 		// Draw blood type for the altruist
 		BloodType bloodTypeAltruist = drawBloodType();
 
-		return new KPDVertexAltruist(ID, bloodTypeAltruist);
+		return new VertexAltruist(ID, bloodTypeAltruist);
 	}
 
 
 	@Override
-	public KPDPool generate(int numPairs, int numAltruists) {
+	public Pool generate(int numPairs, int numAltruists) {
 
 		assert(numPairs > 0);
 		assert(numAltruists >= 0);
 
 		// Keep track of the three types of vertices we can generate: 
 		// altruist-no_donor, patient-compatible_donor, patient-incompatible_donor
-		List<KPDVertexPair> incompatiblePairs = new ArrayList<KPDVertexPair>();
-		List<KPDVertexPair> compatiblePairs = new ArrayList<KPDVertexPair>();
-		List<KPDVertexAltruist> altruists = new ArrayList<KPDVertexAltruist>();
+		List<VertexPair> incompatiblePairs = new ArrayList<VertexPair>();
+		List<VertexPair> compatiblePairs = new ArrayList<VertexPair>();
+		List<VertexAltruist> altruists = new ArrayList<VertexAltruist>();
 
 
 		// Keep a unique identifier for each vertex
@@ -164,7 +164,7 @@ public class SaidmanGenerator extends Generator {
 		// Generate enough incompatible and compatible patient-donor pair vertices
 		while(incompatiblePairs.size() < numPairs) {
 
-			KPDVertexPair v = generatePair(ID++);
+			VertexPair v = generatePair(ID++);
 			if(v.isCompatible()) {
 				compatiblePairs.add(v);
 			} else {
@@ -174,35 +174,35 @@ public class SaidmanGenerator extends Generator {
 
 
 		// Only add the incompatible pairs to the pool
-		KPDPool pool = new KPDPool(KPDEdge.class);
-		for(KPDVertexPair pair : incompatiblePairs) {
+		Pool pool = new Pool(Edge.class);
+		for(VertexPair pair : incompatiblePairs) {
 			pool.addPair(pair);	
 		}
 
 
 		// Generate altruistic donor vertices
 		while(altruists.size() < numAltruists) {
-			KPDVertexAltruist altruist = generateAltruist(ID++);
+			VertexAltruist altruist = generateAltruist(ID++);
 			altruists.add(altruist);
 		}
 
 
 		// Add altruists to the pool
-		for(KPDVertexAltruist altruist : altruists) {
+		for(VertexAltruist altruist : altruists) {
 			pool.addAltruist(altruist);
 		}
 
 
 		// Add edges between compatible donors and other patients
-		for(KPDVertexPair donorPair : incompatiblePairs) {
-			for(KPDVertexPair patientPair : incompatiblePairs) {
+		for(VertexPair donorPair : incompatiblePairs) {
+			for(VertexPair patientPair : incompatiblePairs) {
 
 				if(donorPair.equals(patientPair)) { continue; }
 
 				boolean compatible = donorPair.getBloodTypeDonor().canGiveTo(patientPair.getBloodTypePatient())    // Donor must be blood type compatible with patient
 						&& !isPositiveCrossmatch(patientPair.getPatientCPRA());   // Crossmatch must be negative
 				if(compatible) {
-					KPDEdge e = pool.addEdge(donorPair, patientPair);
+					Edge e = pool.addEdge(donorPair, patientPair);
 					pool.setEdgeWeight(e, 1.0);
 				}
 			}
@@ -211,19 +211,19 @@ public class SaidmanGenerator extends Generator {
 
 
 
-		for(KPDVertexAltruist alt : altruists) {
-			for(KPDVertexPair patientPair : incompatiblePairs) {
+		for(VertexAltruist alt : altruists) {
+			for(VertexPair patientPair : incompatiblePairs) {
 
 				// Add edges from a donor to a compatible patient elsewhere
 				boolean compatible = alt.getBloodTypeDonor().canGiveTo(patientPair.getBloodTypePatient())    // Donor must be blood type compatible with patient
 						&& !isPositiveCrossmatch(patientPair.getPatientCPRA());   // Crossmatch must be negative
 				if(compatible) {
-					KPDEdge e = pool.addEdge(alt, patientPair);
+					Edge e = pool.addEdge(alt, patientPair);
 					pool.setEdgeWeight(e, 1.0);
 				}
 				
 				// Add dummy edges from a non-altruist donor to each of the altruists
-				KPDEdge dummy = pool.addEdge(patientPair, alt);
+				Edge dummy = pool.addEdge(patientPair, alt);
 				pool.setEdgeWeight(dummy, 0.0);
 			}
 		}

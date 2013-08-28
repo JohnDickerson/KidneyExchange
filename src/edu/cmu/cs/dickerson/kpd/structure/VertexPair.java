@@ -2,7 +2,7 @@ package edu.cmu.cs.dickerson.kpd.structure;
 
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
-public class KPDVertexPair extends KPDVertex {
+public class VertexPair extends Vertex {
 	
 	// Blood types for the patient and donor in the pair
 	private final BloodType bloodTypePatient;
@@ -17,7 +17,7 @@ public class KPDVertexPair extends KPDVertex {
 	// Is the donor compatible with the patient
 	private final boolean isCompatible;
 	
-	public KPDVertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor, boolean isWifePatient, double patientCPRA, boolean isCompatible) {
+	public VertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor, boolean isWifePatient, double patientCPRA, boolean isCompatible) {
 		super(ID);
 		this.bloodTypePatient = bloodTypePatient;
 		this.bloodTypeDonor = bloodTypeDonor;

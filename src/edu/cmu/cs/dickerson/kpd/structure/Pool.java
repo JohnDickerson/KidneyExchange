@@ -5,25 +5,25 @@ import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 
-public class KPDPool extends DefaultDirectedWeightedGraph<KPDVertex, KPDEdge> {
+public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private SortedSet<KPDVertexPair> pairs;
-	private SortedSet<KPDVertexAltruist> altruists;
+	private SortedSet<VertexPair> pairs;
+	private SortedSet<VertexAltruist> altruists;
 	
-	public KPDPool(Class<? extends KPDEdge> edgeClass) {
+	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
-		pairs = new TreeSet<KPDVertexPair>();
-		altruists = new TreeSet<KPDVertexAltruist>();
+		pairs = new TreeSet<VertexPair>();
+		altruists = new TreeSet<VertexAltruist>();
 	}
 
 	@Override
-	public boolean addVertex(KPDVertex v) {
+	public boolean addVertex(Vertex v) {
 		throw new UnsupportedOperationException("Please use addPair(KPDVertexPair) and addAltruist(KPDVertexAltruist) instead!");
 	}
 	
-	public boolean addPair(KPDVertexPair pair) {
+	public boolean addPair(VertexPair pair) {
 		boolean newVert = super.addVertex(pair);
 		if(newVert) {
 			pairs.add(pair);
@@ -31,7 +31,7 @@ public class KPDPool extends DefaultDirectedWeightedGraph<KPDVertex, KPDEdge> {
 		return newVert;
 	}
 	
-	public boolean addAltruist(KPDVertexAltruist alt) {
+	public boolean addAltruist(VertexAltruist alt) {
 		boolean newVert = super.addVertex(alt);
 		if(newVert) {
 			altruists.add(alt);
@@ -39,11 +39,11 @@ public class KPDPool extends DefaultDirectedWeightedGraph<KPDVertex, KPDEdge> {
 		return newVert;
 	}
 	
-	public SortedSet<KPDVertexPair> getPairs() {
+	public SortedSet<VertexPair> getPairs() {
 		return pairs;
 	}
 
-	public SortedSet<KPDVertexAltruist> getAltruists() {
+	public SortedSet<VertexAltruist> getAltruists() {
 		return altruists;
 	}
 

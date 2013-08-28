@@ -2,12 +2,12 @@ package edu.cmu.cs.dickerson.kpd.solver;
 
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
-import edu.cmu.cs.dickerson.kpd.structure.KPDPool;
+import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public abstract class Solver {
 
-	protected final KPDPool pool;
-	public Solver(KPDPool pool) {
+	protected final Pool pool;
+	public Solver(Pool pool) {
 		this.pool = pool;
 	}
 	

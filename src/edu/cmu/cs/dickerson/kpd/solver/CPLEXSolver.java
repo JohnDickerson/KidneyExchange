@@ -5,11 +5,11 @@ import ilog.cplex.IloCplex;
 import edu.cmu.cs.dickerson.kpd.fairness.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
-import edu.cmu.cs.dickerson.kpd.structure.KPDPool;
+import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public class CPLEXSolver extends Solver {
 
-	public CPLEXSolver(KPDPool pool) {
+	public CPLEXSolver(Pool pool) {
 		super(pool);
 	}
 
