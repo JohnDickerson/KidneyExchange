@@ -14,17 +14,17 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
-import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.HeterogeneousPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
 
 public class Driver {
 
 	public static void main(String args[]) {
 	
-		// Build a Saidman pool
-		Random r = new Random(12345);
-		Pool pool = new SparseUNOSSaidmanPoolGenerator(r).generate(1000, 0);
-		IOUtil.dPrintln(pool.edgeSet().size());
+		// Generate a compatibility graph
+		Random r = new Random(12346);
+		//Pool pool = new SparseUNOSSaidmanPoolGenerator(r).generate(500, 0);
+		Pool pool = new HeterogeneousPoolGenerator(r).generate(100, 0, 0.5);
 		
 		// Generate all 3-cycles and somecap-chains
 		CycleGenerator cg = new CycleGenerator(pool);
@@ -43,17 +43,16 @@ public class Driver {
 		}
 		
 		// Solve the model
-		Solution sol = null;
 		try {
 			
 			FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV);
 			
 			Solution alphaStarSol = s.solveForAlphaStar();
-			sol = s.solve(alphaStarSol.getObjectiveValue());
-			Solution fairSol = s.solve(0.0);
-			IOUtil.dPrintln("Solved main IP with objective = " + sol.getObjectiveValue());
-			IOUtil.dPrintln("Could've been = " + fairSol.getObjectiveValue());
+			Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());
+			Solution unfairSol = s.solve(0.0);
 			
+			IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
+			IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());
 			
 		} catch(SolverException e) {
 			e.printStackTrace();

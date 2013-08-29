@@ -4,6 +4,7 @@ import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -161,10 +162,30 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 			Solution sol = super.solveCPLEX();
 		
 			// Figure out which cycles were included in the final solution
-			//double[] vals = cplex.getValues();
+			double[] vals = cplex.getValues(x);
+			int nCols = cplex.getNcols();
+			for(cycleIdx=0; cycleIdx<nCols; cycleIdx++) {
+				if(vals[cycleIdx] > 0) {
+					sol.addMatchedCycle(cycles.get(cycleIdx));
+				}
+			}
 			
-			// We're interested in a* = #matched / |special|
 			IOUtil.dPrintln(getClass().getSimpleName(), "Solved IP!  Objective value: " + sol.getObjectiveValue());
+			IOUtil.dPrintln(getClass().getSimpleName(), "Number of cycles in matching: " + sol.getMatching().size());
+			
+			// TODO move to a JUnit test
+			// Sanity check to make sure the matching is vertex disjoint
+			Set<Vertex> seenVerts = new HashSet<Vertex>();
+			for(Cycle c : sol.getMatching()) {
+				for(Edge e : c.getEdges()) {
+					Vertex v = pool.getEdgeSource(e);
+					if(seenVerts.contains(v)) {
+						System.exit(-1);
+					}
+					seenVerts.add(v);
+				}
+			}
+			
 			
 			cplex.end();		
 			return sol;

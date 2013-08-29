@@ -15,8 +15,8 @@ public class SparseUNOSSaidmanPoolGenerator extends SaidmanPoolGenerator {
 	public SparseUNOSSaidmanPoolGenerator(Random random) {
 		super(random);
 
-		Pr_LOW_PRA = 0.216;  // 0.007 + 0.001 + 0.016 + 0.192
-		Pr_MED_PRA = 0.16;   // 0.018 + 0.001 + 0.025 + 0.116
+		Pr_LOW_PRA = 0.216;  // 0.007 + 0.001 + 0.016 + 0.192 = 0.216
+		Pr_MED_PRA = 0.16;   // 0.018 + 0.001 + 0.025 + 0.116 = 0.16
 
 		Pr_LOW_PRA_INCOMPATIBILITY = 0.0;
 		Pr_MED_PRA_INCOMPATIBILITY = 0.80;
@@ -27,7 +27,7 @@ public class SparseUNOSSaidmanPoolGenerator extends SaidmanPoolGenerator {
 		Pr_PATIENT_TYPE_B = 0.124;
 
 		Pr_DONOR_TYPE_O = 0.345;
-		Pr_DONOR_TYPE_A = 0.402 + 0.016 + 0.04 + 0.001;
+		Pr_DONOR_TYPE_A = 0.459;  // 0.402 + 0.016 + 0.04 + 0.001 = 0.459
 		Pr_DONOR_TYPE_B = 0.197;
 	}
 }

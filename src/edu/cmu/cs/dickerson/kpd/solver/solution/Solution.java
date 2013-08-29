@@ -1,13 +1,33 @@
 package edu.cmu.cs.dickerson.kpd.solver.solution;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
+
 public class Solution {
-	
-	// TODO include the matching (collection of cycles) here
-	
 	
 	private long solveTime = 0;
 	private double objectiveValue;
+	private Set<Cycle> matching;
 	
+	public Solution() {
+		matching = new HashSet<Cycle>();
+	}
+	
+	public boolean addMatchedCycle(Cycle cycle) {
+		return matching.add(cycle);
+	}
+	
+	
+	public Set<Cycle> getMatching() {
+		return matching;
+	}
+
+	public void setMatching(Set<Cycle> matching) {
+		this.matching = matching;
+	}
+
 	public long getSolveTime() {
 		return solveTime;
 	}
