@@ -34,8 +34,8 @@ public class CycleGeneratorTest {
 		PoolGenerator pg = new SaidmanPoolGenerator(new Random());
 		Pool saidmanPool = pg.generate(25, 5);
 		CycleGenerator cg2 = new CycleGenerator(saidmanPool);
-		//assertEquals(0, cg2.generateCyclesAndChains(0, 0).size());
-		//assertEquals(0, cg2.generateCyclesAndChains(1, 0).size());
+		assertEquals(0, cg2.generateCyclesAndChains(0, 0).size());
+		assertEquals(0, cg2.generateCyclesAndChains(1, 0).size());
 		
 	}
 	
@@ -50,19 +50,19 @@ public class CycleGeneratorTest {
 		cgg.generateGraph(pool, new AllMatchVertexPairFactory(), null);
 		
 		// Number of edges in complete directed graph: n(n-1)
-		//assertEquals(numPairs*(numPairs-1), pool.edgeSet().size());
+		assertEquals(numPairs*(numPairs-1), pool.edgeSet().size());
 		
 		CycleGenerator cg = new CycleGenerator(pool);
 		
 		// Number of 2-cycles = n(n-1)/2  (#edges in undirected complete graph)
-		//assertEquals(numPairs*(numPairs-1)/2, cg.generateCyclesAndChains(2, Integer.MAX_VALUE).size());
+		assertEquals(numPairs*(numPairs-1)/2, cg.generateCyclesAndChains(2, Integer.MAX_VALUE).size());
 		
 		// Number of at-most-3-cyles = number of 2-cycles + number of 3-cycles, so
 		// n(n-1)/2   +  n(n-1)(n-2)/3
-		//assertEquals(numPairs*(numPairs-1)/2 + numPairs*(numPairs-1)*(numPairs-2)/3, cg.generateCyclesAndChains(3, Integer.MAX_VALUE).size());
+		assertEquals(numPairs*(numPairs-1)/2 + numPairs*(numPairs-1)*(numPairs-2)/3, cg.generateCyclesAndChains(3, Integer.MAX_VALUE).size());
 		
 		// ... + n(n-1)(n-2)(n-3)/4
-		//assertEquals(numPairs*(numPairs-1)/2 + numPairs*(numPairs-1)*(numPairs-2)/3 + numPairs*(numPairs-1)*(numPairs-2)*(numPairs-3)/4, cg.generateCyclesAndChains(4, Integer.MAX_VALUE).size());
+		assertEquals(numPairs*(numPairs-1)/2 + numPairs*(numPairs-1)*(numPairs-2)/3 + numPairs*(numPairs-1)*(numPairs-2)*(numPairs-3)/4, cg.generateCyclesAndChains(4, Integer.MAX_VALUE).size());
 	}
 
 	@Test

@@ -75,9 +75,10 @@ public class CycleGenerator {
 			cycles.add( Cycle.makeCycle(path, pathWeight));
 		} else {
 
-			if(inPath.contains(lastV)             // Must be a simple cycle
+			if(inPath.contains(lastV)              // Must be a simple cycle
 					|| path.size() >= maxCycleSize // Cap cycle length to maxCycleSize
-					|| lastV.isAltruist()         // Only generate cycles, not chains
+					|| lastV.isAltruist()          // Only generate cycles, not chains
+					|| maxCycleSize <= 0           // Sanity check
 					) { 
 				return;
 			}
@@ -108,8 +109,9 @@ public class CycleGenerator {
 
 	private void generateChains(int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath) {
 
-		if(inPath.contains(lastV)             // Must be a simple cycle
+		if(inPath.contains(lastV)               // Must be a simple cycle
 				|| path.size()-1 > maxChainSize // Cap chain length to maxChainSize (ignore altruist)
+				|| maxChainSize <= 0            // Sanity check
 				) {
 			return;
 		}
