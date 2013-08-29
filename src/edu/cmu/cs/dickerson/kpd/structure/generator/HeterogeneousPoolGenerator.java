@@ -8,7 +8,6 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 
 	public HeterogeneousPoolGenerator(Random random) {
 		super(random);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

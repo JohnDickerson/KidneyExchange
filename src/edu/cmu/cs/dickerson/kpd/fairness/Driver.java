@@ -15,6 +15,7 @@ import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
 
 public class Driver {
 
@@ -22,7 +23,7 @@ public class Driver {
 	
 		// Build a Saidman pool
 		Random r = new Random(12345);
-		Pool pool = new SaidmanPoolGenerator(r).generate(250, 0);
+		Pool pool = new SparseUNOSSaidmanPoolGenerator(r).generate(1000, 0);
 		IOUtil.dPrintln(pool.edgeSet().size());
 		
 		// Generate all 3-cycles and somecap-chains
@@ -33,7 +34,7 @@ public class Driver {
 		CycleMembership membership = new CycleMembership(pool, cycles);
 		
 		// Split pairs into highly- and not highly-sensitized patients 
-		double highlySensitizedThresh = 0.9;
+		double highlySensitizedThresh = 0.90;
 		Set<Vertex> highV = new HashSet<Vertex>();
 		for(VertexPair pair : pool.getPairs()) {
 			if(pair.getPatientCPRA() >= highlySensitizedThresh) {

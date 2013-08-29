@@ -25,40 +25,57 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 
 	// Numbers taken from Saidman et al.'s 2006 paper "Increasing
 	// the Opportunity of Live Kidney Donation..."
-	private final double Pr_FEMALE = 0.4090;
+	protected double Pr_FEMALE = 0.4090;
 
-	private final double Pr_SPOUSAL_DONOR = 0.4897;
+	protected double Pr_SPOUSAL_DONOR = 0.4897;
 
-	private final double Pr_LOW_PRA = 0.7019;
-	private final double Pr_MED_PRA = 0.2;
+	protected double Pr_LOW_PRA = 0.7019;
+	protected double Pr_MED_PRA = 0.2;
 
-	private final double Pr_LOW_PRA_INCOMPATIBILITY = 0.05;
-	private final double Pr_MED_PRA_INCOMPATIBILITY = 0.45;
-	private final double Pr_HIGH_PRA_INCOMPATIBILITY = 0.9;
+	protected double Pr_LOW_PRA_INCOMPATIBILITY = 0.05;
+	protected double Pr_MED_PRA_INCOMPATIBILITY = 0.45;
+	protected double Pr_HIGH_PRA_INCOMPATIBILITY = 0.90;
 
-	private final double Pr_SPOUSAL_PRA_COMPATIBILITY = 0.75;
+	protected double Pr_SPOUSAL_PRA_COMPATIBILITY = 0.75;
 
-	private final double Pr_TYPE_O = 0.4814;
-	private final double Pr_TYPE_A = 0.3373;
-	private final double Pr_TYPE_B = 0.1428;
+	protected double Pr_PATIENT_TYPE_O = 0.4814;
+	protected double Pr_PATIENT_TYPE_A = 0.3373;
+	protected double Pr_PATIENT_TYPE_B = 0.1428;
 
+	protected double Pr_DONOR_TYPE_O = 0.4814;
+	protected double Pr_DONOR_TYPE_A = 0.3373;
+	protected double Pr_DONOR_TYPE_B = 0.1428;
+	
 	public SaidmanPoolGenerator(Random random) {
 		super(random);
 	}
 
 	/**
-	 * Draws a random blood type from the US distribution 
+	 * Draws a random patient's blood type from the US distribution 
 	 * @return BloodType.{O,A,B,AB}
 	 */
-	private BloodType drawBloodType() {
+	private BloodType drawPatientBloodType() {
 		double r = random.nextDouble();
 
-		if (r <= Pr_TYPE_O) { return BloodType.O; }
-		if (r <= Pr_TYPE_O + Pr_TYPE_A) { return BloodType.A; }
-		if (r <= Pr_TYPE_O + Pr_TYPE_A + Pr_TYPE_B) { return BloodType.B; }
+		if (r <= Pr_PATIENT_TYPE_O) { return BloodType.O; }
+		if (r <= Pr_PATIENT_TYPE_O + Pr_PATIENT_TYPE_A) { return BloodType.A; }
+		if (r <= Pr_PATIENT_TYPE_O + Pr_PATIENT_TYPE_A + Pr_PATIENT_TYPE_B) { return BloodType.B; }
 		return BloodType.AB;
 	}
 
+	/**
+	 * Draws a random donor's blood type from the US distribution 
+	 * @return BloodType.{O,A,B,AB}
+	 */
+	private BloodType drawDonorBloodType() {
+		double r = random.nextDouble();
+
+		if (r <= Pr_DONOR_TYPE_O) { return BloodType.O; }
+		if (r <= Pr_DONOR_TYPE_O + Pr_DONOR_TYPE_A) { return BloodType.A; }
+		if (r <= Pr_DONOR_TYPE_O + Pr_DONOR_TYPE_A + Pr_DONOR_TYPE_B) { return BloodType.B; }
+		return BloodType.AB;
+	}
+	
 	/**
 	 * Draws a random gender from the US waitlist distribution
 	 * @return true if patient is female, false otherwise
@@ -119,8 +136,8 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 	private VertexPair generatePair(int ID) {
 
 		// Draw blood types for patient and donor, along with spousal details and probability of PositiveXM
-		BloodType bloodTypePatient = drawBloodType();
-		BloodType bloodTypeDonor = drawBloodType();
+		BloodType bloodTypePatient = drawPatientBloodType();
+		BloodType bloodTypeDonor = drawDonorBloodType();
 		boolean isWifePatient = isPatientFemale() && isDonorSpouse();
 		double patientCPRA = generatePraIncompatibility(isWifePatient);
 
@@ -139,7 +156,7 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 	private VertexAltruist generateAltruist(int ID) {
 
 		// Draw blood type for the altruist
-		BloodType bloodTypeAltruist = drawBloodType();
+		BloodType bloodTypeAltruist = drawDonorBloodType();
 
 		return new VertexAltruist(ID, bloodTypeAltruist);
 	}
