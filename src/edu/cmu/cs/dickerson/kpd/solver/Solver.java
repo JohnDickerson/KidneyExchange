@@ -1,7 +1,10 @@
 package edu.cmu.cs.dickerson.kpd.solver;
 
+import java.util.List;
+
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public abstract class Solver {
@@ -11,7 +14,7 @@ public abstract class Solver {
 		this.pool = pool;
 	}
 	
-	public abstract Solution solve() throws SolverException;
-
+	public abstract Solution solve(List<Cycle> cycles) throws SolverException;
+	
 	public abstract String getID();
 }

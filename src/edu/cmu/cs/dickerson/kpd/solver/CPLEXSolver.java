@@ -1,10 +1,13 @@
 package edu.cmu.cs.dickerson.kpd.solver;
 
+import java.util.List;
+
 import ilog.concert.IloException;
 import ilog.cplex.IloCplex;
-import edu.cmu.cs.dickerson.kpd.fairness.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public class CPLEXSolver extends Solver {
@@ -14,8 +17,7 @@ public class CPLEXSolver extends Solver {
 	}
 
 	@Override
-	public Solution solve() throws SolverException {
-
+	public Solution solve(List<Cycle> cycles) throws SolverException {
 		Solution sol = null;
 		try {
 			IloCplex cplex = new IloCplex();

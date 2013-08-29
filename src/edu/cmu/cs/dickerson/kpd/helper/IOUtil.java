@@ -1,4 +1,4 @@
-package edu.cmu.cs.dickerson.kpd.fairness.helper;
+package edu.cmu.cs.dickerson.kpd.helper;
 
 public final class IOUtil {
 
