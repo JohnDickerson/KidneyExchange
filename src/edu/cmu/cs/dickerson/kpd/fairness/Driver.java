@@ -22,11 +22,12 @@ public class Driver {
 	
 		// Build a Saidman pool
 		Random r = new Random(12345);
-		Pool pool = new SaidmanPoolGenerator(r).generate(100, 1);
+		Pool pool = new SaidmanPoolGenerator(r).generate(250, 0);
+		IOUtil.dPrintln(pool.edgeSet().size());
 		
 		// Generate all 3-cycles and somecap-chains
 		CycleGenerator cg = new CycleGenerator(pool);
-		List<Cycle> cycles = cg.generateCyclesAndChains(3, 1);
+		List<Cycle> cycles = cg.generateCyclesAndChains(3, 3);
 		
 		// For each vertex, get list of cycles that contain this vertex
 		CycleMembership membership = new CycleMembership(pool, cycles);
@@ -48,7 +49,10 @@ public class Driver {
 			
 			Solution alphaStarSol = s.solveForAlphaStar();
 			sol = s.solve(alphaStarSol.getObjectiveValue());
+			Solution fairSol = s.solve(0.0);
 			IOUtil.dPrintln("Solved main IP with objective = " + sol.getObjectiveValue());
+			IOUtil.dPrintln("Could've been = " + fairSol.getObjectiveValue());
+			
 			
 		} catch(SolverException e) {
 			e.printStackTrace();

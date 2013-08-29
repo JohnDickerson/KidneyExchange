@@ -112,15 +112,67 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 		}
 	}
 	
-	public Solution solve(double alphaStar) throws SolverException {
+	public Solution solve(double alpha) throws SolverException {
 		
-		IOUtil.dPrintln(getClass().getSimpleName(), "Solving main fairness IP with a* = " + alphaStar);
+		IOUtil.dPrintln(getClass().getSimpleName(), "Solving main fairness IP with a = " + alpha);
 		
+		try {
+			super.initializeCPLEX();
+			
+			// One decision variable per cycle
+			IloNumVar[] x = cplex.boolVarArray(cycles.size());
+			
+			// Decision variables multiplied by weight of corresponding cycle
+			double[] weights = new double[x.length];
+			int cycleIdx = 0;
+			for(Cycle c : cycles) {
+				weights[cycleIdx++] = c.getWeight();
+			}
+			
+			// Objective:
+			// Maximize \sum_{all cycles c} altWeight_c * decVar_c
+			cplex.addMaximize(cplex.scalProd(weights, x));
+					
+			
 
-		// Figure out which cycles were included in the final solution
-		//double[] vals = cplex.getValues();
+			// Subject to: 
+			// \sum_{cycles c containing v} decVar_c <=1   \forall v
+			for(Vertex v : pool.vertexSet()) {
+				
+				Set<Integer> cycleColIDs = membership.getMemberList(v);
+				if(null == cycleColIDs || cycleColIDs.isEmpty()) {
+					continue;
+				}
+				
+				IloLinearNumExpr sum = cplex.linearNumExpr(); 
+				for(Integer cycleColID : cycleColIDs) {
+					sum.addTerm(1.0, x[cycleColID]);
+				}
+				cplex.addLe(sum, 1.0);
+			}
+			
+			
+			// \sum_c altWeight_c * decVar_c >= alpha*|special|
+			cplex.addGe(cplex.scalProd(altWeights, x), alpha * specialV.size());
+			
+			
+
+			// Solve the model, get base statistics (solve time, objective value, etc)
+			Solution sol = super.solveCPLEX();
 		
-		return null;
+			// Figure out which cycles were included in the final solution
+			//double[] vals = cplex.getValues();
+			
+			// We're interested in a* = #matched / |special|
+			IOUtil.dPrintln(getClass().getSimpleName(), "Solved IP!  Objective value: " + sol.getObjectiveValue());
+			
+			cplex.end();		
+			return sol;
+			
+		} catch(IloException e) {
+			System.err.println("Exception thrown during CPLEX solve: " + e);
+			throw new SolverException(e.toString());
+		}
 	}
 
 	

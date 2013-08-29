@@ -114,7 +114,7 @@ public class CycleGenerator {
 	private void generateChains(int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath) {
 
 		if(inPath.contains(lastV)               // Must be a simple cycle
-				|| path.size()-1 > maxChainSize // Cap chain length to maxChainSize (ignore altruist)
+				|| path.size() > maxChainSize   // Cap chain length to maxChainSize (ignore altruist)
 				|| maxChainSize <= 0            // Sanity check
 				) {
 			return;
