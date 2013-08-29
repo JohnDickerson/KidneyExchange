@@ -16,6 +16,10 @@ TBD.
 **NOTE:** This is _not_ the code used in the UNOS [Kidney Paired Donation Pilot Program](http://optn.transplant.hrsa.gov/resources/KPDPP.asp "Kidney Paired Donation Pilot Program information via OPTN") (KPDPP).  The solvers here are meant to be accessible research code for the community and do not use branch-and-price, hopefully resulting in greater ease of use (at the cost of scalability).  Forks and pull requests welcome!
 
 
+External Dependencies
+=====================
+
+To use any of the solvers that inherit from `CPLEXSolver`, you will need to add [cplex.jar](http://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/) to `lib/`.  IBM offers a free academic license as well as a 90-day free trial available on their website.
 
 
 Related Research
