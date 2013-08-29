@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -29,6 +30,8 @@ public class CycleGenerator {
 	 */
 	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize) {
 
+		IOUtil.dPrintln(getClass().getSimpleName(), "Generating all (at-most) " + maxCycleSize + "-cycles and " + maxChainSize + "-chains ...");
+		
 		if(maxCycleSize < 0 || maxChainSize < 0) {
 			throw new IllegalArgumentException("Maximum (cycle, chain) length must be nonnegative.  For infinite length, please use Integer.MAX_INT.  For zero length, please use 0.");
 		}
@@ -65,6 +68,7 @@ public class CycleGenerator {
 			}
 		}
 
+		IOUtil.dPrintln(getClass().getSimpleName(), "Generated " + generatedCycles.size() + " cycles and chains.");
 		return generatedCycles;
 	}
 
@@ -135,7 +139,7 @@ public class CycleGenerator {
 				generateChains(maxChainSize,
 					cycles,
 					startingAlt,
-					pool.getEdgeTarget(nextE),
+					nextV,
 					path,
 					pathWeight + pool.getEdgeWeight(nextE),
 					inPath
