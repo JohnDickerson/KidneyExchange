@@ -20,7 +20,11 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	@Override
 	public boolean addVertex(Vertex v) {
-		throw new UnsupportedOperationException("Please use addPair(KPDVertexPair) and addAltruist(KPDVertexAltruist) instead!");
+		if(v.isAltruist()) {
+			return addAltruist((VertexAltruist) v);
+		} else {
+			return addPair((VertexPair) v);
+		}
 	}
 	
 	public boolean addPair(VertexPair pair) {

@@ -45,4 +45,9 @@ public abstract class Vertex implements Comparable<Vertex> {
 	public int compareTo(Vertex v) {
 		return this.getID().compareTo(v.getID());
 	}
+	
+	@Override
+	public String toString() {
+		return getID().toString();
+	}
 }

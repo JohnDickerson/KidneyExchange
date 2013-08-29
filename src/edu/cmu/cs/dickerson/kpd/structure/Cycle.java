@@ -1,21 +1,22 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Cycle {
 
-	private List<Vertex> vertices;
+	private List<Edge> edges;
 	private double weight;
 	
-	private Cycle(List<Vertex> vertices, double weight) {
-		this.vertices = vertices;
+	private Cycle(List<Edge> edges, double weight) {
+		this.edges = edges;
 		this.weight = weight;
 	}
 
-	public static Cycle makeCycle(List<Vertex> vertices, double weight) {
-		List<Vertex> verticesCopy = new ArrayList<Vertex>(vertices);
-		return new Cycle(verticesCopy, weight);
+	public static Cycle makeCycle(Collection<Edge> edges, double weight) {
+		List<Edge> edgesCopy = new ArrayList<Edge>(edges);
+		return new Cycle(edgesCopy, weight);
 	}
 	
 	public double getWeight() {
@@ -26,5 +27,19 @@ public class Cycle {
 		this.weight = weight;
 	}
 	
+	public List<Edge> getEdges() {
+		return edges;
+	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("< ");
+		for(Edge edge : edges) {
+			sb.append(edge.toString() + " ");
+		}
+		sb.append("> @ " + weight);
+		return sb.toString();
+	}
 }
+
