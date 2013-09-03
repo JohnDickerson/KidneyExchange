@@ -17,7 +17,8 @@ public class SparseUNOSSaidmanPoolGenerator extends SaidmanPoolGenerator {
 
 		Pr_LOW_PRA = 0.216;  // 0.007 + 0.001 + 0.016 + 0.192 = 0.216
 		Pr_MED_PRA = 0.16;   // 0.018 + 0.001 + 0.025 + 0.116 = 0.16
-
+		// Pr_HIGH_PRA = 1.0 - 0.216 - 0.16 = 0.624
+		
 		Pr_LOW_PRA_INCOMPATIBILITY = 0.0;
 		Pr_MED_PRA_INCOMPATIBILITY = 0.80;
 		Pr_HIGH_PRA_INCOMPATIBILITY = 0.98;

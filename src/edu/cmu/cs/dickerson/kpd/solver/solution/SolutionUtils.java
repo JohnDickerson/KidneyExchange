@@ -18,7 +18,7 @@ public final class SolutionUtils {
 	 * @param vertices
 	 * @return
 	 */
-	public int countVertsInMatching(Pool pool, Solution solution, Set<Vertex> vertices) {
+	public static int countVertsInMatching(Pool pool, Solution solution, Set<Vertex> vertices) {
 		
 		if(null == solution || null == vertices) { return 0; }
 		
