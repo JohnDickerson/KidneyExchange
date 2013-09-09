@@ -54,14 +54,15 @@ public enum BloodType {
 	}
 	
 	/**
-	 * Translates a String blood type (like "AB") to a BloodType object (AB)
+	 * Translates a String blood type (like "AB") to a BloodType object (AB).
+	 * Currently maps subtypes to ABO groups (e.g., A1 -> A, A2B -> AB, ...)
 	 * @param name a readable identifier (typically "A", "B", "O", or "AB")
 	 * @return BloodType corresponding to this string, or NoSuchElementException
 	 * for unrecognized String inputs
 	 */
 	public static BloodType getBloodType(String name) {
 		
-		String key = name.trim().toUpperCase();
+		String key = name.trim().replaceAll("[0-9]","").toUpperCase();
 		if(strToBlood.containsKey(key)) {
 			return strToBlood.get(key);
 		} else {
