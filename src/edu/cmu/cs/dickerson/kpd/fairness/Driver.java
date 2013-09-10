@@ -41,7 +41,7 @@ public class Driver {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0,3,6);
+		List<Integer> chainCapList = Arrays.asList(0,3,5);
 
 		// What's our threshold for high sensitization?
 		List<Double> highlySensitizedThreshList = Arrays.asList(0.90);
@@ -125,7 +125,7 @@ public class Driver {
 										Solution unfairSol = s.solve(0.0);
 										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
 										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV));
-										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
+										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet()));
 
 										IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 										IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());

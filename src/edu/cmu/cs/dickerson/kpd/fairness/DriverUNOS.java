@@ -29,7 +29,7 @@ public class DriverUNOS {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0,3,6,Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(0,4);//,6,Integer.MAX_VALUE);
 
 		// Initialize our experimental output to .csv writer
 		String path = "unos_" + System.currentTimeMillis() + ".csv";

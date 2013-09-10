@@ -46,15 +46,16 @@ public class UNOSLoader {
 		this.delim = delim;
 	}
 
-	private void loadRecipients(String recipientFilePath, Pool pool, Map<Integer, Vertex> idToVertex) {
+	private int loadRecipients(String recipientFilePath, Pool pool, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID) {
 		CSVReader reader = null;
+		int ID = 0;
 		try {
 			reader = new CSVReader(new FileReader(recipientFilePath), delim);
 			reader.readNext();  // skip headers
 
 			String[] line;
 			while((line = reader.readNext()) != null) {
-				Integer ID = Integer.valueOf(line[RecipientIdx.CANDIDATE_ID.idx()]);
+				String candidateID = line[RecipientIdx.CANDIDATE_ID.idx()].trim().toUpperCase();
 				BloodType bloodType = BloodType.getBloodType(line[RecipientIdx.ABO.idx()]);
 				Boolean isHighlySensitized = IOUtil.stringToBool(line[RecipientIdx.HIGHLY_SENSITIZED.idx()]);
 
@@ -63,15 +64,18 @@ public class UNOSLoader {
 				pool.addPair(vp);
 
 				idToVertex.put(ID, vp);
+				strIDtoIntID.put(candidateID, ID);
+				ID++;
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
 		} finally { 
 			IOUtil.closeIgnoreExceptions(reader);
 		}
+		return ID;
 	}
 
-	private Set<Integer> loadDonors(String donorFilePath, Pool pool, Map<Integer, Integer> donorToCand, Map<Integer, Vertex> idToVertex) throws LoaderException {
+	private Set<Integer> loadDonors(String donorFilePath, Pool pool, Map<Integer, Integer> donorToCand, Map<Integer, Vertex> idToVertex, int ID, Map<String, Integer> strIDtoIntID) throws LoaderException {
 
 		CSVReader reader = null;
 		Set<Integer> altruistIDs = new HashSet<Integer>();
@@ -84,12 +88,12 @@ public class UNOSLoader {
 				Boolean isNonDirectedDonor = IOUtil.stringToBool(line[DonorIdx.NDD.idx()]);
 
 
-				Integer donorID = Integer.valueOf(line[DonorIdx.DONOR_ID.idx()]);
+				String donorID = line[DonorIdx.DONOR_ID.idx()].trim().toUpperCase();
 				BloodType donorBloodType = BloodType.getBloodType(line[DonorIdx.ABO.idx()]);
 
 				if(isNonDirectedDonor) {
 					// If the donor is an altruist, add to the graph (this is our first time seeing him/her)
-					VertexAltruist altruist = new VertexAltruist(donorID, donorBloodType);
+					VertexAltruist altruist = new VertexAltruist(ID, donorBloodType);
 					pool.addAltruist(altruist);
 					altruistIDs.add(donorID);
 					idToVertex.put(donorID, altruist);
