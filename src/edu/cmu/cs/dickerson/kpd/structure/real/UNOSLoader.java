@@ -75,7 +75,7 @@ public class UNOSLoader {
 		return ID;
 	}
 
-	private Set<Integer> loadDonors(String donorFilePath, Pool pool, Map<Integer, Integer> donorToCand, Map<Integer, Vertex> idToVertex, int ID, Map<String, Integer> strIDtoIntID) throws LoaderException {
+	private Set<Integer> loadDonors(String donorFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, int ID) throws LoaderException {
 
 		CSVReader reader = null;
 		Set<Integer> altruistIDs = new HashSet<Integer>();
@@ -95,11 +95,13 @@ public class UNOSLoader {
 					// If the donor is an altruist, add to the graph (this is our first time seeing him/her)
 					VertexAltruist altruist = new VertexAltruist(ID, donorBloodType);
 					pool.addAltruist(altruist);
-					altruistIDs.add(donorID);
-					idToVertex.put(donorID, altruist);
+					altruistIDs.add(ID);
+					idToVertex.put(ID, altruist);
+					strIDtoIntID.put(donorID, ID);
+					ID++;
 				} else {
 					// If the donor is paired, add to the respective candidate's donor list
-					Integer candidateID = Integer.valueOf(line[DonorIdx.CANDIDATE_ID.idx()]);
+					String candidateID = line[DonorIdx.CANDIDATE_ID.idx()].trim();
 					donorToCand.put(donorID, candidateID);
 				}
 				
@@ -114,7 +116,7 @@ public class UNOSLoader {
 	}
 
 	@SuppressWarnings("resource")
-	private void loadEdges(String edgeFilePath, Pool pool, Map<Integer, Integer> donorToCand, Map<Integer, Vertex> idToVertex, Set<Integer> altruistIDs) throws LoaderException {
+	private void loadEdges(String edgeFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, Set<Integer> altruistIDs) throws LoaderException {
 
 		
 		// Read non-dummy edges from UNOS file
@@ -131,19 +133,24 @@ public class UNOSLoader {
 					// Ignore weird zero-weight non-dummy altruist edges
 					continue;
 				}
-				Integer candidateID = Integer.valueOf(candidateIDStr);
-				Integer donorID = Integer.valueOf(line[EdgeWeightIdx.DONOR_ID.idx()]);
+				String donorID = line[EdgeWeightIdx.DONOR_ID.idx()];
 				double edgeWeight = Double.valueOf(line[EdgeWeightIdx.EDGEWEIGHT.idx()].trim());
 
 				Vertex from = null;
-				if(altruistIDs.contains(donorID)) {
-					from = idToVertex.get(donorID);
+				Integer potentialAltID = strIDtoIntID.get(donorID);
+				if(null != potentialAltID && altruistIDs.contains(potentialAltID)) {
+					from = idToVertex.get(potentialAltID);
 				} else {
-					from = idToVertex.get(donorToCand.get(donorID));
+					from = idToVertex.get( strIDtoIntID.get(donorToCand.get(donorID) ));
 				}
-				Vertex to = idToVertex.get(candidateID);
-				if(null == from || null == to) {
-					throw new LoaderException("Loaded an edge between one or both of a nonexistant donor " + donorID + " and candidate " + candidateID);
+
+				if(null == from) {
+					throw new LoaderException("Trying to load an edge for nonexistent donor: " + donorID);
+				}
+
+				Vertex to = idToVertex.get(strIDtoIntID.get(candidateIDStr));
+				if(null == to) {
+					throw new LoaderException("Trying to load an edge for nonexistent candidate: " + candidateIDStr);
 				}
 				pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight);
 			}
@@ -169,14 +176,15 @@ public class UNOSLoader {
 
 		// Read in the recipients, make vertex pairs for each of them (note: no altruists until donor file read)
 		Map<Integer, Vertex> idToVertex = new HashMap<Integer, Vertex>();
-		loadRecipients(recipientFilePath, pool, idToVertex);
+		Map<String, Integer> strIDtoIntID = new HashMap<String, Integer>();
+		int nextID = loadRecipients(recipientFilePath, pool, idToVertex, strIDtoIntID);
 
 		// Load donors (either paired with patients, or altruists)
-		Map<Integer, Integer> donorToCand = new HashMap<Integer, Integer>();
-		Set<Integer> altruistIDs = loadDonors(donorFilePath, pool, donorToCand, idToVertex);
+		Map<String, String> donorToCand = new HashMap<String, String>();
+		Set<Integer> altruistIDs = loadDonors(donorFilePath, pool, donorToCand, idToVertex, strIDtoIntID, nextID);
 
 		// Load the edges and weights, draw them in the Pool
-		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, altruistIDs);
+		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, strIDtoIntID, altruistIDs);
 
 		IOUtil.dPrintln("Loaded UNOS graph with " + pool.vertexSet().size() + " vertices and "+ pool.edgeSet().size() + " edges.");
 		return pool;

@@ -42,7 +42,8 @@ public class DriverUNOS {
 		}
 
 		// Want to solve for each match run in a master directory consisting of single match directories
-		String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
+		//String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
+		String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
 		File baseUNOSDir = new File(baseUNOSpath);
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override
@@ -57,9 +58,10 @@ public class DriverUNOS {
 
 			// We assume a lot about filenames here.  Figure out which .csv files matter
 			String matchRunID = "", donorFilePath = "", recipientFilePath = "", edgeFilePath = "";
-			for(File csvFile : Arrays.asList(matchDir.listFiles(new FilenameFilter() { 
-				@Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } })
-					)) {
+			File[] csvFiles = matchDir.listFiles(new FilenameFilter() {  @Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } });
+			if(null == csvFiles || csvFiles.length < 1) { continue; }
+			
+			for(File csvFile : Arrays.asList(csvFiles)) {
 				if(csvFile.getName().toUpperCase().contains("DONOR")) {
 					donorFilePath = csvFile.getAbsolutePath();
 					matchRunID = csvFile.getName().substring(0,8);
