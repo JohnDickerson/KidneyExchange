@@ -38,7 +38,6 @@ public class UNOSLoaderTest {
 			e.printStackTrace();
 		}
 
-		assertEquals(3441, pool.edgeSet().size());
 	}
 
 }

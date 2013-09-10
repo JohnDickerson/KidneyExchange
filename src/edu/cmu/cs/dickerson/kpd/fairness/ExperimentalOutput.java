@@ -27,8 +27,10 @@ public class ExperimentalOutput {
 		ALPHA_STAR, 
 		FAIR_OBJECTIVE, 
 		UNFAIR_OBJECTIVE,
-		FAIR_HIGHLY_SENSITIZED_MATCHED, 
+		FAIR_HIGHLY_SENSITIZED_MATCHED,
+		FAIR_TOTAL_CARDINALITY_MATCHED,
 		UNFAIR_HIGHLY_SENSITIZED_MATCHED,
+		UNFAIR_TOTAL_CARDINALITY_MATCHED,
 		};
 
 	public ExperimentalOutput(String path) throws IOException {
@@ -61,6 +63,8 @@ public class ExperimentalOutput {
 		header[Col.ALPHA_STAR.ordinal()] = "Alpha*";
 		header[Col.FAIR_OBJECTIVE.ordinal()] = "Fair Objective";
 		header[Col.UNFAIR_OBJECTIVE.ordinal()] = "Unfair Objective";
+		header[Col.FAIR_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Fair Total Matched";
+		header[Col.UNFAIR_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Unfair Total Matched";
 		header[Col.FAIR_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Fair Highly-Sensitized Matched";
 		header[Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Unfair Highly-Sensitized Matched";
 		return header;

@@ -31,10 +31,6 @@ public class DriverUNOS {
 		List<Integer> cycleCapList = Arrays.asList(3);
 		List<Integer> chainCapList = Arrays.asList(0,3,6,Integer.MAX_VALUE);
 
-		// What's our threshold for high sensitization?  UNOS graphs are currently loaded 
-		// with not highly sensitized = 0 and highly sensitized = 100
-		List<Double> highlySensitizedThreshList = Arrays.asList(0.90);
-
 		// Initialize our experimental output to .csv writer
 		String path = "unos_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;
@@ -51,7 +47,7 @@ public class DriverUNOS {
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String name) {
-				return file.isDirectory();
+				return file.isDirectory() && !name.endsWith(".zip");
 			}
 		}));
 
@@ -61,10 +57,12 @@ public class DriverUNOS {
 
 			// We assume a lot about filenames here.  Figure out which .csv files matter
 			String matchRunID = "", donorFilePath = "", recipientFilePath = "", edgeFilePath = "";
-			for(File csvFile : Arrays.asList(matchDir.listFiles(new FilenameFilter() { @Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } }))) {
+			for(File csvFile : Arrays.asList(matchDir.listFiles(new FilenameFilter() { 
+				@Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } })
+					)) {
 				if(csvFile.getName().toUpperCase().contains("DONOR")) {
 					donorFilePath = csvFile.getAbsolutePath();
-					matchRunID = donorFilePath.substring(0,8);
+					matchRunID = csvFile.getName().substring(0,8);
 				} else if(csvFile.getName().toUpperCase().contains("RECIPIENT")) {
 					recipientFilePath = csvFile.getAbsolutePath();
 				} else if(csvFile.getName().toUpperCase().contains("EDGEWEIGHTS")) {
@@ -103,6 +101,8 @@ public class DriverUNOS {
 					eOut.set(Col.RANDOM_SEED, 0);
 					eOut.set(Col.GENERATOR, matchRunID);
 
+					IOUtil.dPrintln("Looking at UNOS file: " + matchRunID);
+					
 					// Generate all 3-cycles and somecap-chains
 					CycleGenerator cg = new CycleGenerator(pool);
 					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap);
@@ -129,11 +129,13 @@ public class DriverUNOS {
 						eOut.set(Col.ALPHA_STAR, alphaStarSol.getObjectiveValue());
 						eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
 						eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV));
+						eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
 
 						Solution unfairSol = s.solve(0.0);
 						eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
 						eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV));
-
+						eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet()));
+						
 						IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 						IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());
 

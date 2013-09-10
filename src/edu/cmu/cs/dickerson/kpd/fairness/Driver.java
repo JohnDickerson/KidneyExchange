@@ -120,10 +120,12 @@ public class Driver {
 										eOut.set(Col.ALPHA_STAR, alphaStarSol.getObjectiveValue());
 										eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
 										eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV));
+										eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
 
 										Solution unfairSol = s.solve(0.0);
 										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
 										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV));
+										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
 
 										IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 										IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());
