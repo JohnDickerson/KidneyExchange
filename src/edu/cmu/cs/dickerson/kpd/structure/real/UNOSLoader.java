@@ -51,7 +51,7 @@ public class UNOSLoader {
 		try {
 			reader = new CSVReader(new FileReader(recipientFilePath), delim);
 			reader.readNext();  // skip headers
-			
+
 			String[] line;
 			while((line = reader.readNext()) != null) {
 				Integer ID = Integer.valueOf(line[RecipientIdx.CANDIDATE_ID.idx()]);
@@ -80,13 +80,14 @@ public class UNOSLoader {
 		try {
 			reader = new CSVReader(new FileReader(donorFilePath), delim);
 			reader.readNext(); // skip headers
-			
+
 			String[] line;
 			while((line = reader.readNext()) != null) {
-				Integer candidateID = Integer.valueOf(line[DonorIdx.CANDIDATE_ID.idx()]);
+				Boolean isNonDirectedDonor = IOUtil.stringToBool(line[DonorIdx.NDD.idx()]);
+
+
 				Integer donorID = Integer.valueOf(line[DonorIdx.DONOR_ID.idx()]);
 				BloodType donorBloodType = BloodType.getBloodType(line[DonorIdx.ABO.idx()]);
-				Boolean isNonDirectedDonor = IOUtil.stringToBool(line[DonorIdx.NDD.idx()]);
 
 				if(isNonDirectedDonor) {
 					// If the donor is an altruist, add to the graph (this is our first time seeing him/her)
@@ -94,12 +95,16 @@ public class UNOSLoader {
 					pool.addAltruist(altruist);
 					altruistIDs.add(donorID);
 					idToVertex.put(donorID, altruist);
-				} else if(candToDonors.containsKey(candidateID)) {
-					// If the donor is paired, add to the respective candidate's donor list
-					candToDonors.get(candidateID).add(donorID);
 				} else {
-					throw new LoaderException("Found donor paired with an unknown candidate " + candidateID);
+					Integer candidateID = Integer.valueOf(line[DonorIdx.CANDIDATE_ID.idx()]);
+					if(candToDonors.containsKey(candidateID)) {
+						// If the donor is paired, add to the respective candidate's donor list
+						candToDonors.get(candidateID).add(donorID);
+					} else {
+						throw new LoaderException("Found donor paired with an unknown candidate " + candidateID);
+					}
 				}
+				
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -112,19 +117,19 @@ public class UNOSLoader {
 
 	@SuppressWarnings("resource")
 	private void loadEdges(String edgeFilePath, Pool pool, Map<Integer, Set<Integer>> candToDonors, Map<Integer, Vertex> idToVertex, Set<Integer> altruistIDs) throws LoaderException {
-		
+
 		CSVReader reader = null;
 		try {
 			reader = new CSVReader(new FileReader(edgeFilePath), delim);
 			reader.readNext();  // skip headers
-			
+
 			String[] line;
 			while((line = reader.readNext()) != null) {
-	
+
 				Integer candidateID = Integer.valueOf(line[EdgeWeightIdx.CANDIDATE_ID.idx()]);
 				Integer donorID = Integer.valueOf(line[EdgeWeightIdx.DONOR_ID.idx()]);
 				double edgeWeight = Double.valueOf(line[EdgeWeightIdx.EDGEWEIGHT.idx()].trim());
-				
+
 				Vertex from = idToVertex.get(donorID);
 				Vertex to = idToVertex.get(candidateID);
 				if(null == from || null == to) {
@@ -132,14 +137,14 @@ public class UNOSLoader {
 				}
 				pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight);
 			}
-			
+
 		} catch(IOException e) {
 			e.printStackTrace();
 		} finally { 
 			IOUtil.closeIgnoreExceptions(reader);
 		}
 	}
-	
+
 	public Pool loadFromFile(String donorFilePath, String recipientFilePath, String edgeFilePath) throws LoaderException {
 
 		IOUtil.dPrintln("Loading UNOS graph (donor file: " + donorFilePath + ")");
