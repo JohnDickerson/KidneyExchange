@@ -13,15 +13,22 @@ import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public abstract class CPLEXSolver extends Solver {
 
-	protected IloCplex cplex;
-	
+	protected static IloCplex cplex = null;
+
 	public CPLEXSolver(Pool pool, List<Cycle> cycles) {
 		super(pool, cycles);
 	}
 
-	
+
 	protected void initializeCPLEX() throws IloException {
-		cplex = new IloCplex();
+
+		// Either initialize CPLEX or clear out any old data
+		if(null == cplex) {
+			cplex = new IloCplex();
+		} else {
+			cplex.clearModel();
+		}
+
 		if(getMaxCPUThreads() > 0) {
 			cplex.setParam(IloCplex.IntParam.Threads, super.getMaxCPUThreads());
 		}
@@ -29,9 +36,9 @@ public abstract class CPLEXSolver extends Solver {
 			cplex.setParam(IloCplex.DoubleParam.TiLim, super.getMaxSolveSeconds());
 		}
 	}
-	
+
 	protected Solution solveCPLEX() throws IloException, SolverException {
-		
+
 		//
 		// Solve the model
 		long solveStartTime = System.nanoTime();
@@ -50,14 +57,14 @@ public abstract class CPLEXSolver extends Solver {
 
 			// Elapsed solve time (just solve time, not IP write time)
 			sol.setSolveTime(solveTime);
-			
+
 			return sol;
 
 		} else {
 			throw new SolverException("cplex.solve() returned false.");
 		}
 	}
-	
+
 	@Override
 	public String getID() {
 		return "CPLEX Fairness Solver";

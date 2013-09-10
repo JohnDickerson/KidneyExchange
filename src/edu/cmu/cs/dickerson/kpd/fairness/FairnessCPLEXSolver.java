@@ -104,7 +104,8 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 			}
 			IOUtil.dPrintln(getClass().getSimpleName(), "Found a* = " + sol.getObjectiveValue());
 			
-			cplex.end();		
+			cplex.clearModel();
+			//cplex.end();		
 			return sol;
 			
 		} catch(IloException e) {
@@ -187,7 +188,11 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 			}
 			
 			
-			cplex.end();		
+			
+			// 
+			cplex.clearModel();
+			//cplex.end();		
+			
 			return sol;
 			
 		} catch(IloException e) {
