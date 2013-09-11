@@ -29,7 +29,7 @@ public class DriverUNOS {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0,4,7);//Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(Integer.MAX_VALUE);
 
 		
 		// Initialize our experimental output to .csv writer
@@ -44,7 +44,8 @@ public class DriverUNOS {
 
 		// Want to solve for each match run in a master directory consisting of single match directories
 		//String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
-		String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
+		//String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
+		String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
 		File baseUNOSDir = new File(baseUNOSpath);
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override
@@ -73,6 +74,13 @@ public class DriverUNOS {
 				}
 			}
 
+			// Possibly skip some of the longer-running matches while we test
+			//if(matchRunID.equals("20121112") || matchRunID.equals("20121119") || matchRunID.equals("20130114") || matchRunID.equals("20130121")) {
+			//	continue;
+			//}
+			
+			
+			
 			// Make sure we're actually looking at a UNOS match run
 			if(donorFilePath.isEmpty() || recipientFilePath.isEmpty() || edgeFilePath.isEmpty() || matchRunID.isEmpty()) {
 				IOUtil.dPrintln("Couldn't figure out this directory!");
