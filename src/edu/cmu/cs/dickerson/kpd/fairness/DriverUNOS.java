@@ -139,13 +139,13 @@ public class DriverUNOS {
 						Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());
 						eOut.set(Col.ALPHA_STAR, alphaStarSol.getObjectiveValue());
 						eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
-						eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV));
-						eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
+						eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
+						eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
 
 						Solution unfairSol = s.solve(0.0);
 						eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
-						eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV));
-						eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet()));
+						eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
+						eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
 						
 						IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 						IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());

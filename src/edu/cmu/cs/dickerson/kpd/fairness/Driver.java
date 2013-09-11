@@ -41,13 +41,14 @@ public class Driver {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0,3,5);
+		List<Integer> chainCapList = Arrays.asList(0,4);
 
 		// What's our threshold for high sensitization?
 		List<Double> highlySensitizedThreshList = Arrays.asList(0.90);
 
 		// Which pool generators should we test?
 		List<RelevantGenerator> generatorTypeList = Arrays.asList(RelevantGenerator.SPARSE_UNOS_SAIDMAN, RelevantGenerator.HETEROGENEOUS, RelevantGenerator.SAIDMAN);
+		//List<RelevantGenerator> generatorTypeList = Arrays.asList(RelevantGenerator.HETEROGENEOUS, RelevantGenerator.SAIDMAN);
 
 
 		// Initialize our experimental output to .csv writer
@@ -119,13 +120,13 @@ public class Driver {
 										Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());
 										eOut.set(Col.ALPHA_STAR, alphaStarSol.getObjectiveValue());
 										eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
-										eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV));
-										eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet()));
+										eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
+										eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
 
 										Solution unfairSol = s.solve(0.0);
 										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
-										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV));
-										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet()));
+										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
+										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
 
 										IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 										IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());

@@ -18,7 +18,7 @@ public final class SolutionUtils {
 	 * @param vertices
 	 * @return
 	 */
-	public static int countVertsInMatching(Pool pool, Solution solution, Set<Vertex> vertices) {
+	public static int countVertsInMatching(Pool pool, Solution solution, Set<Vertex> vertices, boolean includeAltruists) {
 		
 		if(null == solution || null == vertices) { return 0; }
 		
@@ -26,7 +26,7 @@ public final class SolutionUtils {
 		for(Cycle matchedCycle : solution.getMatching()) {
 			for(Edge edge : matchedCycle.getEdges()) {
 				Vertex matchedVertex = pool.getEdgeTarget(edge);
-				if(vertices.contains(matchedVertex)) {
+				if( (includeAltruists || !matchedVertex.isAltruist()) && vertices.contains(matchedVertex)) {
 					count++;
 				}
 			}
