@@ -181,7 +181,7 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 				for(Edge e : c.getEdges()) {
 					Vertex v = pool.getEdgeSource(e);
 					if(seenVerts.contains(v)) {
-						System.exit(-1);
+						IOUtil.dPrintln(getClass().getSimpleName(), "A vertex was in more than one matched cycle; aborting.");
 					}
 					seenVerts.add(v);
 				}

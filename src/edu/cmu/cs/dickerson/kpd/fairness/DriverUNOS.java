@@ -29,7 +29,7 @@ public class DriverUNOS {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(7); //Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
 
 		
 		// Initialize our experimental output to .csv writer
@@ -50,7 +50,7 @@ public class DriverUNOS {
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String name) {
-				return file.isDirectory() && !name.endsWith(".zip");
+				return file.isDirectory() && !name.toLowerCase().endsWith(".zip");
 			}
 		}));
 

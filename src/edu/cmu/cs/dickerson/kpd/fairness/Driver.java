@@ -36,12 +36,13 @@ public class Driver {
 		int numRepeats = 10;
 
 		// Iterate over the cross product of num pairs and altruists
-		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250,500);
-		List<Double> altPctList = Arrays.asList(0.0, 0.01, 0.05, 0.10);
-
+		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250);//,500);
+		//List<Double> altPctList = Arrays.asList(0.0, 0.01, 0.05, 0.10);
+		List<Double> altPctList = Arrays.asList(0.05);
+		
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0,4);
+		List<Integer> chainCapList = Arrays.asList(4);
 
 		// What's our threshold for high sensitization?
 		List<Double> highlySensitizedThreshList = Arrays.asList(0.90);
@@ -67,6 +68,7 @@ public class Driver {
 					Integer numAlts = (int) Math.round(numPairs * altPct);		
 					for(Integer cycleCap : cycleCapList) {
 						for(Integer chainCap : chainCapList) {
+							
 							for(Double highlySensitizedThresh : highlySensitizedThreshList) {
 								for(int repeat=0; repeat<numRepeats; repeat++) {
 
