@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.fairness.ExperimentalOutput.Col;
+import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput;
+import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput.Col;
+import edu.cmu.cs.dickerson.kpd.fairness.solver.FairnessCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
@@ -24,7 +26,7 @@ import edu.cmu.cs.dickerson.kpd.structure.generator.HeterogeneousPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
 
-public class Driver {
+public class LexicographicalDriver {
 
 	public enum RelevantGenerator { HETEROGENEOUS, SAIDMAN, SPARSE_UNOS_SAIDMAN };
 

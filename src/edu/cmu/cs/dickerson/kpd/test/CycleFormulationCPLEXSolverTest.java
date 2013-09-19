@@ -10,7 +10,7 @@ import org.jgrapht.generate.GraphGenerator;
 import org.jgrapht.generate.RandomGraphGenerator;
 import org.junit.Test;
 
-import edu.cmu.cs.dickerson.kpd.fairness.FairnessCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.fairness.solver.FairnessCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;

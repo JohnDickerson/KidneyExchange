@@ -1,4 +1,4 @@
-package edu.cmu.cs.dickerson.kpd.fairness;
+package edu.cmu.cs.dickerson.kpd.fairness.solver;
 
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;

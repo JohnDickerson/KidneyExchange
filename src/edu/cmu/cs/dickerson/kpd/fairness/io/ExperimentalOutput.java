@@ -1,4 +1,4 @@
-package edu.cmu.cs.dickerson.kpd.fairness;
+package edu.cmu.cs.dickerson.kpd.fairness.io;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -3,6 +3,7 @@ package edu.cmu.cs.dickerson.kpd.fairness;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -10,8 +11,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.fairness.ExperimentalOutput.Col;
+import edu.cmu.cs.dickerson.kpd.fairness.alg.FairnessUtil;
+import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput;
+import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.solver.solution.SolutionUtils;
@@ -27,6 +31,7 @@ import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
 public class DriverUNOS {
 
+
 	public static void main(String args[]) {
 
 		// Possibly use different max cycle and chain sizes
@@ -34,14 +39,20 @@ public class DriverUNOS {
 		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 5;   // need >1 if we're doing, e.g., bimodal probabilities
+		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
+
+		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
+		List<Double> alphaStarValList = new ArrayList<Double>();
+		for(double alphaStarVal=0.0; alphaStarVal<1.0; alphaStarVal += 0.05) {
+			alphaStarValList.add(alphaStarVal);
+		}
 
 		// Random seed (recorded in experimental file for reproducibility) -- used for failure probabilities
 		long seed = System.currentTimeMillis();
 
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 
 		// Initialize our experimental output to .csv writer
 		String path = "unos_" + System.currentTimeMillis() + ".csv";
@@ -116,6 +127,7 @@ public class DriverUNOS {
 			double highlySensitizedThresh = 0.8;   // UNOS data is explicitly marked as highly or not highly sensitized   
 
 			for(int repeatIdx=0; repeatIdx<numRepeats; repeatIdx++) {
+
 				// Generate a compatibility graph
 				Random r = new Random(++seed);
 
@@ -124,82 +136,88 @@ public class DriverUNOS {
 					FailureProbabilityUtil.setFailureProbability(pool, failDist, r);
 				}
 
-				for(Integer cycleCap : cycleCapList) {
-					for(Integer chainCap : chainCapList) {
+				for(Double alphaStarVal : alphaStarValList) {
 
-						eOut.set(Col.START_TIME, new Date());
-						eOut.set(Col.NUM_PAIRS, numPairs);
-						eOut.set(Col.NUM_ALTS, numAlts);
-						eOut.set(Col.CYCLE_CAP, cycleCap);
-						eOut.set(Col.CHAIN_CAP, chainCap);
-						eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
-						eOut.set(Col.RANDOM_SEED, seed);
-						eOut.set(Col.GENERATOR, matchRunID);
-						eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
-						eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
+					for(Integer cycleCap : cycleCapList) {
+						for(Integer chainCap : chainCapList) {
 
-						IOUtil.dPrintln("Looking at UNOS file: " + matchRunID);
+							eOut.set(Col.START_TIME, new Date());
+							eOut.set(Col.NUM_PAIRS, numPairs);
+							eOut.set(Col.NUM_ALTS, numAlts);
+							eOut.set(Col.CYCLE_CAP, cycleCap);
+							eOut.set(Col.CHAIN_CAP, chainCap);
+							eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
+							eOut.set(Col.RANDOM_SEED, seed);
+							eOut.set(Col.GENERATOR, matchRunID);
+							eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
+							eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
 
-						// Generate all 3-cycles and somecap-chains
-						CycleGenerator cg = new CycleGenerator(pool);
-						List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
+							IOUtil.dPrintln("Looking at UNOS file: " + matchRunID);
 
-						// For each vertex, get list of cycles that contain this vertex
-						CycleMembership membership = new CycleMembership(pool, cycles);
-
-						// Split pairs into highly- and not highly-sensitized patients 
-						Set<Vertex> highV = new HashSet<Vertex>();
-						for(VertexPair pair : pool.getPairs()) {
-							if(pair.getPatientCPRA() >= highlySensitizedThresh) {
-								highV.add(pair);
+							// Split pairs into highly- and not highly-sensitized patients 
+							Set<Vertex> highV = new HashSet<Vertex>();
+							for(VertexPair pair : pool.getPairs()) {
+								if(pair.getPatientCPRA() >= highlySensitizedThresh) {
+									highV.add(pair);
+								}
 							}
-						}
-						eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
+							eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
 
-						// Solve the model
-						try {
+							// Set weights of edges targeting non-highly-sensitized patients to 1.0, and
+							// edges targeting highly-sensitized patients to (1.0 + alphaStar)
+							eOut.set(Col.ALPHA_STAR, alphaStarVal);
+							FairnessUtil.setFairnessEdgeWeights(pool, alphaStarVal, highV);
+							
+							// Generate all 3-cycles and somecap-chains
+							CycleGenerator cg = new CycleGenerator(pool);
+							List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
 
-							FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV, usingFailureProbabilities);
+							// For each vertex, get list of cycles that contain this vertex
+							CycleMembership membership = new CycleMembership(pool, cycles);
 
-							Solution alphaStarSol = s.solveForAlphaStar();
-							Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());
-							eOut.set(Col.ALPHA_STAR, alphaStarSol.getObjectiveValue());
-							eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
-							eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
-							eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
-							eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
-							eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
+							// Solve the model
+							try {
 
+								// We can just use the basic cycle formulation solver here --
+								//  - no failure case: the weights of cycles and chains take 1+alphaStar into account during generation
+								//  - failure case: utilities of cycles/chains take adjusted edge weights into account, too
+								CycleFormulationCPLEXSolver s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
 
-
-							Solution unfairSol = s.solve(0.0);
-							eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
-							eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
-							eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
-							eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
-							eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
-
-
-							IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
-							IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());
-
-						} catch(SolverException e) {
-							e.printStackTrace();
-						}
+								Solution fairSol = s.solve();
+								eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
+								eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
+								eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
+								eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
+								eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
+								
+								//Solution unfairSol = s.solve(0.0);
+								//eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
+								//eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
+								//eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
+								//eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
+								//eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
 
 
-						// Write the experimental row of data
-						try {
-							eOut.record();
-						} catch(IOException e) {
-							IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
-							e.printStackTrace();
-							return;
-						}
+								IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 
-					} // chainCap & chainCapList
-				} // cycleCap & cycleCapList
-			} // repeatIdx & numRepeats
+							} catch(SolverException e) {
+								e.printStackTrace();
+							}
+
+
+							// Write the experimental row of data
+							try {
+								eOut.record();
+							} catch(IOException e) {
+								IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+								e.printStackTrace();
+								return;
+							}
+
+						} // chainCap & chainCapList
+					} // cycleCap & cycleCapList
+				} // alphaStarVal & alphaStarValList
+			} // repeatIdx & numRepeats		
 		} // matchDir & matchDirList
 
 		// Flush and kill the CSV writer
