@@ -6,6 +6,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 
 public final class SolutionUtils {
 
@@ -33,5 +34,21 @@ public final class SolutionUtils {
 		}
 		
 		return count;
+	}
+	
+	public static double countExpectedTransplantsInMatching(Pool pool, Solution solution, Set<Vertex> specialV) {
+		
+		if(null == solution || null == specialV) { return 0; }
+		
+		double expectation = 0.0;
+		for(Cycle matchedCycle : solution.getMatching()) {
+			if(Cycle.isAChain(matchedCycle, pool)) {
+				expectation += FailureProbabilityUtil.calculateDiscountedChainUtility(matchedCycle, pool, specialV, true);
+			} else {
+				expectation += FailureProbabilityUtil.calculateDiscountedCycleUtility(matchedCycle, pool, specialV, true);
+			}
+		}
+		
+		return expectation;
 	}
 }

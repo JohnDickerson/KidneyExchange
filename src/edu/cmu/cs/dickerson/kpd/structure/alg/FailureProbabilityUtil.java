@@ -57,15 +57,18 @@ public final class FailureProbabilityUtil {
 		}
 	}
 	
-	
 	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool, Set<Vertex> specialV) {
+		return calculateDiscountedCycleUtility(c, pool, specialV, false);
+	}
+	
+	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool, Set<Vertex> specialV, boolean forceCardinality) {
 		
 		double utilSum = 0.0;
 		double succProb = 1.0;
 		for(Edge e : c.getEdges()) {
 			Vertex recipient = pool.getEdgeTarget(e);
 			if(specialV.contains(recipient)) {
-				utilSum += pool.getEdgeWeight(e);
+				utilSum += ( forceCardinality ? 1.0 : pool.getEdgeWeight(e) );
 			}
 			succProb *= (1.0 - e.getFailureProbability());
 		}
@@ -74,8 +77,11 @@ public final class FailureProbabilityUtil {
 	}
 	
 	
-	
 	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, Set<Vertex> specialV) {
+		return calculateDiscountedChainUtility(c, pool, specialV, false);
+	}
+	
+	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, Set<Vertex> specialV, boolean forceCardinality) {
 		
 		int edgeIdx = 0;
 		double pathSuccProb = 1.0;
@@ -104,7 +110,7 @@ public final class FailureProbabilityUtil {
 			pathSuccProb *= (1.0 - e.getFailureProbability());
 
 			if(specialV.contains(pool.getEdgeTarget(e))) {
-				rawPathWeight += pool.getEdgeWeight(e);
+				rawPathWeight += ( forceCardinality ? 1.0 : pool.getEdgeWeight(e) );
 			}
 			edgeIdx++;
 		}

@@ -82,17 +82,7 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 		// For each cycle, create a new utility that only takes special vertices' successful transplants into account
 		for(Cycle c : cycles) {
 			
-			// Utilities for chains and cycles are computed differently.  Our chains always end with an altruist (when
-			// they're generated, we push onto a queue starting with an altruist), and our cycles are small, so 
-			// hopefully this will short-circuit quickly
-			boolean isChain = false;
-			ListIterator<Edge> reverseEdgeIt = c.getEdges().listIterator(c.getEdges().size());
-			while(reverseEdgeIt.hasPrevious()) {
-				if(pool.getEdgeSource(reverseEdgeIt.previous()).isAltruist()) {
-					isChain = true;
-					break;
-				}
-			}
+			boolean isChain = Cycle.isAChain(c, pool);
 			
 			if(isChain) {
 				altWeights[cycleIdx++] = FailureProbabilityUtil.calculateDiscountedChainUtility(c, pool, specialV);
