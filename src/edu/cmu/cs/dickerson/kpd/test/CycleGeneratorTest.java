@@ -59,8 +59,15 @@ public class CycleGeneratorTest {
 		
 		List<Cycle> chains = cg.generateCyclesAndChains(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
 		
-		System.out.println(chains);
+		for(Cycle chain : chains) {
+			if(chain.getEdges().size() == 2) {
+				assert(0.3 == chain.getWeight());
+			} else if(chain.getEdges().size() == 3) {
+				assert(0.3 + 2*0.3*0.3 == chain.getWeight());
+			}
+		}
 		
+		// TODO expand this to cycles+chains, also to weighted edges
 	}
 	
 	

@@ -38,6 +38,7 @@ public class UNOSLoaderTest {
 			e.printStackTrace();
 		}
 
+		// Check vertex sizes, edge counts, etc
 	}
 
 }
