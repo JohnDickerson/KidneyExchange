@@ -36,7 +36,7 @@ public class CycleGeneratorTest {
 		
 		List<Vertex> a1Pairs = new ArrayList<Vertex>();
 		a1Pairs.add(a1);
-		int a1ChainLen = 3;
+		int a1ChainLen = 4;
 		for(int a1idx=1; a1idx<=a1ChainLen; a1idx++) {
 			VertexPair vp = new VertexPair(ID++, BloodType.O, BloodType.O, false, 0.0, false);
 			a1Pairs.add(vp);
@@ -61,15 +61,20 @@ public class CycleGeneratorTest {
 		
 		for(Cycle chain : chains) {
 			if(chain.getEdges().size() == 2) {
-				assert(0.3 == chain.getWeight());
+				assertTrue(isWeightRoughly(chain, 0.3));
 			} else if(chain.getEdges().size() == 3) {
-				assert(0.3 + 2*0.3*0.3 == chain.getWeight());
+				assertTrue(isWeightRoughly(chain, 0.3*(0.7) + 2*0.3*0.3));
+			} else if(chain.getEdges().size() == 4) {
+				assertTrue(isWeightRoughly(chain, 0.3*(0.7) + 2*0.3*0.3*(0.7) + 3*0.3*0.3*0.3));
 			}
 		}
 		
 		// TODO expand this to cycles+chains, also to weighted edges
 	}
 	
+	private static boolean isWeightRoughly(Cycle cycle, double weight) {
+		return (weight - 0.001 < cycle.getWeight() && weight + 0.001 > cycle.getWeight());
+	}
 	
 	@Test
 	public void testEdgeCases() {

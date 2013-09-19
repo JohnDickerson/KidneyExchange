@@ -64,7 +64,8 @@ public class CycleGenerator {
 				// Generate all cycles or all chains starting from the vertex firstV
 				path.push(startE);
 				if(startV.isAltruist()) {
-					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb, pathWeight*pathSuccProb);
+					double discountedPathWeight = 0.0;
+					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb, discountedPathWeight);
 				} else {
 					// If the target hop has a lower ID than the source, we've generated these cycles already
 					if( nextV.getID() > startV.getID() ) {
@@ -138,6 +139,8 @@ public class CycleGenerator {
 		
 		inPath.add(lastV);
 		for(Edge nextE : pool.outgoingEdgesOf(lastV)) {
+		
+			
 			Vertex nextV = pool.getEdgeTarget(nextE);
 			if(nextV.isAltruist()) {
 				
@@ -149,7 +152,8 @@ public class CycleGenerator {
 						cycles.add( Cycle.makeCycle(path, rawPathWeight + pool.getEdgeWeight(nextE)) );
 					} else {
 						// We assume the dummy edge is infallible, but it might be nonzero weight, so add that
-						cycles.add( Cycle.makeCycle(path, discountedPathWeight + pool.getEdgeWeight(nextE)) );
+						// Also add the probability of the chain executing in its entirety (sum of weights * product of success probs)
+						cycles.add( Cycle.makeCycle(path, discountedPathWeight + (rawPathWeight * pathSuccProb) + pool.getEdgeWeight(nextE)) );
 					}
 					path.pop();
 				}
@@ -157,22 +161,26 @@ public class CycleGenerator {
 			} else {
 				// Step down one edge in the path, updating the pathWeight as well
 				path.push(nextE);
-				double newRawPathWeight = rawPathWeight + pool.getEdgeWeight(nextE);    // Add this edge's weight to raw chain length
-				double newPathSuccProb = pathSuccProb * (1.0 - nextE.getFailureProbability());  // Probability of chain executing to very end
+				
+				// Probability of chain executing to very end (and maybe continuing)
+				double newPathSuccProb = pathSuccProb * (1.0 - nextE.getFailureProbability());
+				// Add discounted utility of chain goings to EXACTLY this edge and then failing (so \sum weights * \prod success * (1-failure of this edge))
+				double newDiscountedPathWeight = discountedPathWeight + (rawPathWeight*pathSuccProb*nextE.getFailureProbability());
+				
 				generateChains(maxChainSize,
 					cycles,
 					startingAlt,
 					nextV,
 					path,
-					newRawPathWeight,
+					rawPathWeight + pool.getEdgeWeight(nextE),    // Add this edge's weight to raw chain length
 					inPath,
 					usingFailureProbabilities,
 					newPathSuccProb,
-					discountedPathWeight + (newRawPathWeight * newPathSuccProb)   // Discounted weight + discounted utility of reaching this point
+					newDiscountedPathWeight   // Discounted weight + discounted utility of reaching exactly this point
 					);
 				path.pop();
 			}
-			
+
 		}
 		inPath.remove(lastV);
 	

@@ -30,7 +30,7 @@ public class FailureProbabilityUtilTest {
 		FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, new Random());
 		
 		for(Edge e : pool.edgeSet()) {
-			assert(0.7 == e.getFailureProbability());
+			assertTrue(0.7 == e.getFailureProbability());
 		}
 	}
 

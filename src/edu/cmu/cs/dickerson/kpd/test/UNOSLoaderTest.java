@@ -39,6 +39,8 @@ public class UNOSLoaderTest {
 		}
 
 		// Check vertex sizes, edge counts, etc
+		assertTrue(184 == pool.getNumPairs());
+		assertTrue(7 == pool.getNumAltruists());
 	}
 
 }
