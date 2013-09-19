@@ -43,11 +43,11 @@ public class Driver {
 		// Iterate over the cross product of num pairs and altruists
 		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250);//,500);
 		//List<Double> altPctList = Arrays.asList(0.0, 0.01, 0.05, 0.10);
-		List<Double> altPctList = Arrays.asList(0.05);
+		List<Double> altPctList = Arrays.asList(0.0);
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(4);
+		List<Integer> chainCapList = Arrays.asList(0);  //4);
 
 		// What's our threshold for high sensitization?
 		List<Double> highlySensitizedThreshList = Arrays.asList(0.90);
@@ -136,12 +136,16 @@ public class Driver {
 										eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
 										eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
 										eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
-
+										eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
+										eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
+										
 										Solution unfairSol = s.solve(0.0);
 										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
 										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
 										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
-
+										eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
+										eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
+										
 										IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 										IOUtil.dPrintln("Without alpha, would've been:  " + unfairSol.getObjectiveValue());
 
@@ -176,6 +180,7 @@ public class Driver {
 			}
 		}
 
+		IOUtil.dPrintln("Done with simulator runs!");
 		return;
 	}
 }
