@@ -51,9 +51,9 @@ public class DriverUNOS {
 		}
 
 		// Want to solve for each match run in a master directory consisting of single match directories
-		//String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
+		String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
 		//String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
-		String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
+		//String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
 		File baseUNOSDir = new File(baseUNOSpath);
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override
@@ -151,7 +151,7 @@ public class DriverUNOS {
 					// Solve the model
 					try {
 
-						FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV);
+						FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV, usingFailureProbabilities);
 
 						Solution alphaStarSol = s.solveForAlphaStar();
 						Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());

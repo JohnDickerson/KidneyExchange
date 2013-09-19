@@ -6,6 +6,7 @@ import ilog.concert.IloNumVar;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
@@ -17,6 +18,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 
 public class FairnessCPLEXSolver extends CPLEXSolver {
 
@@ -25,19 +27,29 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 	private CycleMembership membership;
 	
 	public FairnessCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership, Set<Vertex> specialV) {
+		// Use the normal fairness solver without any failure probabilities
+		this(pool, cycles, membership, specialV, false);
+	}
+	
+	public FairnessCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership, Set<Vertex> specialV, boolean usingFailureProbabilities) {
 		super(pool, cycles);
 		this.membership = membership;
 		this.specialV = specialV;
 		
 		// Calculate highly-sensitized weights for each cycle
-		calcSpecialWeights();
+		if(usingFailureProbabilities) {
+			calcSpecialWeightsWithFailureProbs();
+		} else {
+			calcSpecialWeightsWithoutFailureProbs();
+		}	
+		
 	}
 
 	/**
-	 * Computes h(c), the weight of a cycle where only transplants to 
+	 * Computes h(c), the non-failure-aware weight of a cycle where only transplants to 
 	 * a vertex in the "special vertex" (e.g., highly-sensitized) set count
 	 */
-	private void calcSpecialWeights() {
+	private void calcSpecialWeightsWithoutFailureProbs() {
 		
 		// Each cycle will have a new, adjusted weight
 		altWeights = new double[cycles.size()];
@@ -55,6 +67,43 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 			altWeights[cycleIdx++] = altWeight;
 		}
 	}
+	
+	
+	/**
+	 * Computes h(c), the discounted (failure-aware) utility of a cycle where only transplants to 
+	 * a vertex in the "special vertex" (e.g., highly-sensitized) set count
+	 */
+	private void calcSpecialWeightsWithFailureProbs() {
+		
+		// Each cycle will have a new, adjusted weight
+		altWeights = new double[cycles.size()];
+		int cycleIdx = 0;
+
+		// For each cycle, create a new utility that only takes special vertices' successful transplants into account
+		for(Cycle c : cycles) {
+			
+			// Utilities for chains and cycles are computed differently.  Our chains always end with an altruist (when
+			// they're generated, we push onto a queue starting with an altruist), and our cycles are small, so 
+			// hopefully this will short-circuit quickly
+			boolean isChain = false;
+			ListIterator<Edge> reverseEdgeIt = c.getEdges().listIterator(c.getEdges().size());
+			while(reverseEdgeIt.hasPrevious()) {
+				if(pool.getEdgeSource(reverseEdgeIt.previous()).isAltruist()) {
+					isChain = true;
+					break;
+				}
+			}
+			
+			if(isChain) {
+				altWeights[cycleIdx++] = FailureProbabilityUtil.calculateDiscountedChainUtility(c, pool, specialV);
+			} else {
+				altWeights[cycleIdx++] = FailureProbabilityUtil.calculateDiscountedCycleUtility(c, pool, specialV);
+			}
+			
+		}
+	}
+	
+	
 	
 	
 	/**

@@ -128,7 +128,7 @@ public class Driver {
 									// Solve the model
 									try {
 
-										FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV);
+										FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, highV, usingFailureProbabilities);
 
 										Solution alphaStarSol = s.solveForAlphaStar();
 										Solution fairSol = s.solve(alphaStarSol.getObjectiveValue());
