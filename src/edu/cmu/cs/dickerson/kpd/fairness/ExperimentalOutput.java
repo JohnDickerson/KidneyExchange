@@ -31,6 +31,8 @@ public class ExperimentalOutput {
 		FAIR_TOTAL_CARDINALITY_MATCHED,
 		UNFAIR_HIGHLY_SENSITIZED_MATCHED,
 		UNFAIR_TOTAL_CARDINALITY_MATCHED,
+		FAILURE_PROBABILITIES_USED,
+		FAILURE_PROBABILITY_DIST,
 		};
 
 	public ExperimentalOutput(String path) throws IOException {
@@ -67,6 +69,9 @@ public class ExperimentalOutput {
 		header[Col.UNFAIR_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Unfair Total Matched";
 		header[Col.FAIR_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Fair Highly-Sensitized Matched";
 		header[Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Unfair Highly-Sensitized Matched";
+		header[Col.FAILURE_PROBABILITIES_USED.ordinal()] = "Failure Probabilities Used?";
+		header[Col.FAILURE_PROBABILITY_DIST.ordinal()] = "Failure Probability Distribution";
+		
 		return header;
 	}
 

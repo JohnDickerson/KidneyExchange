@@ -19,6 +19,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.HeterogeneousPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
@@ -35,11 +36,15 @@ public class Driver {
 		// Number of times to run each experiment with the same parameters, except random seed
 		int numRepeats = 10;
 
+		// Are we using failure probabilities, and if so what kind?
+		boolean usingFailureProbabilities = true;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
+
 		// Iterate over the cross product of num pairs and altruists
 		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250);//,500);
 		//List<Double> altPctList = Arrays.asList(0.0, 0.01, 0.05, 0.10);
 		List<Double> altPctList = Arrays.asList(0.05);
-		
+
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
 		List<Integer> chainCapList = Arrays.asList(4);
@@ -68,7 +73,7 @@ public class Driver {
 					Integer numAlts = (int) Math.round(numPairs * altPct);		
 					for(Integer cycleCap : cycleCapList) {
 						for(Integer chainCap : chainCapList) {
-							
+
 							for(Double highlySensitizedThresh : highlySensitizedThreshList) {
 								for(int repeat=0; repeat<numRepeats; repeat++) {
 
@@ -80,6 +85,8 @@ public class Driver {
 									eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
 									eOut.set(Col.RANDOM_SEED, seed);
 									eOut.set(Col.GENERATOR, generatorType.toString());
+									eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
+									eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
 									
 									// Generate a compatibility graph
 									Random r = new Random(seed++);
@@ -96,10 +103,15 @@ public class Driver {
 									default:	
 										pool = new SaidmanPoolGenerator(r).generate(numPairs, numAlts);
 									}
+									
+									// If we're setting failure probabilities, do that here:
+									if(usingFailureProbabilities) {
+										FailureProbabilityUtil.setFailureProbability(pool, failDist, r);
+									}
 
 									// Generate all 3-cycles and somecap-chains
 									CycleGenerator cg = new CycleGenerator(pool);
-									List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap);
+									List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
 
 									// For each vertex, get list of cycles that contain this vertex
 									CycleMembership membership = new CycleMembership(pool, cycles);

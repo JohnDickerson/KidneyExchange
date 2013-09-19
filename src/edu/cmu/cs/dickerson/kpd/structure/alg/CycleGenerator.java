@@ -21,6 +21,11 @@ public class CycleGenerator {
 		this.pool = pool;
 	}
 
+	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize) {
+		// By default, generate cycles without paying attention to failure probabilities
+		return generateCyclesAndChains(maxCycleSize, maxChainSize, false);
+	}
+	
 	/**
 	 * 
 	 * @param pool
@@ -28,7 +33,7 @@ public class CycleGenerator {
 	 * @param maxChainSize
 	 * @return
 	 */
-	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize) {
+	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize, boolean usingFailureProbabilities) {
 
 		IOUtil.dPrintln(getClass().getSimpleName(), "Generating all (at-most) " + maxCycleSize + "-cycles and " + maxChainSize + "-chains ...");
 		

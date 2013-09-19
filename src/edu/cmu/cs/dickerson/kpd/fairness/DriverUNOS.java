@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.fairness.ExperimentalOutput.Col;
@@ -20,6 +21,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
@@ -31,6 +33,12 @@ public class DriverUNOS {
 		List<Integer> cycleCapList = Arrays.asList(3);
 		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
 
+		// Random seed (recorded in experimental file for reproducibility) -- used for failure probabilities
+		long seed = System.currentTimeMillis();
+		
+		// Are we using failure probabilities, and if so what kind?
+		boolean usingFailureProbabilities = true;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_" + System.currentTimeMillis() + ".csv";
@@ -54,7 +62,6 @@ public class DriverUNOS {
 			}
 		}));
 
-		// TODO sss
 		for(File matchDir : matchDirList) {
 
 			UNOSLoader loader = new UNOSLoader(',');
@@ -101,6 +108,14 @@ public class DriverUNOS {
 			Integer numAlts = pool.getNumAltruists();
 			double highlySensitizedThresh = 0.8;   // UNOS data is explicitly marked as highly or not highly sensitized   
 
+			// Generate a compatibility graph
+			Random r = new Random(++seed);
+
+			// If we're setting failure probabilities, do that here:
+			if(usingFailureProbabilities) {
+				FailureProbabilityUtil.setFailureProbability(pool, failDist, r);
+			}
+			
 			for(Integer cycleCap : cycleCapList) {
 				for(Integer chainCap : chainCapList) {
 
@@ -110,15 +125,17 @@ public class DriverUNOS {
 					eOut.set(Col.CYCLE_CAP, cycleCap);
 					eOut.set(Col.CHAIN_CAP, chainCap);
 					eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
-					eOut.set(Col.RANDOM_SEED, 0);
+					eOut.set(Col.RANDOM_SEED, seed);
 					eOut.set(Col.GENERATOR, matchRunID);
-
+					eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
+					eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
+					
 					IOUtil.dPrintln("Looking at UNOS file: " + matchRunID);
 					
 					// Generate all 3-cycles and somecap-chains
 					CycleGenerator cg = new CycleGenerator(pool);
-					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap);
-
+					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
+					
 					// For each vertex, get list of cycles that contain this vertex
 					CycleMembership membership = new CycleMembership(pool, cycles);
 
