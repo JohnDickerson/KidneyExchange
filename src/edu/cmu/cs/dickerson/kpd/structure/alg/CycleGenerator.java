@@ -119,7 +119,7 @@ public class CycleGenerator {
 					pathWeight + pool.getEdgeWeight(nextE),
 					inPath,
 					usingFailureProbabilities,
-					pathSuccProb *= nextE.getFailureProbability()
+					pathSuccProb * (1.0 - nextE.getFailureProbability())
 					);
 				path.pop();
 				

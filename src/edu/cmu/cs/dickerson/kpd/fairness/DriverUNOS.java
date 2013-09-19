@@ -16,6 +16,7 @@ import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.solver.solution.SolutionUtils;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
+import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
@@ -87,6 +88,10 @@ public class DriverUNOS {
 			//	continue;
 			//}
 			
+			// Something is weird about 20130826
+			//if(!matchRunID.equals("20130826")) {
+			//	continue;
+			//}
 			
 			
 			// Make sure we're actually looking at a UNOS match run
@@ -161,6 +166,7 @@ public class DriverUNOS {
 						eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
 						eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
 						eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
+						
 						
 						
 						Solution unfairSol = s.solve(0.0);
