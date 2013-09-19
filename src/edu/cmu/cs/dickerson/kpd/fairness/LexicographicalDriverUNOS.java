@@ -44,7 +44,10 @@ public class LexicographicalDriverUNOS {
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL;
-
+		if(!usingFailureProbabilities) {
+			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
+		}
+		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;

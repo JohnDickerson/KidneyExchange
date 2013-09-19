@@ -53,9 +53,12 @@ public class DriverUNOS {
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
-
+		if(!usingFailureProbabilities) {
+			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
+		}
+		
 		// Initialize our experimental output to .csv writer
-		String path = "unos_" + System.currentTimeMillis() + ".csv";
+		String path = "unos_nonlex_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;
 		try {
 			eOut = new ExperimentalOutput(path);
@@ -152,7 +155,7 @@ public class DriverUNOS {
 							eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
 							eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
 
-							IOUtil.dPrintln("Looking at UNOS file: " + matchRunID);
+							IOUtil.dPrintln("---: a* = " + alphaStarVal + ", looking at UNOS file: " + matchRunID);
 
 							// Split pairs into highly- and not highly-sensitized patients 
 							Set<Vertex> highV = new HashSet<Vertex>();
