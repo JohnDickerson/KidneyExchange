@@ -58,15 +58,17 @@ public class CycleGenerator {
 				
 				// Initial path weight is just the single edge's weight
 				double pathWeight = pool.getEdgeWeight(startE);
-
+				// Probability of the first edge executing is 1-probability of it failing
+				double pathSuccProb = (1.0 - startE.getFailureProbability());
+				
 				// Generate all cycles or all chains starting from the vertex firstV
 				path.push(startE);
 				if(startV.isAltruist()) {
-					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath);
+					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb, pathWeight*pathSuccProb);
 				} else {
 					// If the target hop has a lower ID than the source, we've generated these cycles already
 					if( nextV.getID() > startV.getID() ) {
-						generateCycles(maxCycleSize, generatedCycles, startV, nextV, path, pathWeight, inPath);
+						generateCycles(maxCycleSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb);
 					}
 				}
 				path.pop();
@@ -77,10 +79,17 @@ public class CycleGenerator {
 		return generatedCycles;
 	}
 
-	private void generateCycles(int maxCycleSize, Collection<Cycle> cycles, Vertex startV, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath) {
+	private void generateCycles(int maxCycleSize, Collection<Cycle> cycles, Vertex startV, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath, boolean usingFailureProbabilities, double pathSuccProb) {
 
 		if(startV.equals(lastV)) {
 			// We've completed a cycle <startV, V1, V2, ..., lastV=startV>
+			
+			// If we're using failure probabilities, the discounted utility of a cycle is:
+			// u(c) = \prod_e (1-fail(e))  *  \sum_e weight(e)
+			if(usingFailureProbabilities) {
+				pathWeight *= pathSuccProb;
+			}
+			
 			cycles.add( Cycle.makeCycle(path, pathWeight));
 		} else {
 
@@ -107,7 +116,9 @@ public class CycleGenerator {
 					pool.getEdgeTarget(nextE),
 					path,
 					pathWeight + pool.getEdgeWeight(nextE),
-					inPath
+					inPath,
+					usingFailureProbabilities,
+					pathSuccProb *= nextE.getFailureProbability()
 					);
 				path.pop();
 				
@@ -116,7 +127,7 @@ public class CycleGenerator {
 		}
 	}
 
-	private void generateChains(int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath) {
+	private void generateChains(int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double rawPathWeight, Set<Vertex> inPath, boolean usingFailureProbabilities, double pathSuccProb, double discountedPathWeight) {
 
 		if(inPath.contains(lastV)               // Must be a simple cycle
 				|| path.size() > maxChainSize   // Cap chain length to maxChainSize (ignore altruist)
@@ -134,20 +145,30 @@ public class CycleGenerator {
 				if(!nextV.equals(startingAlt)) { continue; }
 				else {
 					path.push(nextE);
-					cycles.add( Cycle.makeCycle(path, pathWeight + pool.getEdgeWeight(nextE)) );
+					if(!usingFailureProbabilities) {
+						cycles.add( Cycle.makeCycle(path, rawPathWeight + pool.getEdgeWeight(nextE)) );
+					} else {
+						// We assume the dummy edge is infallible, but it might be nonzero weight, so add that
+						cycles.add( Cycle.makeCycle(path, discountedPathWeight + pool.getEdgeWeight(nextE)) );
+					}
 					path.pop();
 				}
 				
 			} else {
 				// Step down one edge in the path, updating the pathWeight as well
 				path.push(nextE);
+				double newRawPathWeight = rawPathWeight + pool.getEdgeWeight(nextE);    // Add this edge's weight to raw chain length
+				double newPathSuccProb = pathSuccProb * (1.0 - nextE.getFailureProbability());  // Probability of chain executing to very end
 				generateChains(maxChainSize,
 					cycles,
 					startingAlt,
 					nextV,
 					path,
-					pathWeight + pool.getEdgeWeight(nextE),
-					inPath
+					newRawPathWeight,
+					inPath,
+					usingFailureProbabilities,
+					newPathSuccProb,
+					discountedPathWeight + (newRawPathWeight * newPathSuccProb)   // Discounted weight + discounted utility of reaching this point
 					);
 				path.pop();
 			}

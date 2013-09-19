@@ -45,6 +45,9 @@ public final class FailureProbabilityUtil {
 						e.setFailureProbability(0.8 + r.nextDouble()*0.2);
 					}
 					break;
+				case NONE:
+				default:
+					break;
 				}
 			}
 		}

@@ -11,12 +11,14 @@ import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.generate.GraphGenerator;
 import org.junit.Test;
 
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.factories.AllMatchVertexPairFactory;
@@ -24,6 +26,44 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class CycleGeneratorTest {
 
+	@Test
+	public void testFailureProbabilities() {
+		Pool pool = new Pool(Edge.class);
+		
+		int ID = 0;
+		VertexAltruist a1 = new VertexAltruist(ID++, BloodType.O);
+		pool.addAltruist(a1);
+		
+		List<Vertex> a1Pairs = new ArrayList<Vertex>();
+		a1Pairs.add(a1);
+		int a1ChainLen = 3;
+		for(int a1idx=1; a1idx<=a1ChainLen; a1idx++) {
+			VertexPair vp = new VertexPair(ID++, BloodType.O, BloodType.O, false, 0.0, false);
+			a1Pairs.add(vp);
+			pool.addPair(vp);
+			
+			// Add an edge from the previous vertex to this vertex
+			Edge e = pool.addEdge(a1Pairs.get(a1idx-1), a1Pairs.get(a1idx));
+			pool.setEdgeWeight(e, 1.0);
+			
+			// Add a dummy edge back to the altruistic vertex
+			Edge dummy = pool.addEdge(a1Pairs.get(a1idx), a1Pairs.get(0));
+			pool.setEdgeWeight(dummy, 0.0);
+		}
+		
+		// Add some constant edge failure probabilities
+		FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, new Random());
+		
+		// Generate chains along with their discounted utilities
+		CycleGenerator cg = new CycleGenerator(pool);
+		
+		List<Cycle> chains = cg.generateCyclesAndChains(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+		
+		System.out.println(chains);
+		
+	}
+	
+	
 	@Test
 	public void testEdgeCases() {
 		
