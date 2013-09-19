@@ -6,7 +6,6 @@ import ilog.concert.IloNumVar;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
