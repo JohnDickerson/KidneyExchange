@@ -34,14 +34,14 @@ public class Driver {
 		long seed = System.currentTimeMillis();
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 10;
+		int numRepeats = 50;
 
 		// Are we using failure probabilities, and if so what kind?
-		boolean usingFailureProbabilities = true;
+		boolean usingFailureProbabilities = false;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 
 		// Iterate over the cross product of num pairs and altruists
-		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250);//,500);
+		List<Integer> numPairsList = Arrays.asList(10,25,50,100,150,200,250,500);
 		//List<Double> altPctList = Arrays.asList(0.0, 0.01, 0.05, 0.10);
 		List<Double> altPctList = Arrays.asList(0.0);
 
