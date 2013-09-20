@@ -43,7 +43,7 @@ public class DriverUNOS {
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
-		for(double alphaStarVal=0.0; alphaStarVal<1.0; alphaStarVal += 0.05) {
+		for(double alphaStarVal=0.0; alphaStarVal<10.0; alphaStarVal += 0.05) {
 			alphaStarValList.add(alphaStarVal);
 		}
 
@@ -51,7 +51,7 @@ public class DriverUNOS {
 		long seed = System.currentTimeMillis();
 
 		// Are we using failure probabilities, and if so what kind?
-		boolean usingFailureProbabilities = true;
+		boolean usingFailureProbabilities = false;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
