@@ -25,6 +25,8 @@ To use any of the solvers that inherit from `CPLEXSolver`, you will need to add 
 Related Research
 ================
 
+_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **Under submission**.
+
 _Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **EC-2013**.  [Link](http://www.cs.cmu.edu/~sandholm/failure-aware%20kidney%20exchange.ec13.pdf "Carnegie Mellon University link")
 
 _Dynamic Matching via Weighted Myopia with Application to Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm. **AAAI-2012**.  [Link](https://www.cs.cmu.edu/afs/cs.cmu.edu/Web/People/arielpro/papers/weights.aaai12.pdf "Carnegie Mellon University link")
@@ -36,3 +38,5 @@ _Clearing Algorithms for Barter Exchange Markets: Enabling Nationwide Kidney Exc
 _Increasing the Opportunity of Live Kidney Donation by Matching for Two and Three Way Exchanges_. S. L. Saidman, Alvin Roth, Tayfun S&ouml;nmez, Utku &Uuml;nver, Frank Delmonico.  **Transplantation, 2006**.  [Link](http://kuznets.fas.harvard.edu/~aroth/papers/SaidmanRothSonmezUnverDelmonico.Transplantation.2006.pdf "Harvard link")
 
 _These are admittedly me-centric references!  Make sure to click around: [Itai Ashlagi](http://web.mit.edu/iashlagi/www/), [Avrim Blum](http://www.cs.cmu.edu/~avrim/), [John Dickerson](http://cs.cmu.edu/~dickerson), [David Gamarnik](http://www.mit.edu/~gamarnik/home.html), [David Parkes](http://www.eecs.harvard.edu/~parkes/), [Ariel Procaccia](http://www.cs.cmu.edu/~arielpro/), [Al Roth](http://www.stanford.edu/~alroth/), [Tuomas Sandholm](http://www.cs.cmu.edu/~sandholm/), [Ankit Sharma](https://sites.google.com/site/ankitsharmahomepage/),  [Tayfun S&ouml;nmez](https://www2.bc.edu/~sonmezt/), [Utku &Uuml;nver](https://www2.bc.edu/~unver/)._ 
+
+If you are interested in other social choice problems, make sure to check out [PrefLib](http://www.preflib.org/), a reference library of preference data assembled by [Nicolas Mattei](http://www.nickmattei.net/) and [Toby Walsh](http://www.cse.unsw.edu.au/~tw/).
