@@ -1,9 +1,13 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
+
+import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
@@ -62,5 +66,17 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	@Override
 	public String toString() {
 		return "< (" + getNumPairs() + ", " + getNumAltruists() + "), " + super.edgeSet().size() + " >";
+	}
+	
+	public Set<VertexPair> getPairsOfType(BloodType btPatient, BloodType btDonor) {
+		
+		Set<VertexPair> vSet = new HashSet<VertexPair>();
+		for(VertexPair pair : pairs) {
+			if(pair.getBloodTypePatient().equals(btPatient) && pair.getBloodTypePatient().equals(btDonor)) {
+				vSet.add(pair);
+			}
+		}
+		
+		return vSet;
 	}
 }

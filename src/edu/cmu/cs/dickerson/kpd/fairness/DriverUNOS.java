@@ -43,7 +43,7 @@ public class DriverUNOS {
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
-		for(double alphaStarVal=0.0; alphaStarVal<10.0; alphaStarVal += 0.05) {
+		for(double alphaStarVal=0.0; alphaStarVal<=0.0; alphaStarVal += 0.05) {
 			alphaStarValList.add(alphaStarVal);
 		}
 
@@ -99,17 +99,6 @@ public class DriverUNOS {
 				}
 			}
 
-			// Possibly skip some of the longer-running matches while we test
-			//if(matchRunID.equals("20121112") || matchRunID.equals("20121119") || matchRunID.equals("20130114") || matchRunID.equals("20130121")) {
-			//	continue;
-			//}
-
-			// Something is weird about 20130826
-			//if(!matchRunID.equals("20130826")) {
-			//	continue;
-			//}
-
-
 			// Make sure we're actually looking at a UNOS match run
 			if(donorFilePath.isEmpty() || recipientFilePath.isEmpty() || edgeFilePath.isEmpty() || matchRunID.isEmpty()) {
 				IOUtil.dPrintln("Couldn't figure out this directory!");
@@ -129,6 +118,8 @@ public class DriverUNOS {
 			Integer numAlts = pool.getNumAltruists();
 			double highlySensitizedThresh = 0.8;   // UNOS data is explicitly marked as highly or not highly sensitized   
 
+			//IOUtil.dPrintln("% Highly-sensitized O-AB Pairs: " + FairnessUtil.getOnlyHighlySensitizedPairs(pool.getPairsOfType(BloodType.O, BloodType.AB), highlySensitizedThresh).size() / (double) pool.getNumPairs());
+			
 			for(int repeatIdx=0; repeatIdx<numRepeats; repeatIdx++) {
 
 				// Generate a compatibility graph

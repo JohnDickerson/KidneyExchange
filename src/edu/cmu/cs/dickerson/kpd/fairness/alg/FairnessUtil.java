@@ -1,10 +1,12 @@
 package edu.cmu.cs.dickerson.kpd.fairness.alg;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 
 public final class FairnessUtil {
 	
@@ -33,5 +35,15 @@ public final class FairnessUtil {
 			}
 		}
 		
+	}
+	
+	public static Set<VertexPair> getOnlyHighlySensitizedPairs(Set<VertexPair> allV, double CPRAthreshold) {
+		Set<VertexPair> hsvSet = new HashSet<VertexPair>();
+		for(VertexPair v : allV) {
+			if(v.getPatientCPRA() >= CPRAthreshold) {
+				hsvSet.add(v);
+			}
+		}
+		return hsvSet;
 	}
 }
