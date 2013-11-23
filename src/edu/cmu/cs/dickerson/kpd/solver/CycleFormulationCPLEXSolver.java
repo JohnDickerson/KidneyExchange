@@ -20,9 +20,11 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 public class CycleFormulationCPLEXSolver extends CPLEXSolver {
 	
 	private CycleMembership membership;
+	protected List<Cycle> cycles;
 	
 	public CycleFormulationCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
-		super(pool, cycles);
+		super(pool);
+		this.cycles = cycles;
 		this.membership = membership;
 	}
 
