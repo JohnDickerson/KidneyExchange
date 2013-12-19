@@ -2,21 +2,17 @@ package edu.cmu.cs.dickerson.kpd.solver;
 
 import ilog.concert.IloException;
 import ilog.cplex.IloCplex;
-
-import java.util.List;
-
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
-import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public abstract class CPLEXSolver extends Solver {
 
 	protected static IloCplex cplex = null;
 
-	public CPLEXSolver(Pool pool, List<Cycle> cycles) {
-		super(pool, cycles);
+	public CPLEXSolver(Pool pool) {
+		super(pool);
 	}
 
 

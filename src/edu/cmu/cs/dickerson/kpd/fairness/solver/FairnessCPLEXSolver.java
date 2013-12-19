@@ -24,6 +24,7 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 	private double[] altWeights;
 	private Set<Vertex> specialV;
 	private CycleMembership membership;
+	protected List<Cycle> cycles;
 	
 	public FairnessCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership, Set<Vertex> specialV) {
 		// Use the normal fairness solver without any failure probabilities
@@ -31,7 +32,8 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 	}
 	
 	public FairnessCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership, Set<Vertex> specialV, boolean usingFailureProbabilities) {
-		super(pool, cycles);
+		super(pool);
+		this.cycles = cycles;
 		this.membership = membership;
 		this.specialV = specialV;
 		
