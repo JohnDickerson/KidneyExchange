@@ -25,7 +25,7 @@ To use any of the solvers that inherit from `CPLEXSolver`, you will need to add 
 Related Research
 ================
 
-_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **Under submission**.  [Link](http://www.cs.cmu.edu/~arielpro/papers/pof.pdf "Carnegie Mellon University link")
+_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://www.cs.cmu.edu/~arielpro/papers/pof.pdf "Carnegie Mellon University link")
 
 _Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **EC-2013**.  [Link](http://www.cs.cmu.edu/~sandholm/failure-aware%20kidney%20exchange.ec13.pdf "Carnegie Mellon University link")
 
