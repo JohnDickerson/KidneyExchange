@@ -8,18 +8,28 @@ import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 
 public final class FailureProbabilityUtil {
 
 	private FailureProbabilityUtil() {}
 
-	public static enum ProbabilityDistribution { NONE, CONSTANT, BIMODAL };
+	public static enum ProbabilityDistribution { NONE, 
+		CONSTANT, 
+		BIMODAL_RANDOM,
+		BIMODAL_CORRELATED,
+		BIMODAL_CORRELATED_UNOS, 
+		BIMODAL_CORRELATED_APD, 
+		BIMODAL_CORRELATED_NKR };
 
 
 	/**
 	 * Sets failure probabilities for each (non-dummy) edge in the graph
 	 * @param pool KPD Pool
-	 * @param dist either NONE (ignore failure probs, used for testing), CONSTANT (0.7 failure for all non-dummy edges), or BIMODAL (two modes, ~E[fail]=0.1 and ~E[fail=0.9] such that the overall E[fail] = 0.7)
+	 * @param dist either NONE (ignore failure probs, used for testing), CONSTANT (0.7 failure for all non-dummy edges),
+	 *             BIMODAL_RANDOM (two modes, ~E[fail]=0.1 and ~E[fail=0.9] such that the overall E[fail] = 0.7), or
+	 *             BIMODAL_CORRELATED (two modes, highly-sensitized patients ~E[fail]=0.9, lowly-sensitized ~E[fail]=0.1
+	 *             BIMODAL_CORRELATED_{UNOS,APD,NKR} (same as BIMODAL_CORRELATED but fed aggregate data from real exchanges)
 	 * @param r Random instance
 	 */
 	public static void setFailureProbability(Pool pool, ProbabilityDistribution dist, Random r) {
@@ -35,12 +45,15 @@ public final class FailureProbabilityUtil {
 				e.setFailureProbability(0.0);
 			} else {
 				// Real edges (real donor giving to real patient) can fail
+				// Safe cast; earlier if statement checks for Altruist
+				double patient_cpra = ((VertexPair) pool.getEdgeTarget(e)).getPatientCPRA();
+				
 				switch(dist) {
 				case CONSTANT:
 					// Constant 70% chance of failure
 					e.setFailureProbability(0.7);
 					break;
-				case BIMODAL:
+				case BIMODAL_RANDOM:
 					if(r.nextDouble() < 0.25) {
 						// E[10%] chance of failure
 						e.setFailureProbability(0.0 + r.nextDouble()*0.2);
@@ -49,6 +62,28 @@ public final class FailureProbabilityUtil {
 						e.setFailureProbability(0.8 + r.nextDouble()*0.2);
 					}
 					break;
+				case BIMODAL_CORRELATED:
+				case BIMODAL_CORRELATED_UNOS:
+					if(patient_cpra < 0.8) {   // CPRA<80 = UNOS lowly-sensitized
+						// E[10%] chance of failure
+						e.setFailureProbability(0.0 + r.nextDouble()*0.2);
+					} else {
+						// E[90%] chance of failure
+						e.setFailureProbability(0.8 + r.nextDouble()*0.2);
+					}
+					break;
+				case BIMODAL_CORRELATED_APD:
+					if(patient_cpra < 0.75) {   // CPRA<75 = APD highest sensitization level (from Ashlagi et al. "Nonsimultaneous Chains and Dominos in Kidney Paired Donation--Revisited")
+						// E[28%] chance of failure   :  20% crossmatch failure, 8% exogenous failure rate
+						e.setFailureProbability(0.18 + r.nextDouble()*0.2);
+					} else {
+						// E[58%] chance of failure
+						e.setFailureProbability(0.48 + r.nextDouble()*0.2);
+					}
+					break;
+				case BIMODAL_CORRELATED_NKR:
+					throw new UnsupportedOperationException("Haven't implemented the NKR correlated bimodal failure distribution");
+					//break;
 				case NONE:
 				default:
 					break;

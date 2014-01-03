@@ -43,7 +43,7 @@ public class LexicographicalDriverUNOS {
 
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_RANDOM;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
 		}
