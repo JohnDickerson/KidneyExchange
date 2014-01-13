@@ -24,6 +24,9 @@ public abstract class Vertex implements Comparable<Vertex> {
 
 	@Override
 	public boolean equals(Object obj) {
+		// This equality check should NOT be done on KPD_pair_id
+		// from the real UNOS data; we may want to generate a graph
+		// with multiple copies of a real person.  Use our own ID
 		if (this == obj) {
 			return true;
 		}
