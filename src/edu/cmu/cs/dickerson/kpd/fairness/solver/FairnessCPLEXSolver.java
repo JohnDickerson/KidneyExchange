@@ -206,7 +206,7 @@ public class FairnessCPLEXSolver extends CPLEXSolver {
 			double[] vals = cplex.getValues(x);
 			int nCols = cplex.getNcols();
 			for(cycleIdx=0; cycleIdx<nCols; cycleIdx++) {
-				if(vals[cycleIdx] > 0) {
+				if(vals[cycleIdx] > 1e-3) {
 					sol.addMatchedCycle(cycles.get(cycleIdx));
 				}
 			}
