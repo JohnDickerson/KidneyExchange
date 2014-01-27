@@ -2,6 +2,7 @@ package edu.cmu.cs.dickerson.kpd.structure.real;
 
 import java.util.Map;
 
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 
@@ -95,7 +96,39 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 	}
 
 	public static UNOSDonor makeUNOSDonor(String[] line, Map<String, Integer> headers) {
-		// TODO Auto-generated method stub
+		
+		// HOME_CTR	trav_centers	region	dsa	DON_KI_TYPE	HBC_AND_HBSAG	CREAT_BSA	BP_SYSTOLIC	BP_diastolic	BMI	CMV	EBV	DON_KI_SHIP	MAX_PAIRS_CYCLE	MAX_PAIRS_CHAIN"
+		// TODO
+		
+		// UNOS coding
+		Integer kpdPairID = Integer.valueOf(line[headers.get("KPD_PAIR_ID")]);
+		Integer kpdCandidateID = Integer.valueOf(line[headers.get("KPD_CANDIDATE_ID")]);
+		Integer kpdDonorID = Integer.valueOf(line[headers.get("KPD_DONOR_ID")]);
+		boolean nonDirectedDonor = IOUtil.stringToBool(line[headers.get("NON_DIRECTED_DONOR")]);
+		
+		// Blood and tissue-type
+		BloodType abo = BloodType.getBloodType(line[headers.get("ABO")]);
+		int a1 = Integer.valueOf(line[headers.get("A1")]);
+		int a2 = Integer.valueOf(line[headers.get("A2")]);
+		int b1 = Integer.valueOf(line[headers.get("B1")]);
+		int b2 = Integer.valueOf(line[headers.get("B2")]);
+		boolean bw4 = IOUtil.stringToBool(line[headers.get("BW4")]);
+		boolean bw6 = IOUtil.stringToBool(line[headers.get("BW6")]);
+		int cw1 = Integer.valueOf(line[headers.get("CW1")]);
+		int cw2 = Integer.valueOf(line[headers.get("CW2")]);
+		int dq1 = Integer.valueOf(line[headers.get("DQ1")]);
+		int dq2 = Integer.valueOf(line[headers.get("DQ2")]);
+		int dr1 = Integer.valueOf(line[headers.get("DR1")]);
+		int dr2 = Integer.valueOf(line[headers.get("DR2")]);
+		boolean dr51 = IOUtil.stringToBool(line[headers.get("DR51")]);
+		boolean dr52 = IOUtil.stringToBool(line[headers.get("DR52")]);
+		boolean dr53 = IOUtil.stringToBool(line[headers.get("DR53")]);
+		int dp1 = Integer.valueOf(line[headers.get("DP1")]);
+		int dp2 = Integer.valueOf(line[headers.get("DP2")]);
+		
+		// Social characteristics and preferences
+		int age = Integer.valueOf(line[headers.get("AGE")]);
+		
 		return null;
 	}
 }

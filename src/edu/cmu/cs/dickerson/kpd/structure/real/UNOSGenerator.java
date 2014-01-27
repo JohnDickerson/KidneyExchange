@@ -96,11 +96,11 @@ public class UNOSGenerator {
 		}
 	}
 
-	public static UNOSGenerator initialize(String baseUNOSpath, char delim) {
-		return UNOSGenerator.initialize(baseUNOSpath, delim, new Random());
+	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim) {
+		return UNOSGenerator.makeAndInitialize(baseUNOSpath, delim, new Random());
 	}
 
-	public static UNOSGenerator initialize(String baseUNOSpath, char delim, Random randGen) {
+	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim, Random randGen) {
 
 		Map<Integer, UNOSDonor> donors = new HashMap<Integer, UNOSDonor>();
 		Map<Integer, UNOSRecipient> recipients = new HashMap<Integer, UNOSRecipient>();
