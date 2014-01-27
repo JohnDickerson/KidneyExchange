@@ -1,7 +1,9 @@
 package edu.cmu.cs.dickerson.kpd.structure.real;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
@@ -29,13 +33,16 @@ public class UNOSGenerator {
 	private List<UNOSPair> pairs;
 	// Map of generated vertices in the Pool to their real-world donor-recipient counterparts
 	private Map<Vertex, UNOSPair> vertexMap;
-	
+	// Single random object, seeded externally for repetition
 	private Random randGen;
-	private Set<UNOSDonor> donors;
-	private Set<UNOSRecipient> recipients;
+	// Map KPD_donor_id -> UNOSDonor
+	private Map<Integer, UNOSDonor> donors;
+	// Map KPD_candidate_id -> UNOSRecipient
+	private Map<Integer, UNOSRecipient> recipients;
+	// Current unused vertex ID for optimization graphs
 	private int currentVertexID;
-	
-	protected UNOSGenerator(Set<UNOSDonor> donors, Set<UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
+
+	protected UNOSGenerator(Map<Integer, UNOSDonor> donors, Map<Integer, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
 		this.donors = donors;
 		this.recipients = recipients;
 		this.pairs = pairs;
@@ -43,22 +50,22 @@ public class UNOSGenerator {
 		this.vertexMap = new HashMap<Vertex, UNOSPair>();
 		this.currentVertexID = 0;
 	}
-	
+
 	public Pool generatePool(int size) {
 		Pool pool = new Pool(Edge.class);
 		this.addVertices(pool, size);
 		return pool;
 	}
-	
+
 	public void addVertices(Pool pool, int numNewVerts) {
 		for(int idx=0; idx<numNewVerts; idx++) {
-			
+
 			// Sample a pair from the real data, make it a new pool Vertex
 			UNOSPair samplePair = pairs.get(this.randGen.nextInt() % pairs.size());
-			
+
 			// Spawn a new unique Vertex linked back to the underlying UNOSPair
 			Vertex sampleVert = samplePair.toBaseVertex(this.currentVertexID++);
-			
+
 			// Check di-edge compatibility between this new vertex and ALL vertices in the current pool
 			for(Vertex v : pool.getPairs()) {
 				// Only draw cardinality 1 edges from this vertex to compatible non-altruists
@@ -83,22 +90,21 @@ public class UNOSGenerator {
 					pool.setEdgeWeight(e, 1.0);
 				}
 			}
-		 	
-			
+
+			// Keep track of who maps to whom, optimization -> real data
+			vertexMap.put(sampleVert, samplePair);
 		}
 	}
-	
-	public static UNOSGenerator initialize(String baseUNOSpath) {
-		return UNOSGenerator.initialize(baseUNOSpath, new Random());
+
+	public static UNOSGenerator initialize(String baseUNOSpath, char delim) {
+		return UNOSGenerator.initialize(baseUNOSpath, delim, new Random());
 	}
-	
-	public static UNOSGenerator initialize(String baseUNOSpath, Random randGen) {
-		
-		
-		Set<UNOSDonor> donors = new HashSet<UNOSDonor>();
-		Set<UNOSRecipient> recipients = new HashSet<UNOSRecipient>();
-		Set<UNOSPair> pairs = new HashSet<UNOSPair>();
-		
+
+	public static UNOSGenerator initialize(String baseUNOSpath, char delim, Random randGen) {
+
+		Map<Integer, UNOSDonor> donors = new HashMap<Integer, UNOSDonor>();
+		Map<Integer, UNOSRecipient> recipients = new HashMap<Integer, UNOSRecipient>();
+
 		// We assume a directory structure of:
 		// baseUNOSpath/
 		// ->  KPD_CSV_IO_MMDDYY/
@@ -136,22 +142,108 @@ public class UNOSGenerator {
 				IOUtil.dPrintln("Couldn't figure out this directory!");
 				System.exit(-1);
 			}
+
+			CSVReader reader = null;
+
+			// Load in the recipients (reload headers array for each file, in case it changes)
+			Set<UNOSRecipient> singleRunRecipients = new HashSet<UNOSRecipient>();
+			try {
+				reader = new CSVReader(new FileReader(donorFilePath), delim);
+
+				// Reload headers array for each file, in case it changes
+				Map<String, Integer> headers = IOUtil.stringArrToHeaders(reader.readNext());
+				
+				String[] line;
+				while((line = reader.readNext()) != null) {
+					singleRunRecipients.add( UNOSRecipient.makeUNOSRecipient(line, headers) );
+				}
+				
+			} catch(IOException e) {
+				e.printStackTrace();
+			} finally { 
+				IOUtil.closeIgnoreExceptions(reader);
+			}
 			
-			// Load in the recipients	
-			// TODO
 			
-			// Load in the donors
-			// TODO
-		}
-		
+			// Load in the donors 
+			Set<UNOSDonor> singleRunDonors = new HashSet<UNOSDonor>();
+			try {
+				reader = new CSVReader(new FileReader(donorFilePath), delim);
+
+				// Reload headers array for each file, in case it changes
+				Map<String, Integer> headers = IOUtil.stringArrToHeaders(reader.readNext());
+				
+				String[] line;
+				while((line = reader.readNext()) != null) {
+					singleRunDonors.add( UNOSDonor.makeUNOSDonor(line, headers) );
+				}
+
+			} catch(IOException e) {
+				e.printStackTrace();
+			} finally { 
+				IOUtil.closeIgnoreExceptions(reader);
+			}
+
+			
+			
+			// Only record new recipients and donors
+			for(UNOSRecipient r : singleRunRecipients) {
+				if(!recipients.containsKey(r.getKPDCandidateID())) {
+					recipients.put(r.getKPDCandidateID(), r);
+				}
+			}
+			for(UNOSDonor d : singleRunDonors) {
+				if(!donors.containsKey(d.getKPDDonorID())) {
+					donors.put(d.getKPDDonorID(), d);
+				}
+			}
+			
+		}  // end of reading all files loop
+
 
 		// Make pairs out of the recipients and donors:
-		// If a pair with the recipient exists already, add in any new donors
-		// TODO
-		
-		return new UNOSGenerator(donors, recipients, new ArrayList<UNOSPair>(pairs), randGen);
+		// O(n^2)ish right now, but who cares because real data is small
+		Set<UNOSPair> pairSet = new HashSet<UNOSPair>();
+		for(Integer recipientID : recipients.keySet()) {
+			UNOSRecipient r = recipients.get(recipientID);
+
+			Set<UNOSDonor> pairDonors = new HashSet<UNOSDonor>();
+			for(Integer donorID : donors.keySet()) {
+				UNOSDonor d = donors.get(donorID);
+				if(d.getKPDCandidateID().equals(r.getKPDCandidateID())) {
+					pairDonors.add(d);
+				}
+			}
+
+			if(pairDonors.size() < 1) { 
+				IOUtil.dPrintln("Could not find a donor match for recipient: " + recipientID);
+				System.exit(-1);
+			}
+
+			pairSet.add( UNOSPair.makeUNOSPair(pairDonors, r));
+		}
+		// Make pairs out of the altruistic (unpaired) donors
+		for(Integer donorID : donors.keySet()) {
+			UNOSDonor d = donors.get(donorID);
+			if(d.isNonDirectedDonor()) {
+				pairSet.add(UNOSPair.makeUNOSAltruist(d));
+			}
+		}
+
+		IOUtil.dPrintln("Loaded " + pairSet.size() + " UNOS pairs.");
+		return new UNOSGenerator(donors, recipients, new ArrayList<UNOSPair>(pairSet), randGen);
 	}
-	
-	
-	
+
+	public Map<Vertex, UNOSPair> getVertexMap() {
+		return vertexMap;
+	}
+
+	public Map<Integer, UNOSDonor> getDonors() {
+		return donors;
+	}
+
+	public Map<Integer, UNOSRecipient> getRecipients() {
+		return recipients;
+	}
+
 }

@@ -2,6 +2,8 @@ package edu.cmu.cs.dickerson.kpd.helper;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class IOUtil {
 
@@ -54,5 +56,23 @@ public final class IOUtil {
 		} else {
 			throw new IllegalArgumentException("Could not convert " + s + " to a boolean value.");
 		}
+	}
+	
+	
+	/**
+	 * Takes a String[] and returns a dictionary of "string" -> integer index in array
+	 * @param headers String[]
+	 * @return 
+	 */
+	public static Map<String, Integer> stringArrToHeaders(String[] headers) {
+		if(null == headers || headers.length < 1) {
+			return new HashMap<String, Integer>();
+		}
+		
+		Map<String, Integer> headerMap = new HashMap<String, Integer>();
+		for(int idx=0; idx<headers.length; ++idx) {
+			headerMap.put(headers[idx].toUpperCase().trim(), idx);
+		}
+		return headerMap;
 	}
 }

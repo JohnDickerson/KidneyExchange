@@ -14,7 +14,7 @@ public class UNOSPair {
 	private int pairID;
 	private boolean isAltruist;
 	
-	protected UNOSPair(Set<UNOSDonor> donors, UNOSRecipient recipient, boolean isAltruist) {
+	private UNOSPair(Set<UNOSDonor> donors, UNOSRecipient recipient, boolean isAltruist) {
 		this.donors = donors;
 		this.recipient = recipient;
 		this.isAltruist = isAltruist;
@@ -22,9 +22,9 @@ public class UNOSPair {
 		// The ID of a vertex is either the recipient's "KPD_candidate_id" from the .csv files or,
 		// if an altruist, the negative of that altruist's "KPD_donor_id"
 		if(this.isAltruist) {
-			this.pairID = -donors.iterator().next().getDonorID();
+			this.pairID = -donors.iterator().next().getKPDDonorID();
 		} else {
-			this.pairID = recipient.getRecipientID();
+			this.pairID = recipient.getKPDCandidateID();
 		}
 	}
 	
