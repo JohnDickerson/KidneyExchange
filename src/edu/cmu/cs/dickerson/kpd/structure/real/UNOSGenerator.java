@@ -56,14 +56,34 @@ public class UNOSGenerator {
 			// Sample a pair from the real data, make it a new pool Vertex
 			UNOSPair samplePair = pairs.get(this.randGen.nextInt() % pairs.size());
 			
-			// TODO   pay attention to vertex ID, make vert
-			Vertex sampleVert = null; //samplePair.t
+			// Spawn a new unique Vertex linked back to the underlying UNOSPair
+			Vertex sampleVert = samplePair.toBaseVertex(this.currentVertexID++);
 			
-			// Can I draw an edge from this vertex to any vertex in the pool?
-			// TODO
-			
-			// Can I draw an edge from any vertex in the pool to this?
-			// TODO
+			// Check di-edge compatibility between this new vertex and ALL vertices in the current pool
+			for(Vertex v : pool.getPairs()) {
+				// Only draw cardinality 1 edges from this vertex to compatible non-altruists
+				if(UNOSPair.canDrawDirectedEdge(samplePair, v.getUnderlyingPair())) {
+					Edge e = pool.addEdge(sampleVert, v);
+					pool.setEdgeWeight(e, 1.0);
+				}
+				if(UNOSPair.canDrawDirectedEdge(v.getUnderlyingPair(), samplePair)) {
+					Edge e = pool.addEdge(v, sampleVert);
+					pool.setEdgeWeight(e, 1.0);
+				}
+			}
+			for(Vertex alt : pool.getAltruists()) {
+				// Always draw a (dummy) edge from this vertex to altruists, UNLESS this is an altruist
+				if(UNOSPair.canDrawDirectedEdge(samplePair, alt.getUnderlyingPair())) {
+					Edge e = pool.addEdge(sampleVert, alt);
+					pool.setEdgeWeight(e, 0.0);
+				}
+				// Only draw cardinality 1 edge from altruist to compatible pair vertices
+				if(UNOSPair.canDrawDirectedEdge(alt.getUnderlyingPair(), samplePair)) {
+					Edge e = pool.addEdge(alt, sampleVert);
+					pool.setEdgeWeight(e, 1.0);
+				}
+			}
+		 	
 			
 		}
 	}

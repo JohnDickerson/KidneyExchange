@@ -3,6 +3,10 @@ package edu.cmu.cs.dickerson.kpd.structure.real;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
+
 public class UNOSPair {
 
 	private Set<UNOSDonor> donors;
@@ -49,7 +53,7 @@ public class UNOSPair {
 	 * @param dst
 	 * @return
 	 */
-	public static boolean drawDirectedEdge(UNOSPair src, UNOSPair dst) {
+	public static boolean canDrawDirectedEdge(UNOSPair src, UNOSPair dst) {
 		
 		// Always a [dummy] edge from a pair to an altruist;
 		// Never an adge from an altruist to an altruist
@@ -68,6 +72,21 @@ public class UNOSPair {
 		return false;
 	}
 
+	/**
+	 * Returns the kind of Vertex we use in the optimization problem,
+	 * linked back to the underlying UNOSPair
+	 * @param vertexID
+	 * @return
+	 */
+	public Vertex toBaseVertex(Integer vertexID) {
+		if(isAltruist()) {
+			return new VertexAltruist(vertexID, this);
+		} else {
+			return new VertexPair(vertexID, this);
+		}
+	}
+	
+	
 	public Set<UNOSDonor> getDonors() {
 		return donors;
 	}

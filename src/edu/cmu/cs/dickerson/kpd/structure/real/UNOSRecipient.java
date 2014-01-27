@@ -7,4 +7,9 @@ public class UNOSRecipient {
 		return 0;
 	}
 
+	public double getCPRA() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

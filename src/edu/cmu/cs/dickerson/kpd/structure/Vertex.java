@@ -1,8 +1,20 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
+
 public abstract class Vertex implements Comparable<Vertex> {
 
 	protected final Integer ID;
+	protected UNOSPair underlyingPair = null;
+	
+	public UNOSPair getUnderlyingPair() {
+		return underlyingPair;
+	}
+
+	public Vertex(Integer ID, UNOSPair underlyingPair) {
+		this(ID);
+		this.underlyingPair = underlyingPair;
+	}
 	
 	public Vertex(Integer ID) {
 		this.ID = ID;

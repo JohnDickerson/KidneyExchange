@@ -1,5 +1,6 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class VertexPair extends Vertex {
@@ -24,6 +25,15 @@ public class VertexPair extends Vertex {
 		this.isWifePatient = isWifePatient;
 		this.patientCPRA = patientCPRA;
 		this.isCompatible = isCompatible;
+	}
+	
+	public VertexPair(int ID, UNOSPair underlyingPair) {
+		super(ID, underlyingPair);
+		this.bloodTypePatient = BloodType.O;
+		this.bloodTypeDonor = BloodType.O;
+		this.isWifePatient = false;
+		this.patientCPRA = underlyingPair.getRecipient().getCPRA();
+		this.isCompatible = false;
 	}
 	
 	@Override
