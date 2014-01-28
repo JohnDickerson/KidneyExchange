@@ -32,7 +32,7 @@ public class VertexPair extends Vertex {
 		this.bloodTypePatient = BloodType.O;
 		this.bloodTypeDonor = BloodType.O;
 		this.isWifePatient = false;
-		this.patientCPRA = underlyingPair.getRecipient().getCPRA();
+		this.patientCPRA = underlyingPair.getRecipient().cpra;
 		this.isCompatible = false;
 	}
 	

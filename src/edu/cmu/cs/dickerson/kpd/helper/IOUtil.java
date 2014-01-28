@@ -2,8 +2,11 @@ package edu.cmu.cs.dickerson.kpd.helper;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public final class IOUtil {
 
@@ -74,5 +77,11 @@ public final class IOUtil {
 			headerMap.put(headers[idx].toUpperCase().trim(), idx);
 		}
 		return headerMap;
+	}
+	
+	public static Set<String> splitOnWhitespace(String s) {
+		Set<String> split = new HashSet<String>();
+		split.addAll(Arrays.asList( s.split("\\s+") ));
+		return split;
 	}
 }

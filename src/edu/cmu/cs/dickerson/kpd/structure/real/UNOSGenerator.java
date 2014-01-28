@@ -36,13 +36,13 @@ public class UNOSGenerator {
 	// Single random object, seeded externally for repetition
 	private Random randGen;
 	// Map KPD_donor_id -> UNOSDonor
-	private Map<Integer, UNOSDonor> donors;
+	private Map<String, UNOSDonor> donors;
 	// Map KPD_candidate_id -> UNOSRecipient
-	private Map<Integer, UNOSRecipient> recipients;
+	private Map<String, UNOSRecipient> recipients;
 	// Current unused vertex ID for optimization graphs
 	private int currentVertexID;
 
-	protected UNOSGenerator(Map<Integer, UNOSDonor> donors, Map<Integer, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
+	protected UNOSGenerator(Map<String, UNOSDonor> donors, Map<String, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
 		this.donors = donors;
 		this.recipients = recipients;
 		this.pairs = pairs;
@@ -61,11 +61,13 @@ public class UNOSGenerator {
 		for(int idx=0; idx<numNewVerts; idx++) {
 
 			// Sample a pair from the real data, make it a new pool Vertex
-			UNOSPair samplePair = pairs.get(this.randGen.nextInt() % pairs.size());
+			int rndPairIdx = this.randGen.nextInt(pairs.size());
+			UNOSPair samplePair = pairs.get( rndPairIdx );
 
 			// Spawn a new unique Vertex linked back to the underlying UNOSPair
 			Vertex sampleVert = samplePair.toBaseVertex(this.currentVertexID++);
-
+			pool.addVertex(sampleVert);
+			
 			// Check di-edge compatibility between this new vertex and ALL vertices in the current pool
 			for(Vertex v : pool.getPairs()) {
 				// Only draw cardinality 1 edges from this vertex to compatible non-altruists
@@ -75,7 +77,11 @@ public class UNOSGenerator {
 				}
 				if(UNOSPair.canDrawDirectedEdge(v.getUnderlyingPair(), samplePair)) {
 					Edge e = pool.addEdge(v, sampleVert);
-					pool.setEdgeWeight(e, 1.0);
+					if(samplePair.isAltruist()) {
+						pool.setEdgeWeight(e,  0.0);
+					} else {
+						pool.setEdgeWeight(e, 1.0);
+					}
 				}
 			}
 			for(Vertex alt : pool.getAltruists()) {
@@ -102,8 +108,8 @@ public class UNOSGenerator {
 
 	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim, Random randGen) {
 
-		Map<Integer, UNOSDonor> donors = new HashMap<Integer, UNOSDonor>();
-		Map<Integer, UNOSRecipient> recipients = new HashMap<Integer, UNOSRecipient>();
+		Map<String, UNOSDonor> donors = new HashMap<String, UNOSDonor>();
+		Map<String, UNOSRecipient> recipients = new HashMap<String, UNOSRecipient>();
 
 		// We assume a directory structure of:
 		// baseUNOSpath/
@@ -119,6 +125,7 @@ public class UNOSGenerator {
 			}
 		}));
 
+		int matchRunsLoaded = 0;
 		for(File matchDir : matchDirList) {
 
 			// We assume a lot about filenames here.  Figure out which .csv files matter
@@ -145,10 +152,11 @@ public class UNOSGenerator {
 
 			CSVReader reader = null;
 
+			IOUtil.dPrintln("Loading " + recipientFilePath);
 			// Load in the recipients (reload headers array for each file, in case it changes)
 			Set<UNOSRecipient> singleRunRecipients = new HashSet<UNOSRecipient>();
 			try {
-				reader = new CSVReader(new FileReader(donorFilePath), delim);
+				reader = new CSVReader(new FileReader(recipientFilePath), delim);
 
 				// Reload headers array for each file, in case it changes
 				Map<String, Integer> headers = IOUtil.stringArrToHeaders(reader.readNext());
@@ -165,6 +173,7 @@ public class UNOSGenerator {
 			}
 			
 			
+			IOUtil.dPrintln("Loading " + donorFilePath);
 			// Load in the donors 
 			Set<UNOSDonor> singleRunDonors = new HashSet<UNOSDonor>();
 			try {
@@ -186,46 +195,54 @@ public class UNOSGenerator {
 
 			
 			
-			// Only record new recipients and donors
+			// Only record new recipients
 			for(UNOSRecipient r : singleRunRecipients) {
-				if(!recipients.containsKey(r.getKPDCandidateID())) {
-					recipients.put(r.getKPDCandidateID(), r);
+				if(!recipients.containsKey(r.kpdCandidateID)) {
+					recipients.put(r.kpdCandidateID, r);
 				}
 			}
+			// Record only new donors OR old donors who have switched recipients
 			for(UNOSDonor d : singleRunDonors) {
-				if(!donors.containsKey(d.getKPDDonorID())) {
-					donors.put(d.getKPDDonorID(), d);
+				if(!donors.containsKey(d.kpdDonorID)) {
+					donors.put(d.kpdDonorID, d);
+				} else if( !d.nonDirectedDonor && !donors.get(d.kpdDonorID).kpdCandidateID.equals(d.kpdCandidateID) ) {
+					// TODO eventually track donors who left then returned
 				}
 			}
 			
+			matchRunsLoaded++;
+			
 		}  // end of reading all files loop
+		IOUtil.dPrintln("Loaded data from " + matchRunsLoaded + " UNOS match runs.");
 
-
+		
 		// Make pairs out of the recipients and donors:
 		// O(n^2)ish right now, but who cares because real data is small
 		Set<UNOSPair> pairSet = new HashSet<UNOSPair>();
-		for(Integer recipientID : recipients.keySet()) {
+		for(String recipientID : recipients.keySet()) {
 			UNOSRecipient r = recipients.get(recipientID);
 
 			Set<UNOSDonor> pairDonors = new HashSet<UNOSDonor>();
-			for(Integer donorID : donors.keySet()) {
+			for(String donorID : donors.keySet()) {
 				UNOSDonor d = donors.get(donorID);
-				if(d.getKPDCandidateID().equals(r.getKPDCandidateID())) {
+				if(!d.nonDirectedDonor && d.kpdCandidateID.equals(r.kpdCandidateID)) {
 					pairDonors.add(d);
 				}
 			}
 
 			if(pairDonors.size() < 1) { 
 				IOUtil.dPrintln("Could not find a donor match for recipient: " + recipientID);
-				System.exit(-1);
+				//System.exit(-1);
+			} else {
+				//IOUtil.dPrintln("Found " + pairDonors.size() + " donors for recipient " + recipientID);
 			}
 
 			pairSet.add( UNOSPair.makeUNOSPair(pairDonors, r));
 		}
 		// Make pairs out of the altruistic (unpaired) donors
-		for(Integer donorID : donors.keySet()) {
+		for(String donorID : donors.keySet()) {
 			UNOSDonor d = donors.get(donorID);
-			if(d.isNonDirectedDonor()) {
+			if(d.nonDirectedDonor) {
 				pairSet.add(UNOSPair.makeUNOSAltruist(d));
 			}
 		}
@@ -238,11 +255,11 @@ public class UNOSGenerator {
 		return vertexMap;
 	}
 
-	public Map<Integer, UNOSDonor> getDonors() {
+	public Map<String, UNOSDonor> getDonors() {
 		return donors;
 	}
 
-	public Map<Integer, UNOSRecipient> getRecipients() {
+	public Map<String, UNOSRecipient> getRecipients() {
 		return recipients;
 	}
 
