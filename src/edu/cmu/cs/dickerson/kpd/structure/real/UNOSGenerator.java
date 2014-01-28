@@ -70,6 +70,8 @@ public class UNOSGenerator {
 			
 			// Check di-edge compatibility between this new vertex and ALL vertices in the current pool
 			for(Vertex v : pool.getPairs()) {
+				if(v.equals(sampleVert)) { continue; }
+				
 				// Only draw cardinality 1 edges from this vertex to compatible non-altruists
 				if(UNOSPair.canDrawDirectedEdge(samplePair, v.getUnderlyingPair())) {
 					Edge e = pool.addEdge(sampleVert, v);
@@ -78,13 +80,15 @@ public class UNOSGenerator {
 				if(UNOSPair.canDrawDirectedEdge(v.getUnderlyingPair(), samplePair)) {
 					Edge e = pool.addEdge(v, sampleVert);
 					if(samplePair.isAltruist()) {
-						pool.setEdgeWeight(e,  0.0);
+						pool.setEdgeWeight(e, 0.0);
 					} else {
 						pool.setEdgeWeight(e, 1.0);
 					}
 				}
 			}
 			for(Vertex alt : pool.getAltruists()) {
+				if(alt.equals(sampleVert)) { continue; }
+				
 				// Always draw a (dummy) edge from this vertex to altruists, UNLESS this is an altruist
 				if(UNOSPair.canDrawDirectedEdge(samplePair, alt.getUnderlyingPair())) {
 					Edge e = pool.addEdge(sampleVert, alt);

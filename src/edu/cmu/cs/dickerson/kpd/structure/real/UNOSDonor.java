@@ -124,7 +124,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		
 		//if( (this.bw4 && r.)
 		
-		return false;
+		return true;
 	}
 	
 	

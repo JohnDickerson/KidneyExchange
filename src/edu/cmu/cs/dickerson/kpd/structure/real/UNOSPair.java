@@ -55,6 +55,9 @@ public class UNOSPair {
 	 */
 	public static boolean canDrawDirectedEdge(UNOSPair src, UNOSPair dst) {
 		
+		// We assume donors cannot donate to their paired recipients
+		if(dst.equals(src)) { return false; }
+		
 		// Always a [dummy] edge from a pair to an altruist;
 		// Never an adge from an altruist to an altruist
 		if(dst.isAltruist()) {
