@@ -39,11 +39,98 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		this.kpdDonorID = kpd_donor_id;
 	}
 	
-	public boolean canDonateTo(UNOSRecipient recipient) {
-		// TODO
-		return false;
+	/**
+	 * 
+	 * @param r possible recipient of donor's organ
+	 * @return true if this donor passes all donation tests to recipient
+	 */
+	public boolean canDonateTo(UNOSRecipient r) {
+		
+		// To donate successfully, the donor and recipient must pass
+		// ALL tests used.  Many of these are from USNA codebase.
+		return bloodTypeTest(r)
+				&& unacceptableAntigenTest(r)
+				&& whichKidneyTest(r)
+				&& hepBTest(r)
+				&& creatinineTest(r)
+				&& bloodPressureTest(r)
+				&& bmiTest(r)
+				&& cmvTest(r)
+				&& ebvTest(r)
+				&& ageTest(r)
+				&& travelAndShippingTest(r);
 	}
 
+	private boolean bloodTypeTest(UNOSRecipient r) {
+		return this.abo.canGiveTo(r.abo);
+	}
+	
+	private boolean whichKidneyTest(UNOSRecipient r) {
+		// Possible options are "L" = left, "R" = right, or "E" = either
+		// Must be "E" for the donor or "E" for the recipient or a donor/recipient match
+		return this.donKiType.equals("E") || r.acceptKiType.equals("E") || this.donKiType.equals(r.acceptKiType);
+	}
+	
+	private boolean hepBTest(UNOSRecipient r) {
+		return !this.hbcAndHBSAG || r.acceptHepbPos;
+	}
+	
+	private boolean creatinineTest(UNOSRecipient r) {
+		return this.creatBSA >= r.minDonorCreat;
+	}
+	
+	private boolean bloodPressureTest(UNOSRecipient r) {
+		return (this.bpSystolic <= r.maxDonorBPSystolic)
+				&& (this.bpDiastolic <= r.maxDonorBPDiastolic);
+	}
+	
+	private boolean bmiTest(UNOSRecipient r) {
+		return this.bmi <= r.maxDonorBMI;
+	}
+	
+	private boolean cmvTest(UNOSRecipient r) {
+		return !this.cmv || r.acceptCMVPos;
+	}
+	
+	private boolean ebvTest(UNOSRecipient r) {
+		return !this.ebv || r.acceptEBVPos;
+	}
+	
+	private boolean ageTest(UNOSRecipient r) {
+		return this.age <= r.maxDonorAge && this.age >= r.minDonorAge;
+	}
+	
+	private boolean travelAndShippingTest(UNOSRecipient r) {
+		
+		// Donor and recipient are at the same center
+		if(this.homeCtr.equals(r.transplantCtr)) { return true; }
+		
+		// Donor will travel to patient
+		if(this.travCenters.contains(r.transplantCtr)) { return true; }
+		
+		// Patient will travel to donor
+		if(r.travCenters.contains(this.homeCtr)) { return true; }
+		
+		// Patient will accept a shipped organ from the donor
+		if(this.donKiShip) {
+			if(r.shipCenters.contains(this.homeCtr)) { return true; }
+		}
+		return false;
+	}
+	
+	private boolean unacceptableAntigenTest(UNOSRecipient r) {
+		
+		// TODO
+		
+		//if( (this.bw4 && r.)
+		
+		return false;
+	}
+	
+	
+	
+	
+	
 	
 	@Override
 	public int hashCode() {

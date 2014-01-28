@@ -36,7 +36,7 @@ public class UNOSRecipient implements Comparable<UNOSRecipient> {
 	public int minDonorAge, maxDonorAge;
 	public boolean acceptHepbPos;
 	public boolean highlySensitized;
-	public double minDonorCreat, maxDonorBPSystolic, MaxDonorBPDiastolic, maxDonorBMI;
+	public double minDonorCreat, maxDonorBPSystolic, maxDonorBPDiastolic, maxDonorBMI;
 	public boolean acceptCMVPos, acceptEBVPos;
 	public double cpra;
 	
@@ -93,10 +93,10 @@ public class UNOSRecipient implements Comparable<UNOSRecipient> {
 		r.maxDonorBPSystolic = Double.valueOf(line[headers.get("MAX_DONOR_BP_SYSTOLIC")]);
 		
 		try {
-			r.MaxDonorBPDiastolic = Double.valueOf(line[headers.get("MAX_DONOR_BP_DIASTOLIC")]);
+			r.maxDonorBPDiastolic = Double.valueOf(line[headers.get("MAX_DONOR_BP_DIASTOLIC")]);
 		} catch(NumberFormatException e) {
 			// These aren't listed sometimes, so we'll assume no preference
-			r.MaxDonorBPDiastolic = Double.MAX_VALUE;
+			r.maxDonorBPDiastolic = Double.MAX_VALUE;
 		}
 		
 		r.maxDonorBMI = Double.valueOf(line[headers.get("MAX_DONOR_BMI")]);
