@@ -1,6 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -20,7 +21,7 @@ public class UNOSGeneratorTest {
 	public static boolean HAVE_ACCESS_TO_UNOS_DATA = true;
 
 	// TODO flesh this test out
-	
+
 	@Test
 	public void test() {
 
@@ -32,16 +33,16 @@ public class UNOSGeneratorTest {
 		// Change this to reflect base loading path for UNOS files
 		String basePath = "/Users/spook/amem/kpd/files_real_runs/zips";
 		long seed = 12345;
-		
+
 		// Load in data from all runs that are unzipped
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', new Random(seed));
 
 		int initialSize = 1000;
 		int initialAddition = 500;
-		
+
 		// Generate a sample pool with some pairs or altruists
 		Pool pool = gen.generatePool(initialSize);
-		
+
 		// Add a few vertices
 		gen.addVertices(pool, initialAddition);
 
@@ -49,7 +50,7 @@ public class UNOSGeneratorTest {
 		assertEquals("Raw vertex count check", initialSize+initialAddition, pool.getNumPairs() + pool.getNumAltruists());
 		System.out.println("#Altruists: " + pool.getNumAltruists());
 		System.out.println("#Pairs:     " + pool.getNumPairs());
-	
+
 		// Do some simple checks on edges for the altruists
 		for(Vertex alt : pool.getAltruists()) {
 			for(Vertex pair : pool.getPairs()) {
@@ -72,7 +73,33 @@ public class UNOSGeneratorTest {
 						!pool.getEdgeSource(e).isAltruist() && pool.getEdgeTarget(e).isAltruist());
 			}
 		}
-		
-	}
 
-}
+		// Run a quick sanity check of edge distributions (MAY NOT ALWAYS BE TRUE)
+		double inDegSumHigh = 0;
+		int inDegCtHigh = 0;
+		double inDegSumLow = 0;
+		int inDegCtLow = 0;
+		for(Vertex v : pool.getPairs()) {
+			int inDeg = pool.incomingEdgesOf(v).size();
+			// Track CPRA high and CPRA low stats differently
+			if(v.getUnderlyingPair().getRecipient().cpra >= 0.8) {
+				assertTrue("CPRA >= 80 --> UNOS highly-sensitized", v.getUnderlyingPair().getRecipient().highlySensitized);
+				inDegSumHigh += inDeg;
+				inDegCtHigh++;
+			} else {
+				assertFalse("CPRA < 80 --> UNOS lowly-sensitized", v.getUnderlyingPair().getRecipient().highlySensitized);
+				inDegSumLow += inDeg;
+				inDegCtLow++;
+			}
+		}
+		double inDegAvgHigh = -1.0;
+		if(inDegCtHigh > 0) { inDegAvgHigh = inDegSumHigh / (double) inDegCtHigh; }
+		double inDegAvgLow = -1.0;
+		if(inDegCtLow > 0) { inDegAvgLow = inDegSumLow / (double) inDegCtLow; }
+		
+		System.out.println("Avg in-degree highly-sensitized: " + inDegAvgHigh);
+		System.out.println("Avg in-degree lowly-sensitized: " + inDegAvgLow);
+		assertTrue("Probabilistic check: in-deg of highly-sensitized <= lowly-sensitized", inDegAvgHigh <= inDegAvgLow);
+		}
+
+	}
