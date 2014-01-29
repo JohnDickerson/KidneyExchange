@@ -157,7 +157,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 					if( this.dr51 && antNum == 51) { return false; }
 					if( this.dr52 && antNum == 52) { return false; }
 					if( this.dr53 && antNum == 53) { return false; }
-				} else if(antType.equals("DP")) {
+				} else if(antType.equals("DP") || antType.equals("DPW")) {
 					if( this.dp1 == antNum || this.dp2 == antNum) { return false; }	
 				} else {
 					System.out.println("ERROR: " + ant);

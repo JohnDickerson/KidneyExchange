@@ -5,13 +5,21 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.Test;
 
+import edu.cmu.cs.dickerson.kpd.fairness.solver.FairnessCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
+import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSGenerator;
 
 public class UNOSGeneratorTest {
@@ -37,7 +45,7 @@ public class UNOSGeneratorTest {
 		// Load in data from all runs that are unzipped
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', new Random(seed));
 
-		int initialSize = 1000;
+		int initialSize = 950;
 		int initialAddition = 50;
 
 		// Generate a sample pool with some pairs or altruists
@@ -96,10 +104,31 @@ public class UNOSGeneratorTest {
 		if(inDegCtHigh > 0) { inDegAvgHigh = inDegSumHigh / (double) inDegCtHigh; }
 		double inDegAvgLow = -1.0;
 		if(inDegCtLow > 0) { inDegAvgLow = inDegSumLow / (double) inDegCtLow; }
-		
+
+		System.out.println("Total edge count: " + (inDegSumHigh+inDegSumLow));
 		System.out.println("Avg in-degree highly-sensitized: " + inDegAvgHigh);
 		System.out.println("Avg in-degree lowly-sensitized: " + inDegAvgLow);
 		assertTrue("Probabilistic check: in-deg of highly-sensitized <= lowly-sensitized", inDegAvgHigh <= inDegAvgLow);
+
+		// Make sure we can solve the pool
+		boolean doSolve=false;
+		if(doSolve) {
+			CycleGenerator cg = new CycleGenerator(pool);
+			System.out.println("Generating cycles and chains ...");
+			List<Cycle> cycles = cg.generateCyclesAndChains(3, 4);
+			CycleMembership membership = new CycleMembership(pool, cycles);
+			
+			FairnessCPLEXSolver s = new FairnessCPLEXSolver(pool, cycles, membership, new HashSet<Vertex>());
+			try {
+				System.out.println("Solving ...");
+				Solution sol = s.solve(0.0);
+				System.out.println("Solution size: " + sol.getObjectiveValue());
+			} catch(SolverException e) {
+				e.printStackTrace();
+				fail("Solver exception.");
+			}
 		}
 
 	}
+
+}
