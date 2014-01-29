@@ -2,6 +2,8 @@ package edu.cmu.cs.dickerson.kpd.structure.real;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
@@ -118,9 +120,52 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		return false;
 	}
 	
+	
+	private static Pattern antigenPattern = Pattern.compile("^([a-zA-Z]{1,3})([0-9]{1,4})$");
 	private boolean unacceptableAntigenTest(UNOSRecipient r) {
 		
-		// TODO
+		// TODO -- store antigens in a more sane way ...
+		
+		// Antigens look like NNDD, where NN is the type and DD is a number
+		// e.g., A12 is type A, number 12
+		// If there is ANY match between recipient's unacceptables and a donor, fail
+		for(String ant : r.unacceptableAntigens) {
+			
+			// Ignore or fix mistyped input
+			if(ant.toUpperCase().trim().equals("N/A") || ant.trim().length() < 1) { continue; }
+			ant = ant.replace("*", "");
+					
+			
+			Matcher m = antigenPattern.matcher(ant);
+			if(m.find()) {
+				String antType = m.group(1).toUpperCase();
+				int antNum = Integer.valueOf(m.group(2));
+				
+				if(antType.equals("A")) {
+					if( this.a1 == antNum || this.a2 == antNum) { return false; }
+				} else if(antType.equals("B")) {
+					if( this.b1 == antNum || this.b2 == antNum) { return false; }
+				} else if(antType.equals("BW")) {
+					if( this.bw4 && antNum == 4 ) { return false; }
+					if( this.bw6 && antNum == 6 ) { return false; }
+				} else if(antType.equals("CW")) {
+					if( this.cw1 == antNum || this.cw2 == antNum) { return false; }
+				} else if(antType.equals("DQ")) {
+					if( this.dq1 == antNum || this.dq2 == antNum) { return false; }	
+				} else if(antType.equals("DR")) {
+					if( this.dr1 == antNum || this.dr2 == antNum) { return false; }	
+					if( this.dr51 && antNum == 51) { return false; }
+					if( this.dr52 && antNum == 52) { return false; }
+					if( this.dr53 && antNum == 53) { return false; }
+				} else if(antType.equals("DP")) {
+					if( this.dp1 == antNum || this.dp2 == antNum) { return false; }	
+				} else {
+					System.out.println("ERROR: " + ant);
+				}
+			} else {
+				IOUtil.dPrintln("Could not parse raw antigen string: " + ant);
+			}
+		}
 		
 		//if( (this.bw4 && r.)
 		
@@ -220,7 +265,13 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		
 		String travCentersHeader = headers.containsKey("CENTERS WHERE DONOR IS WILLING T") ? "CENTERS WHERE DONOR IS WILLING T" : "TRAV_CENTERS";
 		donor.travCenters = IOUtil.splitOnWhitespace(line[headers.get(travCentersHeader)]);
-		donor.region = Integer.valueOf(line[headers.get("REGION")]);
+		
+		try {
+			donor.region = Integer.valueOf(line[headers.get("REGION")]);
+		} catch(NumberFormatException e) {
+			// Sometimes given as "not reported"; we don't use this, so whatever
+			donor.region = -1;
+		}
 		donor.dsa = line[headers.get("DSA")].trim();
 		
 		// More health characteristics
@@ -261,7 +312,8 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		}
 		
 		if(headers.containsKey("BRIDGE_MATCH")) {
-			if( IOUtil.stringToBool(line[headers.get("BRIDGE_MATCH")]) ) {
+			String bridgeMatchAllowed = line[headers.get("BRIDGE_MATCH")].trim();
+			if( !bridgeMatchAllowed.isEmpty() && IOUtil.stringToBool(bridgeMatchAllowed) ) {
 				donor.maxPairsChain = 4;   // okay with bridge donors = can do UNOS cap=4 chains
 			} else {
 				donor.maxPairsChain = 0;

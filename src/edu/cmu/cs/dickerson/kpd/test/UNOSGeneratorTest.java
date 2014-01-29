@@ -37,7 +37,7 @@ public class UNOSGeneratorTest {
 		// Load in data from all runs that are unzipped
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', new Random(seed));
 
-		int initialSize = 100;
+		int initialSize = 1000;
 		int initialAddition = 50;
 
 		// Generate a sample pool with some pairs or altruists
