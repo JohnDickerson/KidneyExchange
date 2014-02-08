@@ -10,7 +10,7 @@ public class ExperimentalOutput {
 	// Output file location
 	private String path;
 
-	// Current row (created incremenetally)
+	// Current row (created incrementally)
 	private String[] row; 
 	
 	private CSVWriter writer;
@@ -33,6 +33,7 @@ public class ExperimentalOutput {
 		UNFAIR_TOTAL_CARDINALITY_MATCHED,
 		FAILURE_PROBABILITIES_USED,
 		FAILURE_PROBABILITY_DIST,
+		FAILURE_PARAMETER_1,
 		FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED,
 		FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED,
 		UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED,
@@ -75,6 +76,7 @@ public class ExperimentalOutput {
 		header[Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Unfair Highly-Sensitized Matched";
 		header[Col.FAILURE_PROBABILITIES_USED.ordinal()] = "Failure Probabilities Used?";
 		header[Col.FAILURE_PROBABILITY_DIST.ordinal()] = "Failure Probability Distribution";
+		header[Col.FAILURE_PARAMETER_1.ordinal()] = "Failure Parameter 1";
 		header[Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Fair Expected Highly-Sensitized Matched";
 		header[Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Unfair Expected Highly-Sensitized Matched";
 		header[Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Fair Expected Total Matched";

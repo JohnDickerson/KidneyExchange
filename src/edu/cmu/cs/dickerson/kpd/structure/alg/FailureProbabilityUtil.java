@@ -20,8 +20,19 @@ public final class FailureProbabilityUtil {
 		BIMODAL_CORRELATED,
 		BIMODAL_CORRELATED_UNOS, 
 		BIMODAL_CORRELATED_APD, 
-		BIMODAL_CORRELATED_NKR };
+		BIMODAL_CORRELATED_NKR 
+	};
 
+
+	/**
+	 * Legacy for old AAMAS-2014 experiments, where constant failure probability of 0.7 assumed
+	 * @param pool
+	 * @param dist
+	 * @param r
+	 */
+	public static void setFailureProbability(Pool pool, ProbabilityDistribution dist, Random r) {
+		FailureProbabilityUtil.setFailureProbability(pool, dist, r, 0.7);
+	}
 
 	/**
 	 * Sets failure probabilities for each (non-dummy) edge in the graph
@@ -32,12 +43,12 @@ public final class FailureProbabilityUtil {
 	 *             BIMODAL_CORRELATED_{UNOS,APD,NKR} (same as BIMODAL_CORRELATED but fed aggregate data from real exchanges)
 	 * @param r Random instance
 	 */
-	public static void setFailureProbability(Pool pool, ProbabilityDistribution dist, Random r) {
+	public static void setFailureProbability(Pool pool, ProbabilityDistribution dist, Random r, double param1) {
 
 		if(dist.equals(ProbabilityDistribution.NONE)) {
 			return;
 		}
-		
+
 		for(Edge e : pool.edgeSet()) {
 
 			if(pool.getEdgeTarget(e).isAltruist()) {
@@ -47,11 +58,11 @@ public final class FailureProbabilityUtil {
 				// Real edges (real donor giving to real patient) can fail
 				// Safe cast; earlier if statement checks for Altruist
 				double patient_cpra = ((VertexPair) pool.getEdgeTarget(e)).getPatientCPRA();
-				
+
 				switch(dist) {
 				case CONSTANT:
 					// Constant 70% chance of failure
-					e.setFailureProbability(0.7);
+					e.setFailureProbability(param1);
 					break;
 				case BIMODAL_RANDOM:
 					if(r.nextDouble() < 0.25) {
@@ -91,13 +102,37 @@ public final class FailureProbabilityUtil {
 			}
 		}
 	}
-	
+
+	/**
+	 * Given a set of assumed-to-be-disjoint cycles, calculates the total discounted utility 
+	 * of the matching (i.e., if forceCardinality=1, then this is the expected number of transplants)
+	 * @param cycles set of vertex-disjoint cycles
+	 * @param pool full pool in which these cycles exist
+	 * @param forceCardinality should we count edges as weight=1 or weight=assigned weight?
+	 * @return 
+	 */
+	public static double calculateDiscountedMatchUtility(Set<Cycle> cycles, Pool pool, boolean forceCardinality) {
+
+		if(null == cycles || null == pool) { return 0.0; }
+
+		double utilSum = 0.0;
+		for(Cycle c : cycles) {
+			if(Cycle.isAChain(c, pool)) {
+				utilSum += FailureProbabilityUtil.calculateDiscountedChainUtility(c, pool, pool.vertexSet(), forceCardinality);
+			} else {
+				utilSum += FailureProbabilityUtil.calculateDiscountedCycleUtility(c, pool, pool.vertexSet(), forceCardinality);
+			}
+		}
+		return utilSum;
+	}
+
+
 	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool, Set<Vertex> specialV) {
 		return calculateDiscountedCycleUtility(c, pool, specialV, false);
 	}
-	
+
 	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool, Set<Vertex> specialV, boolean forceCardinality) {
-		
+
 		double utilSum = 0.0;
 		double succProb = 1.0;
 		for(Edge e : c.getEdges()) {
@@ -107,35 +142,35 @@ public final class FailureProbabilityUtil {
 			}
 			succProb *= (1.0 - e.getFailureProbability());
 		}
-		
+
 		return utilSum * succProb;
 	}
-	
-	
+
+
 	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, Set<Vertex> specialV) {
 		return calculateDiscountedChainUtility(c, pool, specialV, false);
 	}
-	
+
 	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, Set<Vertex> specialV, boolean forceCardinality) {
-		
+
 		int edgeIdx = 0;
 		double pathSuccProb = 1.0;
 		double rawPathWeight = 0.0;
 		double discountedPathWeight = 0.0;
-		
+
 		// Iterate from last to first in the list of edges, since altruists start at the end
 		ListIterator<Edge> reverseEdgeIt = c.getEdges().listIterator(c.getEdges().size());
 		while(reverseEdgeIt.hasPrevious()) {
-			
+
 			Edge e = reverseEdgeIt.previous();
-			
+
 			// We're looking at the (infallible) dummy edge heading back to the altruist
 			// We're also assuming that the altruist is not in specialV (or if she is, it doesn't matter)
 			if(edgeIdx == c.getEdges().size() - 1) {
 				discountedPathWeight += rawPathWeight*pathSuccProb;
 				break;
 			}
-			
+
 			if(edgeIdx == 0 && !pool.getEdgeSource(e).isAltruist()) {
 				throw new IllegalArgumentException("Our generator generates chains with altruists sourcing the first edge.  I haven't coded up the discounted utility code for non-0-index altruists.");
 			} else {
@@ -149,8 +184,8 @@ public final class FailureProbabilityUtil {
 			}
 			edgeIdx++;
 		}
-		
+
 		return discountedPathWeight;
 	}
-	
+
 }
