@@ -47,7 +47,7 @@ public class HCAGTDriverUNOS {
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
-		for(double alphaStarVal=0.0; alphaStarVal<=10.0; alphaStarVal += 0.1) {
+		for(double alphaStarVal=0.0; alphaStarVal<=10.0; alphaStarVal += 1.0) {
 			alphaStarValList.add(alphaStarVal);
 		}
 
@@ -209,7 +209,7 @@ public class HCAGTDriverUNOS {
 										
 										// Have to re-weight all the cycles/chains for non-failure-aware matching
 										cg = new CycleGenerator(pool);
-										cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
+										cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
 										membership = new CycleMembership(pool, cycles);
 										s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
 
