@@ -19,13 +19,19 @@ TBD.
 External Dependencies
 =====================
 
-To use any of the solvers that inherit from `CPLEXSolver`, you will need to add [cplex.jar](http://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/) to `lib/`.  IBM offers a free academic license as well as a 90-day free trial available on their website.
+To use any of the solvers that inherit from `CPLEXSolver`, you will need to add [cplex.jar](http://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/) to `lib/`.  This will allow compilation; to run, you'll also need a VM argument like
+
+   -Djava.library.path=/path/to/CPLEX_Studio/cplex/bin/your-architecture/
+
+IBM offers a free academic license for CPLEX as well as a 90-day free trial available on their website.
 
 
 Related Research
 ================
 
 _The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://www.cs.cmu.edu/~arielpro/papers/pof.pdf "Carnegie Mellon University link")
+
+_The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  _Submitted to AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory_.
 
 _Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **EC-2013**.  [Link](http://www.cs.cmu.edu/~sandholm/failure-aware%20kidney%20exchange.ec13.pdf "Carnegie Mellon University link")
 
