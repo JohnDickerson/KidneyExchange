@@ -29,11 +29,11 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
-public class HCAGTDriverUNOS {
+public class HCAGTDriverUNOSGenerator {
 
 	/**
 	 * AAMAS-2014 Healthcare and Algorithmic Game Theory workshop experiments
-	 * Individual UNOS match runs, weighted 
+	 * Generated UNOS match runs, weighted 
 	 */
 	public static void main(String[] args) {
 
@@ -53,7 +53,7 @@ public class HCAGTDriverUNOS {
 
 		// Vary the param1 in edge failure distribution (e.g., constant failure \in \{0,0.1,..,1.0\})
 		List<Double> failParam1List = new ArrayList<Double>();
-		for(double param1=0.0; param1<=0.0; param1 += 0.05) {
+		for(double param1=0.0; param1<1.0; param1 += 0.05) {
 			failParam1List.add(param1);
 		}
 
@@ -62,7 +62,7 @@ public class HCAGTDriverUNOS {
 
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_CORRELATED_APD;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
 		}

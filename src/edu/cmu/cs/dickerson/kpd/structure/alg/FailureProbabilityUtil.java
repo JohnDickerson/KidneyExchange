@@ -77,19 +77,23 @@ public final class FailureProbabilityUtil {
 				case BIMODAL_CORRELATED_UNOS:
 					if(patient_cpra < 0.8) {   // CPRA<80 = UNOS lowly-sensitized
 						// E[10%] chance of failure
-						e.setFailureProbability(0.0 + r.nextDouble()*0.2);
+						//e.setFailureProbability(0.0 + r.nextDouble()*0.2);
+						e.setFailureProbability(0.1);
 					} else {
 						// E[90%] chance of failure
-						e.setFailureProbability(0.8 + r.nextDouble()*0.2);
+						//e.setFailureProbability(0.8 + r.nextDouble()*0.2);
+						e.setFailureProbability(0.9);
 					}
 					break;
 				case BIMODAL_CORRELATED_APD:
 					if(patient_cpra < 0.75) {   // CPRA<75 = APD highest sensitization level (from Ashlagi et al. "Nonsimultaneous Chains and Dominos in Kidney Paired Donation--Revisited")
 						// E[28%] chance of failure   :  20% crossmatch failure, 8% exogenous failure rate
-						e.setFailureProbability(0.18 + r.nextDouble()*0.2);
+						//e.setFailureProbability(0.18 + r.nextDouble()*0.2);
+						e.setFailureProbability(0.28);
 					} else {
 						// E[58%] chance of failure
-						e.setFailureProbability(0.48 + r.nextDouble()*0.2);
+						//e.setFailureProbability(0.48 + r.nextDouble()*0.2);
+						e.setFailureProbability(0.58);
 					}
 					break;
 				case BIMODAL_CORRELATED_NKR:
