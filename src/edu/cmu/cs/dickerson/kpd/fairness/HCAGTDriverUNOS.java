@@ -61,14 +61,14 @@ public class HCAGTDriverUNOS {
 		long seed = System.currentTimeMillis();
 
 		// Are we using failure probabilities, and if so what kind?
-		boolean usingFailureProbabilities = false;
+		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
 		}
 
 		// Initialize our experimental output to .csv writer
-		String path = "unos_nonlex_" + System.currentTimeMillis() + ".csv";
+		String path = "hcagt_unos_nonlex_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;
 		try {
 			eOut = new ExperimentalOutput(path);
@@ -197,15 +197,32 @@ public class HCAGTDriverUNOS {
 									eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
 									eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
 
-									//Solution unfairSol = s.solve(0.0);
-									//eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
-									//eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
-									//eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
-									//eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
-									//eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
-
-
 									IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
+
+									// For these experiments, we want a baseline max cardinality / max weighted matching
+									// to compare against, but only need to compute this once per alphaStar run
+									if(alphaStarVal == 0.0) {
+										
+										// Ask the JVM politely to garbage collect.  Hopefully.  Maybe.
+										cg = null; cycles = null; membership = null; s = null; fairSol = null;
+										System.gc();
+										
+										// Have to re-weight all the cycles/chains for non-failure-aware matching
+										cg = new CycleGenerator(pool);
+										cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
+										membership = new CycleMembership(pool, cycles);
+										s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+
+										// Store max-weight matching results in old "UNFAIR" columns
+										Solution unfairSol = s.solve();
+										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
+										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
+										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
+										eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
+										eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
+										IOUtil.dPrintln("Solved NON-FAILURE-AWARE IP with objective: " + unfairSol.getObjectiveValue());
+									}
+									
 
 								} catch(SolverException e) {
 									e.printStackTrace();
