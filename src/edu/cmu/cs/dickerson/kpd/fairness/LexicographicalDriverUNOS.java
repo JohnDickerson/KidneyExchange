@@ -33,16 +33,16 @@ public class LexicographicalDriverUNOS {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(3);//Integer.MAX_VALUE);  // Set higher when doing real runs
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 5;   // need >1 if we're doing, e.g., bimodal probabilities
+		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
 
 		// Random seed (recorded in experimental file for reproducibility) -- used for failure probabilities
 		long seed = System.currentTimeMillis();
 
 		// Are we using failure probabilities, and if so what kind?
-		boolean usingFailureProbabilities = true;
+		boolean usingFailureProbabilities = false;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_RANDOM;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;

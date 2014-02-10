@@ -1,7 +1,5 @@
 package edu.cmu.cs.dickerson.kpd.fairness;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,8 +24,7 @@ import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
-import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
-import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSGenerator;
 
 public class HCAGTDriverUNOSGenerator {
 
@@ -40,10 +37,10 @@ public class HCAGTDriverUNOSGenerator {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(4);//Integer.MAX_VALUE);  // UNOS currently uses 4
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
+		int numRepeats = 25;   // need >1 if we're doing, e.g., bimodal probabilities
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
@@ -81,169 +78,133 @@ public class HCAGTDriverUNOSGenerator {
 		//String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
 		//String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
 		String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
-		File baseUNOSDir = new File(baseUNOSpath);
-		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File file, String name) {
-				return file.isDirectory() && !name.toLowerCase().endsWith(".zip");
-			}
-		}));
 
-		for(File matchDir : matchDirList) {
+		// Load in data from all runs that are unzipped
+		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(baseUNOSpath, ',', new Random(seed));
+		int poolSize = 250;
 
-			UNOSLoader loader = new UNOSLoader(',');
+		//IOUtil.dPrintln("% Highly-sensitized O-AB Pairs: " + FairnessUtil.getOnlyHighlySensitizedPairs(pool.getPairsOfType(BloodType.O, BloodType.AB), highlySensitizedThresh).size() / (double) pool.getNumPairs());
 
-			// We assume a lot about filenames here.  Figure out which .csv files matter
-			String matchRunID = "", donorFilePath = "", recipientFilePath = "", edgeFilePath = "";
-			File[] csvFiles = matchDir.listFiles(new FilenameFilter() {  @Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } });
-			if(null == csvFiles || csvFiles.length < 1) { continue; }
+		for(int repeatIdx=0; repeatIdx<numRepeats; repeatIdx++) {
 
-			for(File csvFile : Arrays.asList(csvFiles)) {
-				if(csvFile.getName().toUpperCase().contains("DONOR")) {
-					donorFilePath = csvFile.getAbsolutePath();
-					matchRunID = csvFile.getName().substring(0,8);
-				} else if(csvFile.getName().toUpperCase().contains("RECIPIENT")) {
-					recipientFilePath = csvFile.getAbsolutePath();
-				} else if(csvFile.getName().toUpperCase().contains("EDGEWEIGHTS")) {
-					edgeFilePath = csvFile.getAbsolutePath();
-				}
-			}
-
-			// Make sure we're actually looking at a UNOS match run
-			if(donorFilePath.isEmpty() || recipientFilePath.isEmpty() || edgeFilePath.isEmpty() || matchRunID.isEmpty()) {
-				IOUtil.dPrintln("Couldn't figure out this directory!");
-				System.exit(-1);
-			}
-
-			// Load the pool from donor, recipient, edge files
-			Pool pool = null;
-			try {
-				pool = loader.loadFromFile(donorFilePath, recipientFilePath, edgeFilePath);
-			} catch(LoaderException e) {
-				e.printStackTrace();
-				System.exit(-1);
-			}
+			// Generate a sample pool with some pairs or altruists
+			Pool pool = gen.generatePool(poolSize);
 
 			Integer numPairs = pool.getNumPairs();
 			Integer numAlts = pool.getNumAltruists();
 			double highlySensitizedThresh = 0.8;   // UNOS data is explicitly marked as highly or not highly sensitized   
 
-			//IOUtil.dPrintln("% Highly-sensitized O-AB Pairs: " + FairnessUtil.getOnlyHighlySensitizedPairs(pool.getPairsOfType(BloodType.O, BloodType.AB), highlySensitizedThresh).size() / (double) pool.getNumPairs());
+			// Generate a compatibility graph
+			Random r = new Random(++seed);
 
-			for(int repeatIdx=0; repeatIdx<numRepeats; repeatIdx++) {
+			for(double failParam1 : failParam1List) {
 
-				// Generate a compatibility graph
-				Random r = new Random(++seed);
+				// If we're setting failure probabilities, do that here:
+				if(usingFailureProbabilities) {
+					FailureProbabilityUtil.setFailureProbability(pool, failDist, r, failParam1);
+				}
 
-				for(double failParam1 : failParam1List) {
+				for(Double alphaStarVal : alphaStarValList) {
 
-					// If we're setting failure probabilities, do that here:
-					if(usingFailureProbabilities) {
-						FailureProbabilityUtil.setFailureProbability(pool, failDist, r, failParam1);
-					}
+					for(Integer cycleCap : cycleCapList) {
+						for(Integer chainCap : chainCapList) {
 
-					for(Double alphaStarVal : alphaStarValList) {
+							eOut.set(Col.START_TIME, new Date());
+							eOut.set(Col.NUM_PAIRS, numPairs);
+							eOut.set(Col.NUM_ALTS, numAlts);
+							eOut.set(Col.CYCLE_CAP, cycleCap);
+							eOut.set(Col.CHAIN_CAP, chainCap);
+							eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
+							eOut.set(Col.RANDOM_SEED, seed);
+							eOut.set(Col.GENERATOR, "UNOS_Generator");
+							eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
+							eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
+							eOut.set(Col.FAILURE_PARAMETER_1, failParam1);
 
-						for(Integer cycleCap : cycleCapList) {
-							for(Integer chainCap : chainCapList) {
+							IOUtil.dPrintln("---: a* = " + alphaStarVal + ", fail: " + failParam1 + ", size: " + poolSize + ", #alts: " + numAlts + ", repeat: " + repeatIdx + "/" + numRepeats);
 
-								eOut.set(Col.START_TIME, new Date());
-								eOut.set(Col.NUM_PAIRS, numPairs);
-								eOut.set(Col.NUM_ALTS, numAlts);
-								eOut.set(Col.CYCLE_CAP, cycleCap);
-								eOut.set(Col.CHAIN_CAP, chainCap);
-								eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
-								eOut.set(Col.RANDOM_SEED, seed);
-								eOut.set(Col.GENERATOR, matchRunID);
-								eOut.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
-								eOut.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
-								eOut.set(Col.FAILURE_PARAMETER_1, failParam1);
-								
-								IOUtil.dPrintln("---: a* = " + alphaStarVal + ", looking at UNOS file: " + matchRunID);
-
-								// Split pairs into highly- and not highly-sensitized patients 
-								Set<Vertex> highV = new HashSet<Vertex>();
-								for(VertexPair pair : pool.getPairs()) {
-									if(pair.getPatientCPRA() >= highlySensitizedThresh) {
-										highV.add(pair);
-									}
+							// Split pairs into highly- and not highly-sensitized patients 
+							Set<Vertex> highV = new HashSet<Vertex>();
+							for(VertexPair pair : pool.getPairs()) {
+								if(pair.getPatientCPRA() >= highlySensitizedThresh) {
+									highV.add(pair);
 								}
-								eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
+							}
+							eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
 
-								// Set weights of edges targeting non-highly-sensitized patients to 1.0, and
-								// edges targeting highly-sensitized patients to (1.0 + alphaStar)
-								eOut.set(Col.ALPHA_STAR, alphaStarVal);
-								FairnessUtil.setFairnessEdgeWeights(pool, alphaStarVal, highV);
+							// Set weights of edges targeting non-highly-sensitized patients to 1.0, and
+							// edges targeting highly-sensitized patients to (1.0 + alphaStar)
+							eOut.set(Col.ALPHA_STAR, alphaStarVal);
+							FairnessUtil.setFairnessEdgeWeights(pool, alphaStarVal, highV);
 
-								// Generate all 3-cycles and somecap-chains
-								CycleGenerator cg = new CycleGenerator(pool);
-								List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
+							// Generate all 3-cycles and somecap-chains
+							CycleGenerator cg = new CycleGenerator(pool);
+							List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
 
-								// For each vertex, get list of cycles that contain this vertex
-								CycleMembership membership = new CycleMembership(pool, cycles);
+							// For each vertex, get list of cycles that contain this vertex
+							CycleMembership membership = new CycleMembership(pool, cycles);
 
-								// Solve the model
-								try {
+							// Solve the model
+							try {
 
-									// We can just use the basic cycle formulation solver here --
-									//  - no failure case: the weights of cycles and chains take 1+alphaStar into account during generation
-									//  - failure case: utilities of cycles/chains take adjusted edge weights into account, too
-									CycleFormulationCPLEXSolver s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+								// We can just use the basic cycle formulation solver here --
+								//  - no failure case: the weights of cycles and chains take 1+alphaStar into account during generation
+								//  - failure case: utilities of cycles/chains take adjusted edge weights into account, too
+								CycleFormulationCPLEXSolver s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
 
-									Solution fairSol = s.solve();
-									eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
-									eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
-									eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
-									eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
-									eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
+								Solution fairSol = s.solve();
+								eOut.set(Col.FAIR_OBJECTIVE, fairSol.getObjectiveValue());
+								eOut.set(Col.FAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, highV, false));
+								eOut.set(Col.FAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, fairSol, pool.vertexSet(), false));
+								eOut.set(Col.FAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, highV));
+								eOut.set(Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, fairSol, pool.vertexSet()));
 
-									IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
+								IOUtil.dPrintln("Solved main IP with objective: " + fairSol.getObjectiveValue());
 
-									// For these experiments, we want a baseline max cardinality / max weighted matching
-									// to compare against, but only need to compute this once per alphaStar run
-									if(alphaStarVal == 0.0) {
-										
-										// Ask the JVM politely to garbage collect.  Hopefully.  Maybe.
-										cg = null; cycles = null; membership = null; s = null; fairSol = null;
-										System.gc();
-										
-										// Have to re-weight all the cycles/chains for non-failure-aware matching
-										cg = new CycleGenerator(pool);
-										cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
-										membership = new CycleMembership(pool, cycles);
-										s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+								// For these experiments, we want a baseline max cardinality / max weighted matching
+								// to compare against, but only need to compute this once per alphaStar run
+								if(alphaStarVal == 0.0) {
 
-										// Store max-weight matching results in old "UNFAIR" columns
-										Solution unfairSol = s.solve();
-										eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
-										eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
-										eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
-										eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
-										eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
-										IOUtil.dPrintln("Solved NON-FAILURE-AWARE IP with objective: " + unfairSol.getObjectiveValue());
-									}
-									
+									// Ask the JVM politely to garbage collect.  Hopefully.  Maybe.
+									cg = null; cycles = null; membership = null; s = null; fairSol = null;
+									System.gc();
 
-								} catch(SolverException e) {
-									e.printStackTrace();
+									// Have to re-weight all the cycles/chains for non-failure-aware matching
+									cg = new CycleGenerator(pool);
+									cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
+									membership = new CycleMembership(pool, cycles);
+									s = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+
+									// Store max-weight matching results in old "UNFAIR" columns
+									Solution unfairSol = s.solve();
+									eOut.set(Col.UNFAIR_OBJECTIVE, unfairSol.getObjectiveValue());
+									eOut.set(Col.UNFAIR_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, highV, false));
+									eOut.set(Col.UNFAIR_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countVertsInMatching(pool, unfairSol, pool.vertexSet(), false));
+									eOut.set(Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, highV));
+									eOut.set(Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED, SolutionUtils.countExpectedTransplantsInMatching(pool, unfairSol, pool.vertexSet()));
+									IOUtil.dPrintln("Solved NON-FAILURE-AWARE IP with objective: " + unfairSol.getObjectiveValue());
 								}
 
 
-								// Write the experimental row of data
-								try {
-									eOut.record();
-								} catch(IOException e) {
-									IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
-									e.printStackTrace();
-									return;
-								}
+							} catch(SolverException e) {
+								e.printStackTrace();
+							}
 
-							} // chainCap & chainCapList
-						} // cycleCap & cycleCapList
-					} // alphaStarVal & alphaStarValList
-				} // failParam1 & failParam1List
-			} // repeatIdx & numRepeats		
-		} // matchDir & matchDirList
+
+							// Write the experimental row of data
+							try {
+								eOut.record();
+							} catch(IOException e) {
+								IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+								e.printStackTrace();
+								return;
+							}
+
+						} // chainCap & chainCapList
+					} // cycleCap & cycleCapList
+				} // alphaStarVal & alphaStarValList
+			} // failParam1 & failParam1List
+		} // repeatIdx & numRepeats		
 
 		// Flush and kill the CSV writer
 		if(null != eOut) {
