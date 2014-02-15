@@ -1,4 +1,4 @@
-package edu.cmu.cs.dickerson.kpd.simulator;
+package edu.cmu.cs.dickerson.kpd.dynamic.simulator;
 
 public class DynamicSimulator {
 
