@@ -329,4 +329,10 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 	private static Integer parseAntigen(String s) {
 		return Integer.valueOf(s.replaceAll("[^\\d.]",  ""));
 	}
+	
+	public int getHLA_A_Mismatch(UNOSRecipient r) { return r.getHLA_A_Mismatch(this); }
+	public int getHLA_B_Mismatch(UNOSRecipient r) { return r.getHLA_B_Mismatch(this); }
+	public int getHLA_DR_Mismatch(UNOSRecipient r) { return r.getHLA_DR_Mismatch(this); }
+	public int getABOMismatch(UNOSRecipient r) { return r.getABOMismatch(this); }
+	
 }
