@@ -1,5 +1,6 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil.ProbabilityDistribution;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
@@ -69,19 +71,36 @@ public class DriverKDD {
 			pool.writeToUNOSKPDFile(baseOut + "_maxcardfair");
 			
 			// Max life -- reweight via our Cox proportional hazard regression model
-			
-			
-			
+			DriverKDD.setMaxLifeEdgeWeights(pool);
 			pool.writeToUNOSKPDFile(baseOut + "_maxlife");
 			
 			System.exit(-1);
 		}
 	}
 
+	/**
+	 * Computes the set of vertices that are highly-sensitized (as marked by UNOS data)
+	 * or below the age of 18
+	 * @param pool
+	 * @return
+	 */
 	public static Set<Vertex> getMarginalizedVertices(Pool pool) {
-		return null;
+		Set<Vertex> marginalized = new HashSet<Vertex>();
+		for(VertexPair pair : pool.getPairs()) {
+			UNOSRecipient r = pair.getUnderlyingPair().getRecipient();
+			if(r.highlySensitized || r.age < 18) {
+				marginalized.add(pair);
+			}
+		}
+		return marginalized;
 	}
 	
+	
+	/**
+	 * Sets edge weights based on the weight function defined in the KDD submission,
+	 * where the weight of an edge is proportional to a Cox proportional hazards model
+	 * @param pool
+	 */
 	public static void setMaxLifeEdgeWeights(Pool pool) {
 		
 		for(Edge e : pool.edgeSet()) {
@@ -92,16 +111,23 @@ public class DriverKDD {
 				
 				UNOSRecipient r = pool.getEdgeTarget(e).getUnderlyingPair().getRecipient();
 				UNOSDonor d = pool.getEdgeSource(e).getUnderlyingPair().getDonors().iterator().next(); // assumes one donor per patient
-				double coxWgt = 
-						1.0052498 * d.age +
-						1.0022858 * r.age + 
-						1.0464164 * r.getHLA_A_Mismatch(d) + 
-						1.0171467 * r.getHLA_B_Mismatch(d) +
-						1.0795165 * r.getHLA_DR_Mismatch(d) +
-						1.0120265 * r.getABOMismatch(d);
-				coxWgt = Math.exp(-coxWgt);
 				
-				IOUtil.dPrintln("Cox Weight: " + coxWgt);
+				// Each of the b_i's is positive, so larger magnitude is correlated with worse graft performance
+				//                       coef exp(coef)  se(coef)     z Pr(>|z|)    
+				//r_age            0.0075033 1.0075315 0.0007723 9.715  < 2e-16 ***
+				//age_diff         0.0052361 1.0052498 0.0006743 7.766 8.10e-15 ***
+				//hla_a            0.0513873 1.0527306 0.0119587 4.297 1.73e-05 ***
+				//hla_dr           0.0832395 1.0868021 0.0119179 6.984 2.86e-12 ***
+				//abo_incompatible 0.3211514 1.3787143 0.0747674 4.295 1.74e-05 ***
+				double coxWgt = 0.0 + 
+						0.0075033 * r.age +
+						0.0052361 * (d.age - r.age) +
+						0.0513873 * r.getHLA_A_Mismatch(d) + 
+						0.0832395 * r.getHLA_DR_Mismatch(d) +
+						0.3211514 * (r.abo.canGetFrom(d.abo) ? 0.0 : 1.0)
+						;
+				coxWgt = 100.0 * Math.exp(-coxWgt);
+				IOUtil.dPrintln("Cox Weight * 100: " + coxWgt);
 				pool.setEdgeWeight(e, coxWgt);
 			}
 		}
