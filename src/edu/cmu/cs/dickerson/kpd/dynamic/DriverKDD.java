@@ -55,7 +55,7 @@ public class DriverKDD {
 		IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
-		int numGraphReps = 100; 
+		int numGraphReps = 16; 
 
 		for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 
