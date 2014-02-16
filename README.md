@@ -29,7 +29,7 @@ IBM offers a free academic license for CPLEX as well as a 90-day free trial avai
 Related Research
 ================
 
-_FutureMatch: Learning to Match in Dynamic Environments.  John P. Dickerson and Tuomas Sandholm.  _Submitted to KDD-2014_.
+_FutureMatch: Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Submitted to KDD-2014_.
 
 _The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://johnpdickerson.com/pubs/dickerson14price.pdf "John P. Dickerson")
 
