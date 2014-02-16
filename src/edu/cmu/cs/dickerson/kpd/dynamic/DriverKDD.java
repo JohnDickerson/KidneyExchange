@@ -42,7 +42,7 @@ public class DriverKDD {
 		}
 
 		// Generate draws from all UNOS match runs currently on the machine
-		Random r = new Random(12345);
+		Random r = new Random(12346);
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', r);
 		IOUtil.dPrintln("UNOS generator operating on #donors: " + gen.getDonors().size() + " and #recipients: " + gen.getRecipients().size());
 
@@ -55,7 +55,7 @@ public class DriverKDD {
 		IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
-		int numGraphReps = 25; 
+		int numGraphReps = 100; 
 
 		for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 

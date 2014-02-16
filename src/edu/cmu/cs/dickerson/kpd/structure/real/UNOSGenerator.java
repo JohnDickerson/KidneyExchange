@@ -52,6 +52,8 @@ public class UNOSGenerator {
 	}
 
 	public Pool generatePool(int size) {
+		this.currentVertexID = 0;  // have to reset so this doesn't keep incrementing as we make independent pools
+		this.vertexMap = new HashMap<Vertex, UNOSPair>();
 		Pool pool = new Pool(Edge.class);
 		this.addVertices(pool, size);
 		return pool;
