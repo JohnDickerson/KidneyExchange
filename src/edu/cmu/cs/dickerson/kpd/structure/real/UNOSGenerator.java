@@ -209,7 +209,7 @@ public class UNOSGenerator {
 			for(UNOSDonor d : singleRunDonors) {
 				if(!donors.containsKey(d.kpdDonorID)) {
 					donors.put(d.kpdDonorID, d);
-				} else if( !d.nonDirectedDonor && !donors.get(d.kpdDonorID).kpdCandidateID.equals(d.kpdCandidateID) ) {
+				} else if( !d.nonDirectedDonor && null!=donors.get(d.kpdDonorID).kpdCandidateID && !donors.get(d.kpdDonorID).kpdCandidateID.equals(d.kpdCandidateID) ) {
 					// TODO eventually track donors who left then returned
 				}
 			}

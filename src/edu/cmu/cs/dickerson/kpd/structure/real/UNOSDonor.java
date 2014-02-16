@@ -160,7 +160,8 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 				} else if(antType.equals("DP") || antType.equals("DPW")) {
 					if( this.dp1 == antNum || this.dp2 == antNum) { return false; }	
 				} else {
-					System.out.println("ERROR: " + ant);
+					// We don't have enough data to deal with DQA yet
+					//IOUtil.dPrintln("ERROR: " + ant);
 				}
 			} else {
 				IOUtil.dPrintln("Could not parse raw antigen string: " + ant);

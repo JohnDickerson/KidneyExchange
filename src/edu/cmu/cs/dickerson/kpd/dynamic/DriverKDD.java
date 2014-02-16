@@ -1,5 +1,8 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -27,11 +30,25 @@ public class DriverKDD {
 		// Output all graphs with APD bimodal distribution (more conservative than the UNOS one)
 		ProbabilityDistribution failureDist = ProbabilityDistribution.BIMODAL_CORRELATED_APD;
 		
+		// Where are the (unzipped, raw) UNOS files located?
+		String basePath = "";
+		if(new File("/Users/spook").exists()) {
+			basePath = "/Users/spook/amem/kpd/files_real_runs/zips";
+		} else if(new File("/home/spook").exists()) {
+			basePath = "/home/spook/amem/kpd/files_real_runs/zips";	
+		} else if(new File("usr0/home/jpdicker").exists()) {
+			basePath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips";	
+		} else {
+			System.err.println("Can't find path to UNOS files!");
+			System.exit(-1);
+		}
+			
 		// Generate draws from all UNOS match runs currently on the machine
 		Random r = new Random(12345);
-		String basePath = "/Users/spook/amem/kpd/files_real_runs/zips";
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', r);
-
+		IOUtil.dPrintln("UNOS generator operating on #donors: " + gen.getDonors().size() + " and #recipients: " + gen.getRecipients().size());
+		
+		
 		// Each graph starts out with K pairs, then K' enter per time period for T time periods
 		int numTimePeriods = 24;
 		int initialPoolSize = 200;
@@ -127,7 +144,6 @@ public class DriverKDD {
 						0.3211514 * (r.abo.canGetFrom(d.abo) ? 0.0 : 1.0)
 						;
 				coxWgt = 100.0 * Math.exp(-coxWgt);
-				IOUtil.dPrintln("Cox Weight * 100: " + coxWgt);
 				pool.setEdgeWeight(e, coxWgt);
 			}
 		}
