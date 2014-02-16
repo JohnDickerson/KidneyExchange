@@ -1,8 +1,6 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -56,15 +54,15 @@ public class DriverKDD {
 		int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
 		IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 
-		// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
-		String baseOut = "unos_bimodal_apd_v" + graphSize;
-				
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
 		int numGraphReps = 25; 
 		
 		for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 			
-			IOUtil.dPrint("Graph repetition " + graphRep + "/" + numGraphReps + "...");
+			// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
+			String baseOut = "unos_bimodal_apd_v" + graphSize + "_i" + graphRep;
+			
+			IOUtil.dPrintln("Graph repetition " + graphRep + "/" + numGraphReps + "...");
 			
 			// Generates base pool: unit edge weights, no failure probabilities
 			Pool pool = gen.generatePool(graphSize);
@@ -91,7 +89,7 @@ public class DriverKDD {
 			DriverKDD.setMaxLifeEdgeWeights(pool);
 			pool.writeToUNOSKPDFile(baseOut + "_maxlife");
 			
-			System.exit(-1);
+			//System.exit(-1);
 		}
 	}
 

@@ -3,23 +3,27 @@ package edu.cmu.cs.dickerson.kpd.structure;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 
+import edu.cmu.cs.dickerson.kpd.dynamic.DriverKDD;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
-	
+
 	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
 		pairs = new TreeSet<VertexPair>();
@@ -34,7 +38,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			return addPair((VertexPair) v);
 		}
 	}
-	
+
 	public boolean addPair(VertexPair pair) {
 		boolean newVert = super.addVertex(pair);
 		if(newVert) {
@@ -42,7 +46,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return newVert;
 	}
-	
+
 	public boolean addAltruist(VertexAltruist alt) {
 		boolean newVert = super.addVertex(alt);
 		if(newVert) {
@@ -50,7 +54,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return newVert;
 	}
-	
+
 	public SortedSet<VertexPair> getPairs() {
 		return pairs;
 	}
@@ -66,24 +70,24 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	public int getNumPairs() {
 		return pairs.size();
 	}
-	
+
 	@Override
 	public String toString() {
 		return "< (" + getNumPairs() + ", " + getNumAltruists() + "), " + super.edgeSet().size() + " >";
 	}
-	
+
 	public Set<VertexPair> getPairsOfType(BloodType btPatient, BloodType btDonor) {
-		
+
 		Set<VertexPair> vSet = new HashSet<VertexPair>();
 		for(VertexPair pair : pairs) {
 			if(pair.getBloodTypePatient().equals(btPatient) && pair.getBloodTypePatient().equals(btDonor)) {
 				vSet.add(pair);
 			}
 		}
-		
+
 		return vSet;
 	}
-	
+
 	/**
 	 * Outputs this graph to files that can be read by the current UNOS solver
 	 * This should *NOT* be used in UNOS production, since we gloss over a couple of
@@ -92,36 +96,51 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	 * @param baseFileName
 	 */
 	public void writeToUNOSKPDFile(String baseFileName) {
-		
+
 		// Main graph file
 		try {
 			PrintWriter writer = new PrintWriter(baseFileName + ".input", "UTF-8");
+
+			// Legacy code requires vertices in sorted order by ID
+			List<Vertex> allVertsSorted = new ArrayList<Vertex>(this.vertexSet());
+			Collections.sort(allVertsSorted);
+
 			// <num-vertices> <num-edges>
 			writer.println(this.vertexSet().size() + " " + this.edgeSet().size());
 			// <src-vert> <sink-vert> <edge-weight> <is-dummy> <failure-prob> 
-			for(Edge e : this.edgeSet()) {
-				Vertex src = this.getEdgeSource(e);
-				Vertex dst = this.getEdgeTarget(e);
-				double weight = this.getEdgeWeight(e);
-				int isDummy = dst.isAltruist() ? 1 : 0;
-				double failureProb = e.getFailureProbability();
-				writer.println(src.getID() + " " + dst.getID() + " " + weight + " " + isDummy + " " + failureProb);
+
+			for(Vertex src : allVertsSorted) {
+				for(Edge e : this.outgoingEdgesOf(src)) {
+
+					Vertex dst = this.getEdgeTarget(e);
+					double weight = this.getEdgeWeight(e);
+					int isDummy = dst.isAltruist() ? 1 : 0;
+					double failureProb = e.getFailureProbability();
+					writer.println(src.getID() + " " + dst.getID() + " " + weight + " " + isDummy + " " + failureProb);
+				}
 			}
 			// Legacy code signals EOF with -1 -1 -1
-						writer.println("-1 -1 -1");
-						writer.close();
-						
+			writer.println("-1 -1 -1");
+			writer.close();
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
-		// Vertex details files for UNOS runs
+
+		// Vertex preferences and details files for UNOS runs
 		try {
-			PrintWriter writer = new PrintWriter(baseFileName + "-details.input", "UTF-8");
-			// <donor_id> <max_pairs_cycle> <max_pairs_chain> <home-ctr-ID>
+			PrintWriter writerPrefs = new PrintWriter(baseFileName + "-vertex-prefs.input", "UTF-8");
+
+			// These are used for our simulator, to track ABO and sensitized patients
+			PrintWriter writerDetails = new PrintWriter(baseFileName + "-vertex-details.input", "UTF-8");
+			writerDetails.println("ID ABO-Patient ABO-Donor Wife-Patient? PRA In-Degree Out-degree Is-altruist? Marginalized?");
+			Set<Vertex> marginalizedVerts = DriverKDD.getMarginalizedVertices(this);
+			
 			for(Vertex v : this.vertexSet()) {
+				// <donor_id> <max_pairs_cycle> <max_pairs_chain> <home-ctr-ID>
+
 				int maxPairsChain = Integer.MAX_VALUE-1;
 				int maxPairsCycle = 3;
 				if(null != v.getUnderlyingPair()) {
@@ -131,16 +150,34 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 					}
 				}
 				int homeCtrID = 0;  // ignore this for now
-				writer.println(v.getID() + " " + maxPairsCycle + " " + maxPairsChain + " " + homeCtrID);
+				writerPrefs.println(v.getID() + " " + maxPairsCycle + " " + maxPairsChain + " " + homeCtrID);
+
+				// TODO fix when we deal with more than one donor correctly
+				String donorBlood = "O";
+				if(v.getUnderlyingPair().getDonors().size() > 0) {
+					donorBlood = v.getUnderlyingPair().getDonors().iterator().next().abo.toString();
+				}
+				
+				writerDetails.println(v.getID() + " " +
+						(v.isAltruist() ? "Unk" : v.getUnderlyingPair().getRecipient().abo) + " " + 
+						donorBlood + " " +
+						"0" + " " +
+						(v.isAltruist() ? "0" : v.getUnderlyingPair().getRecipient().cpra) + " " +
+						this.inDegreeOf(v) + " " +
+						this.outDegreeOf(v) + " " +
+						(v.isAltruist() ? "1" : "0") + " " +
+						(marginalizedVerts.contains(v) ? "1" : "0") + " " 
+						);
 			}
 			//Legacy code signals EOF with -1 -1 -1
-			writer.println("-1 -1 -1");
-			writer.close();
+			writerPrefs.println("-1 -1 -1");
+			writerPrefs.close();
+			writerDetails.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 }
