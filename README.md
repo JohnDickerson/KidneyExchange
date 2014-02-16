@@ -29,7 +29,9 @@ IBM offers a free academic license for CPLEX as well as a 90-day free trial avai
 Related Research
 ================
 
-_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://www.cs.cmu.edu/~arielpro/papers/pof.pdf "Carnegie Mellon University link")
+_FutureMatch: Learning to Match in Dynamic Environments.  John P. Dickerson and Tuomas Sandholm.  _Submitted to KDD-2014_.
+
+_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://johnpdickerson.com/pubs/dickerson14price.pdf "John P. Dickerson")
 
 _The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  _Submitted to AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory_.
 
