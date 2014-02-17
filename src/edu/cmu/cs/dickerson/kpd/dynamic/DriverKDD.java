@@ -42,7 +42,7 @@ public class DriverKDD {
 		}
 
 		// Generate draws from all UNOS match runs currently on the machine
-		Random r = new Random(12346);
+		Random r = new Random();   // add a seed if you want
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', r);
 		IOUtil.dPrintln("UNOS generator operating on #donors: " + gen.getDonors().size() + " and #recipients: " + gen.getRecipients().size());
 
