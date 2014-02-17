@@ -48,12 +48,14 @@ public class DriverKDD {
 
 
 		// Each graph starts out with K pairs, then K' enter per time period for T time periods
-		int numTimePeriods = 24;
-		int initialPoolSize = 200;
-		int enterPerPeriod = 25;
-		int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
-		IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
-
+		//int numTimePeriods = 24;
+		//int initialPoolSize = 200;
+		//int enterPerPeriod = 25;
+		//int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
+		//IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
+		int graphSize = 400;
+		IOUtil.dPrintln("Total graph size: " + graphSize);
+		
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
 		int numGraphReps = 16; 
 
