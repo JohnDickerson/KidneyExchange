@@ -29,7 +29,7 @@ public class UNOSLoader {
 	}
 
 	public enum RecipientIdx {
-		PAIR_ID(0), CANDIDATE_ID(1), ABO(5), HIGHLY_SENSITIZED(28);
+		PAIR_ID(0), CANDIDATE_ID(1), AGE(4), ABO(5), HIGHLY_SENSITIZED(28);
 		private int index;
 		private RecipientIdx(int index) { this.index = index; }
 		public int idx() { return index; }
@@ -56,9 +56,11 @@ public class UNOSLoader {
 			String[] line;
 			while((line = reader.readNext()) != null) {
 				String candidateID = line[RecipientIdx.CANDIDATE_ID.idx()].trim().toUpperCase();
+				//Integer age = Integer.valueOf(line[RecipientIdx.AGE.idx()]);
 				BloodType bloodType = BloodType.getBloodType(line[RecipientIdx.ABO.idx()]);
 				Boolean isHighlySensitized = IOUtil.stringToBool(line[RecipientIdx.HIGHLY_SENSITIZED.idx()]);
 
+				//double patientCPRA = (isHighlySensitized || age <= 18) ? 1.0 : 0.0;  // for KDD-2014 sub
 				double patientCPRA = isHighlySensitized ? 1.0 : 0.0;
 				VertexPair vp = new VertexPair(ID, bloodType, bloodType, false, patientCPRA, false);
 				pool.addPair(vp);

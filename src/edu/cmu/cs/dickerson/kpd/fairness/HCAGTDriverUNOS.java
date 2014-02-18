@@ -33,21 +33,22 @@ public class HCAGTDriverUNOS {
 
 	/**
 	 * AAMAS-2014 Healthcare and Algorithmic Game Theory workshop experiments
-	 * Individual UNOS match runs, weighted 
+	 * Individual UNOS match runs, weighted (also some parts used for KDD-2014 sub)
 	 */
 	public static void main(String[] args) {
 
-
+		// Most recent run counts (age <= 18 && highly-sensitized) as "highly-sensitized"
+		
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(7);//Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(4);//Integer.MAX_VALUE);
 
 		// Number of times to run each experiment with the same parameters, except random seed
 		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
-		for(double alphaStarVal=0.0; alphaStarVal<=10.0; alphaStarVal += 1.0) {
+		for(double alphaStarVal=0.0; alphaStarVal<=0.0; alphaStarVal += 1.0) {
 			alphaStarValList.add(alphaStarVal);
 		}
 
@@ -162,6 +163,7 @@ public class HCAGTDriverUNOS {
 								IOUtil.dPrintln("---: a* = " + alphaStarVal + ", looking at UNOS file: " + matchRunID);
 
 								// Split pairs into highly- and not highly-sensitized patients 
+								//Set<Vertex> highV = DriverKDD.getMarginalizedVertices(pool);
 								Set<Vertex> highV = new HashSet<Vertex>();
 								for(VertexPair pair : pool.getPairs()) {
 									if(pair.getPatientCPRA() >= highlySensitizedThresh) {
