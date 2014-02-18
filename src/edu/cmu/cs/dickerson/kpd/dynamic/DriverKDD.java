@@ -62,15 +62,14 @@ public class DriverKDD {
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
 		int numGraphReps = 16; 
 		for(int graphSize : graphSizeList) {
-			for(double beta : betaList) {
-
+			
 				IOUtil.dPrintln("Total graph size: " + graphSize);
 				for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 
 					// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
-					String baseOut = "unos_bimodal_apd_v" + graphSize + "_beta" + beta +"_i" + graphRep;
+					String baseOut = "unos_bimodal_apd_v" + graphSize  +"_i" + graphRep;
 
-					IOUtil.dPrintln("Graph repetition (beta= " + beta + "): " + graphRep + "/" + numGraphReps + "...");
+					IOUtil.dPrintln("Graph repetition: " + graphRep + "/" + numGraphReps + "...");
 
 					// Generates base pool: unit edge weights, no failure probabilities
 					Pool pool = gen.generatePool(graphSize);
@@ -88,18 +87,18 @@ public class DriverKDD {
 
 					// Max cardinality subject to fairness: set all marginalized transplants to (1+beta)
 					Set<Vertex> marginalizedVertices = DriverKDD.getMarginalizedVertices(pool);
-					FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
-
-					pool.writeToUNOSKPDFile(baseOut + "_maxcardfair");
-
+					for(double beta : betaList) {
+						FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
+						pool.writeToUNOSKPDFile(baseOut + "_maxcardfair" + beta);
+					} // beta, betaList
+					
 					// Max life -- reweight via our Cox proportional hazard regression model
 					for(Edge e : pool.edgeSet()) {
 						pool.setEdgeWeight(e, DriverKDD.getCoxWeight(pool, e) );
 					}
 					pool.writeToUNOSKPDFile(baseOut + "_maxlife");
-
 				}
-			} // beta, betaList
+
 		} //graphSize, graphSizeList
 	}
 
