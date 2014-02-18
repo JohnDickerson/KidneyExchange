@@ -36,7 +36,7 @@ public class DriverKDD {
 			basePath = "/Users/spook/amem/kpd/files_real_runs/zips";
 		} else if(new File("/home/spook").exists()) {
 			basePath = "/home/spook/amem/kpd/files_real_runs/zips";	
-		} else if(new File("usr0/home/jpdicker").exists()) {
+		} else if(new File("/usr0/home/jpdicker").exists()) {
 			basePath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips";	
 		} else {
 			System.err.println("Can't find path to UNOS files!");
@@ -84,7 +84,7 @@ public class DriverKDD {
 				pool.writeToUNOSKPDFile(baseOut + "_maxcard");
 
 				// Max cardinality subject to fairness: set all marginalized transplants to (1+beta)
-				double beta = 4.0;
+				double beta = 2.0;
 				Set<Vertex> marginalizedVertices = DriverKDD.getMarginalizedVertices(pool);
 				FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
 
