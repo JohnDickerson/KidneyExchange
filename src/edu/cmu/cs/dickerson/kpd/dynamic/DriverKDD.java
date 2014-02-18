@@ -56,49 +56,51 @@ public class DriverKDD {
 		//int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
 		//IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {300, 400, 500, 600, 700, 800, 900});
-		
-		
+		List<Double> betaList = Arrays.asList(new Double[] {1.0, 2.0, 3.0, 4.0, 5.0});
+
+
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
 		int numGraphReps = 16; 
 		for(int graphSize : graphSizeList) {
-			IOUtil.dPrintln("Total graph size: " + graphSize);
-			for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
+			for(double beta : betaList) {
 
-				// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
-				String baseOut = "unos_bimodal_apd_v" + graphSize + "_i" + graphRep;
+				IOUtil.dPrintln("Total graph size: " + graphSize);
+				for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 
-				IOUtil.dPrintln("Graph repetition " + graphRep + "/" + numGraphReps + "...");
+					// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
+					String baseOut = "unos_bimodal_apd_v" + graphSize + "_beta" + beta +"_i" + graphRep;
 
-				// Generates base pool: unit edge weights, no failure probabilities
-				Pool pool = gen.generatePool(graphSize);
+					IOUtil.dPrintln("Graph repetition (beta= " + beta + "): " + graphRep + "/" + numGraphReps + "...");
 
-				// Assign failure probabilities to edges (can be ignored by optimizer)
-				FailureProbabilityUtil.setFailureProbability(pool, failureDist, r);
+					// Generates base pool: unit edge weights, no failure probabilities
+					Pool pool = gen.generatePool(graphSize);
 
-				// Want to output three different sets of weights for each graph:
-				// (1)  1 (for max cardinality)
-				// (2)  1 if non-marginalized, (1+beta) if marginalized (for max cardinality + fairness)
-				// (3)  w, where is the weight from the Cox regression (for max life)
+					// Assign failure probabilities to edges (can be ignored by optimizer)
+					FailureProbabilityUtil.setFailureProbability(pool, failureDist, r);
 
-				// Max cardinality
-				pool.writeToUNOSKPDFile(baseOut + "_maxcard");
+					// Want to output three different sets of weights for each graph:
+					// (1)  1 (for max cardinality)
+					// (2)  1 if non-marginalized, (1+beta) if marginalized (for max cardinality + fairness)
+					// (3)  w, where is the weight from the Cox regression (for max life)
 
-				// Max cardinality subject to fairness: set all marginalized transplants to (1+beta)
-				double beta = 2.0;
-				Set<Vertex> marginalizedVertices = DriverKDD.getMarginalizedVertices(pool);
-				FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
+					// Max cardinality
+					pool.writeToUNOSKPDFile(baseOut + "_maxcard");
 
-				pool.writeToUNOSKPDFile(baseOut + "_maxcardfair");
+					// Max cardinality subject to fairness: set all marginalized transplants to (1+beta)
+					Set<Vertex> marginalizedVertices = DriverKDD.getMarginalizedVertices(pool);
+					FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
 
-				// Max life -- reweight via our Cox proportional hazard regression model
-				for(Edge e : pool.edgeSet()) {
-					pool.setEdgeWeight(e, DriverKDD.getCoxWeight(pool, e) );
+					pool.writeToUNOSKPDFile(baseOut + "_maxcardfair");
+
+					// Max life -- reweight via our Cox proportional hazard regression model
+					for(Edge e : pool.edgeSet()) {
+						pool.setEdgeWeight(e, DriverKDD.getCoxWeight(pool, e) );
+					}
+					pool.writeToUNOSKPDFile(baseOut + "_maxlife");
+
 				}
-				pool.writeToUNOSKPDFile(baseOut + "_maxlife");
-
-				//System.exit(-1);
-			}
-		} //wgraphSize, graphSizeList
+			} // beta, betaList
+		} //graphSize, graphSizeList
 	}
 
 	/**
