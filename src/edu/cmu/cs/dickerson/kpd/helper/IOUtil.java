@@ -1,6 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.helper;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +43,24 @@ public final class IOUtil {
 		}
 		return true;
 	}
+	
+	/**
+	 * (John Dickerson-specific)
+	 * @return root directory path of UNOS files
+	 */
+	public static String getBaseUNOSFilePath() {
+		if(new File("/Users/spook").exists()) {
+			return "/Users/spook/amem/kpd/files_real_runs/zips";
+		} else if(new File("/home/spook").exists()) {
+			return "/home/spook/amem/kpd/files_real_runs/zips";	
+		} else if(new File("/usr0/home/jpdicker").exists()) {
+			return "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips";	
+		} else {
+			System.err.println("Can't find path to UNOS files!");
+			throw new RuntimeException();
+		}
+	}
+	
 	
 	/**
 	 * Makes an educated guess at converting a string to a boolean.

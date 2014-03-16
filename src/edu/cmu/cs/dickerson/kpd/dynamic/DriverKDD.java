@@ -1,6 +1,5 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -31,18 +30,8 @@ public class DriverKDD {
 		ProbabilityDistribution failureDist = ProbabilityDistribution.BIMODAL_CORRELATED_APD;
 
 		// Where are the (unzipped, raw) UNOS files located?
-		String basePath = "";
-		if(new File("/Users/spook").exists()) {
-			basePath = "/Users/spook/amem/kpd/files_real_runs/zips";
-		} else if(new File("/home/spook").exists()) {
-			basePath = "/home/spook/amem/kpd/files_real_runs/zips";	
-		} else if(new File("/usr0/home/jpdicker").exists()) {
-			basePath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips";	
-		} else {
-			System.err.println("Can't find path to UNOS files!");
-			System.exit(-1);
-		}
-
+		String basePath = IOUtil.getBaseUNOSFilePath();
+		
 		// Generate draws from all UNOS match runs currently on the machine
 		Random r = new Random();   // add a seed if you want
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', r);
