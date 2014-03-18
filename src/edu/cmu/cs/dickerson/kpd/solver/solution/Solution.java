@@ -8,7 +8,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 public class Solution {
 	
 	private long solveTime = 0;
-	private double objectiveValue;
+	private double objectiveValue = 0.0;
 	private Set<Cycle> matching;
 	
 	public Solution() {

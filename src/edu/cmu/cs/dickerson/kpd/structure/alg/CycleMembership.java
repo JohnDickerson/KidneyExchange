@@ -39,9 +39,12 @@ public class CycleMembership {
 		IOUtil.dPrintln(getClass().getSimpleName(), "Done computing membership.");
 	}
 
-	public Set<Integer> getMemberList(Vertex v) {
+	public Set<Integer> getMembershipSet(Vertex v) {
 		return membership.get(v);
 	}
 	
+	public Set<Vertex> getAllVertices() {
+		return membership.keySet();
+	}
 
 }

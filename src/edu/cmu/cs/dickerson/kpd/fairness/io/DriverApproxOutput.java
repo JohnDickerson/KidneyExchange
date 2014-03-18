@@ -11,9 +11,11 @@ public class DriverApproxOutput extends Output {
 		GENERATOR, 
 		APPROX_REP_COUNT,
 		OPT_OBJECTIVE,
-		APPROX_OBJECTIVE,
+		APPROX_CYCLE_OBJECTIVE,
+		APPROX_VERTEX_OBJECTIVE,
 		OPT_RUNTIME,
-		APPROX_RUNTIME,
+		APPROX_CYCLE_RUNTIME,
+		APPROX_VERTEX_RUNTIME,
 		;
 		
 		public int getColIdx() { return this.ordinal(); }
@@ -32,10 +34,11 @@ public class DriverApproxOutput extends Output {
 		header[Col.GENERATOR.ordinal()] = "Generator";
 		header[Col.APPROX_REP_COUNT.ordinal()] = "Approx Rep Count";
 		header[Col.OPT_OBJECTIVE.ordinal()] = "Optimal Objective";
-		header[Col.APPROX_OBJECTIVE.ordinal()] = "Approx Objective";
+		header[Col.APPROX_CYCLE_OBJECTIVE.ordinal()] = "Approx Cycle Objective";
+		header[Col.APPROX_VERTEX_OBJECTIVE.ordinal()] = "Approx Vertex Objective";
 		header[Col.OPT_RUNTIME.ordinal()] = "Optimal Runtime";
-		header[Col.APPROX_RUNTIME.ordinal()] = "Approx Runtime";
-		
+		header[Col.APPROX_CYCLE_RUNTIME.ordinal()] = "Approx Cycle Runtime";
+		header[Col.APPROX_VERTEX_RUNTIME.ordinal()] = "Approx Vertex Runtime";
 		
 		return header;
 	}

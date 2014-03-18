@@ -10,6 +10,8 @@ import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
@@ -33,7 +35,7 @@ public class DriverApprox {
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {UNOSGen, SaidmanGen});
 
 		// list of |V|s we'll iterate over
-		List<Integer> graphSizeList = Arrays.asList(new Integer[] {300});
+		List<Integer> graphSizeList = Arrays.asList(new Integer[] {100});
 		int numGraphReps = 16; 
 
 		// Cycle and chain limits
@@ -86,12 +88,19 @@ public class DriverApprox {
 						System.exit(-1);
 					}
 
-					// Get a greedy packing
-					Solution greedySol = null;
+					// Get greedy packings (upper-bounded by optimal solution's objective)
+					Solution greedyCycleSol = null;
+					Solution greedyVertexSol = null;
+					double upperBound = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
 					try {
-						GreedyPackingSolver s = new GreedyPackingSolver(pool, cycles, membership);
-						greedySol = s.solve(numGreedyReps);
-						IOUtil.dPrintln("Greedy Value: " + greedySol.getObjectiveValue());
+						GreedyPackingSolver s = new GreedyPackingSolver(pool);
+						
+						greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBound);
+						IOUtil.dPrintln("Greedy Cycle Value: " + greedyCycleSol.getObjectiveValue());
+						
+						greedyVertexSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership), upperBound);
+						IOUtil.dPrintln("Greedy Vertex Value: " + greedyVertexSol.getObjectiveValue());
+						
 					} catch(SolverException e) {
 						e.printStackTrace();
 						System.exit(-1);
@@ -103,9 +112,14 @@ public class DriverApprox {
 						out.set(Col.OPT_RUNTIME, optSol.getSolveTime());
 					}
 
-					if(null != greedySol) {
-						out.set(Col.APPROX_OBJECTIVE, greedySol.getObjectiveValue());		
-						out.set(Col.APPROX_RUNTIME, greedySol.getSolveTime());
+					if(null != greedyCycleSol) {
+						out.set(Col.APPROX_CYCLE_OBJECTIVE, greedyCycleSol.getObjectiveValue());		
+						out.set(Col.APPROX_CYCLE_RUNTIME, greedyCycleSol.getSolveTime());
+					}
+
+					if(null != greedyVertexSol) {
+						out.set(Col.APPROX_VERTEX_OBJECTIVE, greedyVertexSol.getObjectiveValue());		
+						out.set(Col.APPROX_VERTEX_RUNTIME, greedyVertexSol.getSolveTime());
 					}
 
 					// Write the  row of data

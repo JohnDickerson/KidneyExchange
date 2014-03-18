@@ -55,7 +55,7 @@ public class CycleFormulationCPLEXSolver extends CPLEXSolver {
 			// \sum_{cycles c containing v} decVar_c <=1   \forall v
 			for(Vertex v : pool.vertexSet()) {
 
-				Set<Integer> cycleColIDs = membership.getMemberList(v);
+				Set<Integer> cycleColIDs = membership.getMembershipSet(v);
 				if(null == cycleColIDs || cycleColIDs.isEmpty()) {
 					continue;
 				}
