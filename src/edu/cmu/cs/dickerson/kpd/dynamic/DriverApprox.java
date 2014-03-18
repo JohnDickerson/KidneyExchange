@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput;
-import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput.Col;
+import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput;
+import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
@@ -39,9 +39,9 @@ public class DriverApprox {
 
 		// Store output
 		String path = "approx_" + System.currentTimeMillis() + ".csv";
-		ExperimentalOutput out = null;
+		DriverApproxOutput out = null;
 		try {
-			out = new ExperimentalOutput(path);
+			out = new DriverApproxOutput(path);
 		} catch(IOException e) {
 			e.printStackTrace();
 			return;
@@ -52,14 +52,17 @@ public class DriverApprox {
 
 				IOUtil.dPrintln("Graph (|V|=" + graphSize + ", #" + graphRep + "/" + numGraphReps + ")");
 
-				// Bookkeeping
-				out.set(Col.CHAIN_CAP, chainCap);	
-				out.set(Col.CYCLE_CAP, cycleCap);	
-				out.set(Col.NUM_PAIRS, graphSize);	
-				
 				// Generate pool
 				Pool pool = gen.generatePool(graphSize);
 
+				// Bookkeeping
+				out.set(Col.CHAIN_CAP, chainCap);	
+				out.set(Col.CYCLE_CAP, cycleCap);	
+				out.set(Col.NUM_PAIRS, pool.getNumPairs());
+				out.set(Col.NUM_ALTS, pool.getNumAltruists());
+				out.set(Col.GENERATOR, gen.getClass().getSimpleName());
+				out.set(Col.APPROX_REP_COUNT, numGreedyReps);
+				
 				// Generate all cycles in pool
 				CycleGenerator cg = new CycleGenerator(pool);
 				List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
@@ -89,11 +92,11 @@ public class DriverApprox {
 
 				// Compare the greedy and optimal solutions
 				if(null != optSol) {
-					out.set(Col.UNFAIR_OBJECTIVE, optSol.getObjectiveValue());	
+					out.set(Col.OPT_OBJECTIVE, optSol.getObjectiveValue());	
 				}
 				
 				if(null != greedySol) {
-					out.set(Col.FAIR_OBJECTIVE, greedySol.getObjectiveValue());		
+					out.set(Col.APPROX_OBJECTIVE, greedySol.getObjectiveValue());		
 				}
 				
 				// Write the  row of data

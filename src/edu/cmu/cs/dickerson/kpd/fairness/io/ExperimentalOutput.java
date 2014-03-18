@@ -1,21 +1,11 @@
 package edu.cmu.cs.dickerson.kpd.fairness.io;
 
-import java.io.FileWriter;
 import java.io.IOException;
 
-import au.com.bytecode.opencsv.CSVWriter;
+public class ExperimentalOutput extends Output {
 
-public class ExperimentalOutput {
-
-	// Output file location
-	private String path;
-
-	// Current row (created incrementally)
-	private String[] row; 
-	
-	private CSVWriter writer;
-
-	public enum Col { START_TIME, 
+	public enum Col implements OutputCol { 
+		START_TIME, 
 		RANDOM_SEED, 
 		NUM_PAIRS, 
 		NUM_ALTS, 
@@ -38,25 +28,16 @@ public class ExperimentalOutput {
 		FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED,
 		UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED,
 		UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED,
+		;
+		
+		public int getColIdx() { return this.ordinal(); }
 		};
 
 	public ExperimentalOutput(String path) throws IOException {
-		this.path = path;
-		init();
+		super(path, getHeader());
 	}
 
-	private  void init() throws IOException {
-
-		// Open a .csv file, write the header to the file
-		writer = new CSVWriter(new FileWriter(path), ',');
-		writer.writeNext(getHeader());
-		writer.flush();
-
-		// Subsequent data rows must be same length as header
-		row = new String[getHeader().length];
-	}
-
-	public String[] getHeader() {
+	public static String[] getHeader() {
 		String[] header = new String[Col.values().length];
 		header[Col.START_TIME.ordinal()] = "Start Time";
 		header[Col.RANDOM_SEED.ordinal()] = "Random Seed";
@@ -81,40 +62,7 @@ public class ExperimentalOutput {
 		header[Col.UNFAIR_EXPECTED_HIGHLY_SENSITIZED_MATCHED.ordinal()] = "Unfair Expected Highly-Sensitized Matched";
 		header[Col.FAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Fair Expected Total Matched";
 		header[Col.UNFAIR_EXPECTED_TOTAL_CARDINALITY_MATCHED.ordinal()] = "Unfair Expected Total Matched";
-		
-		
 		return header;
 	}
 
-	public void set(Col column, Object o) {
-		row[column.ordinal()] = String.valueOf(o.toString());
-	}
-
-	public void record() throws IOException {
-
-		// Record current experimental run to file, flush in case we error out somewhere later
-		writer.writeNext(row);
-		writer.flush();
-
-		// Clear the row so next write doesn't have to guarantee overriding 
-		for(int cellIdx=0; cellIdx<row.length; cellIdx++) {
-			row[cellIdx] = "";
-		}
-	}
-
-	public void close() throws IOException {
-		if(null != writer) {
-			writer.flush();
-			writer.close();
-		}
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
-		}
-	}
 }
