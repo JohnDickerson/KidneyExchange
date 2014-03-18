@@ -14,8 +14,8 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil.ProbabilityDistribution;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
-import edu.cmu.cs.dickerson.kpd.structure.real.UNOSGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
 
 public class DriverKDD {

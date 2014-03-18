@@ -1,4 +1,4 @@
-package edu.cmu.cs.dickerson.kpd.structure.real;
+package edu.cmu.cs.dickerson.kpd.structure.generator;
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,6 +19,9 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
 
 // TODO    Invariance assumptions for generator:
 // Recipient's health profile and preferences do not change over time
@@ -27,14 +30,12 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 // TODO    Additions for the future generator:
 // Include max chain/cycle sizes on a per-vertex basis 
 
-public class UNOSGenerator {
+public class UNOSGenerator extends PoolGenerator {
 
 	// All donor-recipient pairs we've ever seen in reality
 	private List<UNOSPair> pairs;
 	// Map of generated vertices in the Pool to their real-world donor-recipient counterparts
 	private Map<Vertex, UNOSPair> vertexMap;
-	// Single random object, seeded externally for repetition
-	private Random randGen;
 	// Map KPD_donor_id -> UNOSDonor
 	private Map<String, UNOSDonor> donors;
 	// Map KPD_candidate_id -> UNOSRecipient
@@ -43,12 +44,18 @@ public class UNOSGenerator {
 	private int currentVertexID;
 
 	protected UNOSGenerator(Map<String, UNOSDonor> donors, Map<String, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
+		super(randGen);
 		this.donors = donors;
 		this.recipients = recipients;
 		this.pairs = pairs;
-		this.randGen = randGen;
 		this.vertexMap = new HashMap<Vertex, UNOSPair>();
 		this.currentVertexID = 0;
+	}
+
+	@Override
+	public Pool generate(int numPairs, int numAltruists) {
+		// We sample from data, so we don't control #pairs or #altruists
+		return generatePool(numPairs+numAltruists);
 	}
 
 	public Pool generatePool(int size) {
@@ -63,7 +70,7 @@ public class UNOSGenerator {
 		for(int idx=0; idx<numNewVerts; idx++) {
 
 			// Sample a pair from the real data, make it a new pool Vertex
-			int rndPairIdx = this.randGen.nextInt(pairs.size());
+			int rndPairIdx = this.random.nextInt(pairs.size());
 			UNOSPair samplePair = pairs.get( rndPairIdx );
 
 			// Spawn a new unique Vertex linked back to the underlying UNOSPair

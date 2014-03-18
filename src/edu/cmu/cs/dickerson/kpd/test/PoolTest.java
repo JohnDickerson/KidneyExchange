@@ -7,7 +7,7 @@ import java.util.Random;
 import org.junit.Test;
 
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
-import edu.cmu.cs.dickerson.kpd.structure.real.UNOSGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 public class PoolTest {
 

@@ -20,7 +20,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
-import edu.cmu.cs.dickerson.kpd.structure.real.UNOSGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 public class UNOSGeneratorTest {
 

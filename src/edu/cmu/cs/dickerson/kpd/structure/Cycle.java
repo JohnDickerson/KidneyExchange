@@ -2,8 +2,10 @@ package edu.cmu.cs.dickerson.kpd.structure;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 public class Cycle {
 
@@ -58,6 +60,24 @@ public class Cycle {
 			}
 		}
 		return isChain;
+	}
+	
+	/**
+	 * Given a cycle and a pool, returns the set of vertices in the pool that
+	 * are also in the cycle
+	 * @param c
+	 * @param pool
+	 * @return Set containing each Vertex in the Cycle
+	 */
+	public static Set<Vertex> getConstituentVertices(Cycle c, Pool pool) {
+		Set<Vertex> vertices = new HashSet<Vertex>();
+		if(null == c) { return vertices; }
+		if(null == pool) { throw new RuntimeException("Need a valid pool to do vertex lookups in a cycle."); }
+		
+		for(Edge edge : c.getEdges()) {
+			vertices.add( pool.getEdgeTarget(edge) );
+		}
+		return vertices;
 	}
 }
 

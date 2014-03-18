@@ -12,6 +12,8 @@ public class DriverApproxOutput extends Output {
 		APPROX_REP_COUNT,
 		OPT_OBJECTIVE,
 		APPROX_OBJECTIVE,
+		OPT_RUNTIME,
+		APPROX_RUNTIME,
 		;
 		
 		public int getColIdx() { return this.ordinal(); }
@@ -31,6 +33,9 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_REP_COUNT.ordinal()] = "Approx Rep Count";
 		header[Col.OPT_OBJECTIVE.ordinal()] = "Optimal Objective";
 		header[Col.APPROX_OBJECTIVE.ordinal()] = "Approx Objective";
+		header[Col.OPT_RUNTIME.ordinal()] = "Optimal Runtime";
+		header[Col.APPROX_RUNTIME.ordinal()] = "Approx Runtime";
+		
 		
 		return header;
 	}
