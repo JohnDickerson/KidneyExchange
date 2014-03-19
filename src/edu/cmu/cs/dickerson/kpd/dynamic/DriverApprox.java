@@ -32,10 +32,17 @@ public class DriverApprox {
 		SaidmanPoolGenerator SaidmanGen = new SaidmanPoolGenerator(r);
 
 		// List of generators we want to use
-		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {UNOSGen, SaidmanGen});
+		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
+				UNOSGen, 
+				SaidmanGen,
+				});
 
 		// list of |V|s we'll iterate over
-		List<Integer> graphSizeList = Arrays.asList(new Integer[] {100});
+		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
+				50, 100, 150, 200, 250, 300, 350, 400, 450, 500
+				//1000,
+				});
+		
 		int numGraphReps = 16; 
 
 		// Cycle and chain limits
@@ -73,10 +80,13 @@ public class DriverApprox {
 					out.set(Col.APPROX_REP_COUNT, numGreedyReps);
 
 					// Generate all cycles in pool
+					long startCycleGen = System.nanoTime();
 					CycleGenerator cg = new CycleGenerator(pool);
 					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
 					CycleMembership membership = new CycleMembership(pool, cycles);
-
+					long endCycleGen = System.nanoTime();
+					out.set(Col.CYCLE_GEN_TIME, endCycleGen - startCycleGen);
+					
 					// Get optimal match size for pool
 					Solution optSol = null;
 					try {

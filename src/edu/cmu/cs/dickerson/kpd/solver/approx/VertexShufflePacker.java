@@ -42,6 +42,11 @@ public class VertexShufflePacker extends Packer {
 		// Pack vertices
 		for(Vertex v : vertices) {
 			
+			// If we've already matched this vertex, skip
+			if(matchedVerts.contains(v)) {
+				continue;
+			}
+			
 			// Find the first cycle that contains this vertex and is legal to pack, and pack it
 			List<Integer> cycleIdxs = new ArrayList<Integer>( membership.getMembershipSet(v) );
 			for(Integer cycleIdx : cycleIdxs) {

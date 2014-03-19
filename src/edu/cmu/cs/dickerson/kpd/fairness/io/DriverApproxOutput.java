@@ -13,6 +13,7 @@ public class DriverApproxOutput extends Output {
 		OPT_OBJECTIVE,
 		APPROX_CYCLE_OBJECTIVE,
 		APPROX_VERTEX_OBJECTIVE,
+		CYCLE_GEN_TIME,
 		OPT_RUNTIME,
 		APPROX_CYCLE_RUNTIME,
 		APPROX_VERTEX_RUNTIME,
@@ -27,18 +28,19 @@ public class DriverApproxOutput extends Output {
 
 	public static String[] getHeader() {
 		String[] header = new String[Col.values().length];
-		header[Col.NUM_PAIRS.ordinal()] = "Num Pairs";
-		header[Col.NUM_ALTS.ordinal()] = "Num Alts";
-		header[Col.CYCLE_CAP.ordinal()] = "Cycle Cap";
-		header[Col.CHAIN_CAP.ordinal()] = "Chain Cap";
-		header[Col.GENERATOR.ordinal()] = "Generator";
-		header[Col.APPROX_REP_COUNT.ordinal()] = "Approx Rep Count";
-		header[Col.OPT_OBJECTIVE.ordinal()] = "Optimal Objective";
-		header[Col.APPROX_CYCLE_OBJECTIVE.ordinal()] = "Approx Cycle Objective";
-		header[Col.APPROX_VERTEX_OBJECTIVE.ordinal()] = "Approx Vertex Objective";
-		header[Col.OPT_RUNTIME.ordinal()] = "Optimal Runtime";
-		header[Col.APPROX_CYCLE_RUNTIME.ordinal()] = "Approx Cycle Runtime";
-		header[Col.APPROX_VERTEX_RUNTIME.ordinal()] = "Approx Vertex Runtime";
+		header[Col.NUM_PAIRS.getColIdx()] = "Num Pairs";
+		header[Col.NUM_ALTS.getColIdx()] = "Num Alts";
+		header[Col.CYCLE_CAP.getColIdx()] = "Cycle Cap";
+		header[Col.CHAIN_CAP.getColIdx()] = "Chain Cap";
+		header[Col.GENERATOR.getColIdx()] = "Generator";
+		header[Col.APPROX_REP_COUNT.getColIdx()] = "Approx Rep Count";
+		header[Col.OPT_OBJECTIVE.getColIdx()] = "Optimal Objective";
+		header[Col.APPROX_CYCLE_OBJECTIVE.getColIdx()] = "Approx Cycle Objective";
+		header[Col.APPROX_VERTEX_OBJECTIVE.getColIdx()] = "Approx Vertex Objective";
+		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
+		header[Col.OPT_RUNTIME.getColIdx()] = "Optimal Runtime";
+		header[Col.APPROX_CYCLE_RUNTIME.getColIdx()] = "Approx Cycle Runtime";
+		header[Col.APPROX_VERTEX_RUNTIME.getColIdx()] = "Approx Vertex Runtime";
 		
 		return header;
 	}
