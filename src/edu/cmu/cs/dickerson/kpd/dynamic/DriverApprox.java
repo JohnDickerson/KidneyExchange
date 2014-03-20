@@ -34,20 +34,19 @@ public class DriverApprox {
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
 				UNOSGen, 
-				SaidmanGen,
+				//SaidmanGen,
 				});
 
 		// list of |V|s we'll iterate over
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
-				50, 100, 150, 200, 250, 300, 350, 400, 450, 500
-				//1000,
+				50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
 				});
 		
-		int numGraphReps = 16; 
+		int numGraphReps = 50; 
 
 		// Cycle and chain limits
 		int cycleCap = 3;
-		int chainCap = 0;
+		int chainCap = 3;
 
 		// Number of greedy packings per solve call
 		int numGreedyReps = 100;
