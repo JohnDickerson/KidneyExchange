@@ -41,9 +41,10 @@ public class DriverApprox {
 		// list of |V|s we'll iterate over
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
 				50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
+				//50, 60, 70, 80, 90, 100,
 				});
 		
-		int numGraphReps = 50; 
+		int numGraphReps = 25; 
 
 		// Cycle and chain limits
 		int cycleCap = 3;
@@ -68,8 +69,10 @@ public class DriverApprox {
 
 					IOUtil.dPrintln("Graph (|V|=" + graphSize + ", #" + graphRep + "/" + numGraphReps + "), gen: " + gen.getClass().getSimpleName());
 
-					// Generate pool (no alts for now)
-					Pool pool = gen.generate(graphSize, 0);
+					// Generate pool (~5% altruists, UNOS might be different);
+					int numPairs = (int)Math.round(graphSize * 0.95);
+					int numAlts = graphSize - numPairs;
+					Pool pool = gen.generate(numPairs, numAlts);
 					
 					// Bookkeeping
 					out.set(Col.CHAIN_CAP, chainCap);	
@@ -100,7 +103,8 @@ public class DriverApprox {
 
 					// Get greedy packings (upper-bounded by optimal solution's objective)
 					Solution greedyCycleSol = null;
-					Solution greedyVertexSol = null;
+					Solution greedyVertexUniformSol = null;
+					Solution greedyVertexInvPropSol = null;
 					double upperBound = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
 					try {
 						GreedyPackingSolver s = new GreedyPackingSolver(pool);
@@ -108,8 +112,11 @@ public class DriverApprox {
 						greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBound);
 						IOUtil.dPrintln("Greedy Cycle Value: " + greedyCycleSol.getObjectiveValue());
 						
-						greedyVertexSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
-						IOUtil.dPrintln("Greedy Vertex Value: " + greedyVertexSol.getObjectiveValue());
+						greedyVertexUniformSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.UNIFORM_RANDOM), upperBound);
+						IOUtil.dPrintln("Greedy Vertex [UNIFORM] Value: " + greedyVertexUniformSol.getObjectiveValue());
+						
+						greedyVertexInvPropSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
+						IOUtil.dPrintln("Greedy Vertex [INVPROP] Value: " + greedyVertexInvPropSol.getObjectiveValue());
 						
 					} catch(SolverException e) {
 						e.printStackTrace();
@@ -127,11 +134,16 @@ public class DriverApprox {
 						out.set(Col.APPROX_CYCLE_RUNTIME, greedyCycleSol.getSolveTime());
 					}
 
-					if(null != greedyVertexSol) {
-						out.set(Col.APPROX_VERTEX_OBJECTIVE, greedyVertexSol.getObjectiveValue());		
-						out.set(Col.APPROX_VERTEX_RUNTIME, greedyVertexSol.getSolveTime());
+					if(null != greedyVertexUniformSol) {
+						out.set(Col.APPROX_VERTEX_UNIFORM_OBJECTIVE, greedyVertexUniformSol.getObjectiveValue());		
+						out.set(Col.APPROX_VERTEX_UNIFORM_RUNTIME, greedyVertexUniformSol.getSolveTime());
 					}
 
+					if(null != greedyVertexInvPropSol) {
+						out.set(Col.APPROX_VERTEX_INVPROP_OBJECTIVE, greedyVertexInvPropSol.getObjectiveValue());		
+						out.set(Col.APPROX_VERTEX_INVPROP_RUNTIME, greedyVertexInvPropSol.getSolveTime());
+					}
+					
 					// Write the  row of data
 					try {
 						out.record();

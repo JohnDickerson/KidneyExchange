@@ -12,11 +12,13 @@ public class DriverApproxOutput extends Output {
 		APPROX_REP_COUNT,
 		OPT_OBJECTIVE,
 		APPROX_CYCLE_OBJECTIVE,
-		APPROX_VERTEX_OBJECTIVE,
+		APPROX_VERTEX_UNIFORM_OBJECTIVE,
+		APPROX_VERTEX_INVPROP_OBJECTIVE,
 		CYCLE_GEN_TIME,
 		OPT_RUNTIME,
 		APPROX_CYCLE_RUNTIME,
-		APPROX_VERTEX_RUNTIME,
+		APPROX_VERTEX_UNIFORM_RUNTIME,
+		APPROX_VERTEX_INVPROP_RUNTIME,
 		;
 		
 		public int getColIdx() { return this.ordinal(); }
@@ -36,11 +38,13 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_REP_COUNT.getColIdx()] = "Approx Rep Count";
 		header[Col.OPT_OBJECTIVE.getColIdx()] = "Optimal Objective";
 		header[Col.APPROX_CYCLE_OBJECTIVE.getColIdx()] = "Approx Cycle Objective";
-		header[Col.APPROX_VERTEX_OBJECTIVE.getColIdx()] = "Approx Vertex Objective";
+		header[Col.APPROX_VERTEX_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Vertex [UNIFORM] Objective";
+		header[Col.APPROX_VERTEX_INVPROP_OBJECTIVE.getColIdx()] = "Approx Vertex [INVPROP] Objective";
 		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
 		header[Col.OPT_RUNTIME.getColIdx()] = "Optimal Runtime";
 		header[Col.APPROX_CYCLE_RUNTIME.getColIdx()] = "Approx Cycle Runtime";
-		header[Col.APPROX_VERTEX_RUNTIME.getColIdx()] = "Approx Vertex Runtime";
+		header[Col.APPROX_VERTEX_UNIFORM_RUNTIME.getColIdx()] = "Approx Vertex [UNIFORM] Runtime";
+		header[Col.APPROX_VERTEX_INVPROP_RUNTIME.getColIdx()] = "Approx Vertex [INVPROP] Runtime";
 		
 		return header;
 	}
