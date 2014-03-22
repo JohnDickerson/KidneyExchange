@@ -12,6 +12,7 @@ import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker.ShuffleType;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
@@ -34,7 +35,7 @@ public class DriverApprox {
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
 				UNOSGen, 
-				//SaidmanGen,
+				SaidmanGen,
 				});
 
 		// list of |V|s we'll iterate over
@@ -46,7 +47,7 @@ public class DriverApprox {
 
 		// Cycle and chain limits
 		int cycleCap = 3;
-		int chainCap = 3;
+		int chainCap = 0;
 
 		// Number of greedy packings per solve call
 		int numGreedyReps = 100;
@@ -107,7 +108,7 @@ public class DriverApprox {
 						greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBound);
 						IOUtil.dPrintln("Greedy Cycle Value: " + greedyCycleSol.getObjectiveValue());
 						
-						greedyVertexSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership), upperBound);
+						greedyVertexSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
 						IOUtil.dPrintln("Greedy Vertex Value: " + greedyVertexSol.getObjectiveValue());
 						
 					} catch(SolverException e) {

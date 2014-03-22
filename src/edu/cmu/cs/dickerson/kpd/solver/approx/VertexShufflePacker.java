@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.cs.dickerson.kpd.helper.WeightedRandomSample;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -18,10 +19,43 @@ public class VertexShufflePacker extends Packer {
 	private CycleMembership membership;
 	private List<Cycle> cycles;
 
-	public VertexShufflePacker(Pool pool, List<Cycle> cycles, CycleMembership membership) {
+	public enum ShuffleType { UNIFORM_RANDOM, INVERSE_PROP_CYCLE_COUNT };
+	private ShuffleType shuffleType;
+	
+	public VertexShufflePacker(Pool pool, List<Cycle> cycles, CycleMembership membership, ShuffleType shuffleType) {
 		this.pool = pool;
 		this.cycles = cycles;
 		this.membership = membership;
+		this.shuffleType = shuffleType;
+	}
+	
+	private List<Vertex> shuffleVertices() {
+		List<Vertex> vertices = null;
+		switch(shuffleType) {
+		default:
+		case UNIFORM_RANDOM:
+			// Shuffle to mimic random sampling
+			vertices = new ArrayList<Vertex>( membership.getAllVertices() );
+			Collections.shuffle(vertices);
+			break;
+		case INVERSE_PROP_CYCLE_COUNT:
+			// Sample inversely proportional to how many cycles a vertex is in
+			WeightedRandomSample<Vertex> S = new WeightedRandomSample<Vertex>();
+			for(Vertex v : membership.getAllVertices()) {
+				
+				// Never want to sample vertices that are not in any cycles (no chance of matching)
+				double cycleCount = membership.getMembershipSet(v).size();
+				if(cycleCount == 0) { continue; }
+				
+				// Not worrying about overflow for now, since we won't be using this on big |cycle| counts
+				double weight = (double) cycles.size() / cycleCount;
+				S.add(weight, v);
+			}
+			vertices = S.weightedPermutation();
+			break;
+		}
+		
+		return vertices;
 	}
 	
 	@Override
@@ -35,9 +69,8 @@ public class VertexShufflePacker extends Packer {
 
 		long start = System.nanoTime();
 		
-		// Shuffle to mimic random sampling
-		List<Vertex> vertices = new ArrayList<Vertex>( membership.getAllVertices() );
-		Collections.shuffle(vertices);
+		// Shuffle vertices according to ShuffleType parameter
+		List<Vertex> vertices = shuffleVertices();
 		
 		// Pack vertices
 		for(Vertex v : vertices) {

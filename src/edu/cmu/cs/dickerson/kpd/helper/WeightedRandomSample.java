@@ -1,6 +1,8 @@
 package edu.cmu.cs.dickerson.kpd.helper;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -88,5 +90,13 @@ public class WeightedRandomSample<E> {
 		map.putAll(updatedElems);
 
 		return sampleValue;
+	}
+	
+	public List<E> weightedPermutation() {
+		List<E> permutation = new ArrayList<E>();
+		while(!map.isEmpty()) {
+			permutation.add(sampleWithoutReplacement());
+		}
+		return permutation;
 	}
 }
