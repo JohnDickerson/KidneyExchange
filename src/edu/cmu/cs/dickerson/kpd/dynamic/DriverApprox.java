@@ -10,6 +10,7 @@ import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexRandomWalkPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
@@ -48,6 +49,13 @@ public class DriverApprox {
 		
 		int numGraphReps = 25; 
 
+		// Optimize w.r.t. discounted or raw utility?
+		boolean usingFailureProbabilities = false;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
+		if(!usingFailureProbabilities) {
+			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
+		}
+		
 		// Cycle and chain limits
 		int cycleCap = 3;
 		int chainCap = 0;
@@ -65,12 +73,6 @@ public class DriverApprox {
 			return;
 		}
 
-		boolean usingFailureProbabilities = false;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
-		if(!usingFailureProbabilities) {
-			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
-		}
-		
 		for(int graphSize : graphSizeList) {
 			for(PoolGenerator gen : genList) {
 				for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
@@ -101,7 +103,7 @@ public class DriverApprox {
 					// Generate all cycles in pool
 					long startCycleGen = System.nanoTime();
 					CycleGenerator cg = new CycleGenerator(pool);
-					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
+					List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities);
 					CycleMembership membership = new CycleMembership(pool, cycles);
 					long endCycleGen = System.nanoTime();
 					out.set(Col.CYCLE_GEN_TIME, endCycleGen - startCycleGen);
@@ -119,6 +121,7 @@ public class DriverApprox {
 
 					// Get greedy packings (upper-bounded by optimal solution's objective)
 					Solution greedyCycleSol = null;
+					Solution greedyCycleLPRelaxSol = null;
 					Solution greedyVertexUniformSol = null;
 					Solution greedyVertexInvPropSol = null;
 					Solution greedyVertexRandWalkSol = null;
@@ -127,7 +130,10 @@ public class DriverApprox {
 						GreedyPackingSolver s = new GreedyPackingSolver(pool);
 						
 						greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBound);
-						IOUtil.dPrintln("Greedy Cycle Value: " + greedyCycleSol.getObjectiveValue());
+						IOUtil.dPrintln("Greedy Cycle [UNIFORM] Value: " + greedyCycleSol.getObjectiveValue());
+						
+						greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, true), upperBound);
+						IOUtil.dPrintln("Greedy Cycle [LPRELAX] Value: " + greedyCycleLPRelaxSol.getObjectiveValue());
 						
 						greedyVertexUniformSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.UNIFORM_RANDOM), upperBound);
 						IOUtil.dPrintln("Greedy Vertex [UNIFORM] Value: " + greedyVertexUniformSol.getObjectiveValue());
@@ -150,8 +156,13 @@ public class DriverApprox {
 					}
 
 					if(null != greedyCycleSol) {
-						out.set(Col.APPROX_CYCLE_OBJECTIVE, greedyCycleSol.getObjectiveValue());		
-						out.set(Col.APPROX_CYCLE_RUNTIME, greedyCycleSol.getSolveTime());
+						out.set(Col.APPROX_CYCLE_UNIFORM_OBJECTIVE, greedyCycleSol.getObjectiveValue());		
+						out.set(Col.APPROX_CYCLE_UNIFORM_RUNTIME, greedyCycleSol.getSolveTime());
+					}
+					
+					if(null != greedyCycleLPRelaxSol) {
+						out.set(Col.APPROX_CYCLE_LPRELAX_OBJECTIVE, greedyCycleLPRelaxSol.getObjectiveValue());		
+						out.set(Col.APPROX_CYCLE_LPRELAX_RUNTIME, greedyCycleLPRelaxSol.getSolveTime());
 					}
 
 					if(null != greedyVertexUniformSol) {

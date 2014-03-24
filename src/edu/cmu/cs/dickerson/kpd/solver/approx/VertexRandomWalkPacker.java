@@ -68,7 +68,7 @@ public class VertexRandomWalkPacker extends Packer {
 		
 		// Add these packed cycles to our full matching
 		matching.addAll(cyclesOnly.getMatching());
-		objVal += + cyclesOnly.getObjectiveValue();
+		objVal += cyclesOnly.getObjectiveValue();
 		
 		long end = System.nanoTime();
 		long totalTime = end - start;
