@@ -11,6 +11,7 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.VertexRandomWalkPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker.ShuffleType;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -19,6 +20,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
@@ -63,6 +65,12 @@ public class DriverApprox {
 			return;
 		}
 
+		boolean usingFailureProbabilities = false;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
+		if(!usingFailureProbabilities) {
+			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
+		}
+		
 		for(int graphSize : graphSizeList) {
 			for(PoolGenerator gen : genList) {
 				for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
@@ -74,6 +82,11 @@ public class DriverApprox {
 					int numAlts = graphSize - numPairs;
 					Pool pool = gen.generate(numPairs, numAlts);
 					
+					// If we're setting failure probabilities, do that here:
+					if(usingFailureProbabilities) {
+						FailureProbabilityUtil.setFailureProbability(pool, failDist, r);
+					}
+					
 					// Bookkeeping
 					out.set(Col.CHAIN_CAP, chainCap);	
 					out.set(Col.CYCLE_CAP, cycleCap);	
@@ -81,6 +94,9 @@ public class DriverApprox {
 					out.set(Col.NUM_ALTS, pool.getNumAltruists());
 					out.set(Col.GENERATOR, gen.getClass().getSimpleName());
 					out.set(Col.APPROX_REP_COUNT, numGreedyReps);
+					out.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
+					out.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
+
 
 					// Generate all cycles in pool
 					long startCycleGen = System.nanoTime();
@@ -105,6 +121,7 @@ public class DriverApprox {
 					Solution greedyCycleSol = null;
 					Solution greedyVertexUniformSol = null;
 					Solution greedyVertexInvPropSol = null;
+					Solution greedyVertexRandWalkSol = null;
 					double upperBound = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
 					try {
 						GreedyPackingSolver s = new GreedyPackingSolver(pool);
@@ -117,6 +134,9 @@ public class DriverApprox {
 						
 						greedyVertexInvPropSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
 						IOUtil.dPrintln("Greedy Vertex [INVPROP] Value: " + greedyVertexInvPropSol.getObjectiveValue());
+						
+						greedyVertexRandWalkSol = s.solve(numGreedyReps, new VertexRandomWalkPacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT, chainCap, usingFailureProbabilities), upperBound);
+						IOUtil.dPrintln("Greedy Vertex [RANDWALK] Value: " + greedyVertexRandWalkSol.getObjectiveValue());
 						
 					} catch(SolverException e) {
 						e.printStackTrace();
@@ -142,6 +162,11 @@ public class DriverApprox {
 					if(null != greedyVertexInvPropSol) {
 						out.set(Col.APPROX_VERTEX_INVPROP_OBJECTIVE, greedyVertexInvPropSol.getObjectiveValue());		
 						out.set(Col.APPROX_VERTEX_INVPROP_RUNTIME, greedyVertexInvPropSol.getSolveTime());
+					}
+					
+					if(null != greedyVertexRandWalkSol) {
+						out.set(Col.APPROX_VERTEX_RANDWALK_OBJECTIVE, greedyVertexRandWalkSol.getObjectiveValue());		
+						out.set(Col.APPROX_VERTEX_RANDWALK_RUNTIME, greedyVertexRandWalkSol.getSolveTime());
 					}
 					
 					// Write the  row of data

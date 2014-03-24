@@ -99,4 +99,13 @@ public class WeightedRandomSample<E> {
 		}
 		return permutation;
 	}
+	
+	public int size() {
+		return map.size();
+	}
+	
+	@Override
+	public String toString() {
+		return "WeightedRandomSample [map=" + map + ", total=" + total + "]";
+	}
 }

@@ -18,15 +18,21 @@ public class VertexShufflePacker extends Packer {
 	private Pool pool;
 	private CycleMembership membership;
 	private List<Cycle> cycles;
-
+	private Set<Vertex> forbiddenVerts;
+	
 	public enum ShuffleType { UNIFORM_RANDOM, INVERSE_PROP_CYCLE_COUNT };
 	private ShuffleType shuffleType;
 	
-	public VertexShufflePacker(Pool pool, List<Cycle> cycles, CycleMembership membership, ShuffleType shuffleType) {
+	public VertexShufflePacker(Pool pool, List<Cycle> cycles, CycleMembership membership, ShuffleType shuffleType, Set<Vertex> forbiddenVerts) {
 		this.pool = pool;
 		this.cycles = cycles;
 		this.membership = membership;
 		this.shuffleType = shuffleType;
+		this.forbiddenVerts = forbiddenVerts;
+	}
+	
+	public VertexShufflePacker(Pool pool, List<Cycle> cycles, CycleMembership membership, ShuffleType shuffleType) {
+		this(pool, cycles, membership, shuffleType, new HashSet<Vertex>());
 	}
 	
 	private List<Vertex> shuffleVertices() {
@@ -42,6 +48,10 @@ public class VertexShufflePacker extends Packer {
 			// Sample inversely proportional to how many cycles a vertex is in
 			WeightedRandomSample<Vertex> S = new WeightedRandomSample<Vertex>();
 			for(Vertex v : membership.getAllVertices()) {
+				
+				// If we're not allowed to match this vertex, don't add it to the set
+				// NOTE: weight from cycles containing this vertex will still be included
+				if(forbiddenVerts.contains(v)) { continue; }
 				
 				// Never want to sample vertices that are not in any cycles (no chance of matching)
 				double cycleCount = membership.getMembershipSet(v).size();
@@ -66,7 +76,9 @@ public class VertexShufflePacker extends Packer {
 
 		// Keep track of which vertices are in the matching so far
 		Set<Vertex> matchedVerts = new HashSet<Vertex>();
-
+		// Count any forbidden vertices as already being matched
+		matchedVerts.addAll(forbiddenVerts);
+		
 		long start = System.nanoTime();
 		
 		// Shuffle vertices according to ShuffleType parameter
