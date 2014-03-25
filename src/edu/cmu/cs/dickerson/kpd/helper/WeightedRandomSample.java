@@ -103,6 +103,14 @@ public class WeightedRandomSample<E> {
 	public int size() {
 		return map.size();
 	}
+
+	/**
+	 * Reset this set (clears underlying map)
+	 */
+	public void clear() {
+		this.map.clear();
+		this.total = 0.0;
+	}
 	
 	@Override
 	public String toString() {
