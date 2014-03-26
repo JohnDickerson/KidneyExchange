@@ -38,19 +38,19 @@ public class DriverApprox {
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
 				UNOSGen, 
-				SaidmanGen,
+				//SaidmanGen,
 		});
 
 		// list of |V|s we'll iterate over
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
 				//50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
-				50, 60, 70, 80, 90, 100,
+				50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 350, 400,
 		});
 
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = false;
+		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
@@ -60,7 +60,7 @@ public class DriverApprox {
 		int cycleCap = 3;
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
 				0,
-				2,3,5,10,100,
+				3,5,//10,100,
 		});
 
 		// Number of greedy packings per solve call
