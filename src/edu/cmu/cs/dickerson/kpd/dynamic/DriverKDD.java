@@ -27,7 +27,7 @@ public class DriverKDD {
 	public static void main(String[] args) {
 
 		// Output all graphs with APD bimodal distribution (more conservative than the UNOS one)
-		ProbabilityDistribution failureDist = ProbabilityDistribution.BIMODAL_CORRELATED_APD;
+		ProbabilityDistribution failureDist = ProbabilityDistribution.CONSTANT;
 
 		// Where are the (unzipped, raw) UNOS files located?
 		String basePath = IOUtil.getBaseUNOSFilePath();
@@ -44,12 +44,13 @@ public class DriverKDD {
 		//int enterPerPeriod = 25;
 		//int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
 		//IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
-		List<Integer> graphSizeList = Arrays.asList(new Integer[] {300, 400, 500, 600, 700, 800, 900});
+		//List<Integer> graphSizeList = Arrays.asList(new Integer[] {300, 400, 500, 600, 700, 800, 900});
+		List<Integer> graphSizeList = Arrays.asList(new Integer[] {510}); // used for UNOS runs in April 2014 (start with 250 + 52*5 per week)
 		List<Double> betaList = Arrays.asList(new Double[] {1.0, 2.0, 3.0, 4.0, 5.0});
 
 
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
-		int numGraphReps = 16; 
+		int numGraphReps = 32; 
 		for(int graphSize : graphSizeList) {
 			
 				IOUtil.dPrintln("Total graph size: " + graphSize);
@@ -64,7 +65,7 @@ public class DriverKDD {
 					Pool pool = gen.generatePool(graphSize);
 
 					// Assign failure probabilities to edges (can be ignored by optimizer)
-					FailureProbabilityUtil.setFailureProbability(pool, failureDist, r);
+					FailureProbabilityUtil.setFailureProbability(pool, failureDist, r, 0.9);    // 0.9 =  constant failure rate used for UNOS runs
 
 					// Want to output three different sets of weights for each graph:
 					// (1)  1 (for max cardinality)
