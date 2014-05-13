@@ -22,6 +22,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
+import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 // TODO    Invariance assumptions for generator:
 // Recipient's health profile and preferences do not change over time
@@ -52,6 +53,31 @@ public class UNOSGenerator extends PoolGenerator {
 		this.currentVertexID = 0;
 	}
 
+	public void printStatistics() {
+		
+		Map<BloodType, Double> donorABO = new HashMap<BloodType, Double>();
+		Map<BloodType, Double> candABO = new HashMap<BloodType, Double>();
+		for(BloodType bt : BloodType.values()) {
+			donorABO.put(bt, 0.0);
+			candABO.put(bt, 0.0);
+		}
+		// Add up number of donors, candidates with each ABO type
+		for(UNOSDonor d : this.donors.values()) {
+			donorABO.put(d.abo, donorABO.get(d.abo)+1.0);
+		}
+		for(UNOSRecipient r : this.recipients.values()) {
+			candABO.put(r.abo, candABO.get(r.abo)+1.0);
+		}
+		// Translate raw counts to percentages
+		for(BloodType bt : BloodType.values()) {
+			donorABO.put(bt, donorABO.get(bt)/this.donors.size());
+			candABO.put(bt, candABO.get(bt)/this.recipients.size());
+			System.out.println(bt.toString() + "\t\tDonor: " + donorABO.get(bt) + "\t\tRecipient: " + candABO.get(bt));
+		}
+		return;
+	}
+	
+	
 	@Override
 	public Pool generate(int numPairs, int numAltruists) {
 		// We sample from data, so we don't control #pairs or #altruists

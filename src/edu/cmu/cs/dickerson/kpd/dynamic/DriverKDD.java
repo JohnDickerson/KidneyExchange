@@ -37,7 +37,6 @@ public class DriverKDD {
 		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',', r);
 		IOUtil.dPrintln("UNOS generator operating on #donors: " + gen.getDonors().size() + " and #recipients: " + gen.getRecipients().size());
 
-
 		// Each graph starts out with K pairs, then K' enter per time period for T time periods
 		//int numTimePeriods = 24;
 		//int initialPoolSize = 200;
