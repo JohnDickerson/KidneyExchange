@@ -79,5 +79,21 @@ public class Cycle {
 		}
 		return vertices;
 	}
+	
+	/**
+	 * Given a set of cycles and a pool, returns the set of vertices in the pool that
+	 * are also in at least one of the cylces
+	 * @param cycles
+	 * @param pool
+	 * @return Set containing the union of Vertex objects in all cycles
+	 */
+	public static Set<Vertex> getConstituentVertices(Set<Cycle> cycles, Pool pool) {
+		Set<Vertex> vertices = new HashSet<Vertex>();
+		if(null == cycles) { return vertices; }
+		for(Cycle c : cycles) {
+			vertices.addAll(Cycle.getConstituentVertices(c, pool));
+		}
+		return vertices;
+	}
 }
 

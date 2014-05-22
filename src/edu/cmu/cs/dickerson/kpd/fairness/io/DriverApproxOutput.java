@@ -19,13 +19,16 @@ public class DriverApproxOutput extends Output {
 		APPROX_VERTEX_UNIFORM_OBJECTIVE,
 		APPROX_VERTEX_INVPROP_OBJECTIVE,
 		APPROX_VERTEX_RANDWALK_OBJECTIVE,
+		APPROX_CYCLE_CYCCHAIN_OBJECTIVE,
 		CYCLE_GEN_TIME,
+		CYCLE_REDUCED_GEN_TIME,  // only 2- and 3-cycles
 		OPT_RUNTIME,
 		APPROX_CYCLE_UNIFORM_RUNTIME,
 		APPROX_CYCLE_LPRELAX_RUNTIME,
 		APPROX_VERTEX_UNIFORM_RUNTIME,
 		APPROX_VERTEX_INVPROP_RUNTIME,
 		APPROX_VERTEX_RANDWALK_RUNTIME,
+		APPROX_CYCLE_CYCCHAIN_RUNTIME,
 		;
 		
 		public int getColIdx() { return this.ordinal(); }
@@ -52,13 +55,16 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_VERTEX_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Vertex [UNIFORM] Objective";
 		header[Col.APPROX_VERTEX_INVPROP_OBJECTIVE.getColIdx()] = "Approx Vertex [INVPROP] Objective";
 		header[Col.APPROX_VERTEX_RANDWALK_OBJECTIVE.getColIdx()] = "Approx Vertex [RANDWALK] Objective";
+		header[Col.APPROX_CYCLE_CYCCHAIN_OBJECTIVE.getColIdx()] = "Approx Cycle [CYCCHAIN] Objective";
 		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
+		header[Col.CYCLE_REDUCED_GEN_TIME.getColIdx()] = "Cycle generation runtime (only 2- and 3-cycles)";
 		header[Col.OPT_RUNTIME.getColIdx()] = "Optimal Runtime";
 		header[Col.APPROX_CYCLE_UNIFORM_RUNTIME.getColIdx()] = "Approx Cycle [UNIFORM] Runtime";
 		header[Col.APPROX_CYCLE_LPRELAX_RUNTIME.getColIdx()] = "Approx Cycle [LPRELAX] Runtime";
 		header[Col.APPROX_VERTEX_UNIFORM_RUNTIME.getColIdx()] = "Approx Vertex [UNIFORM] Runtime";
 		header[Col.APPROX_VERTEX_INVPROP_RUNTIME.getColIdx()] = "Approx Vertex [INVPROP] Runtime";
 		header[Col.APPROX_VERTEX_RANDWALK_RUNTIME.getColIdx()] = "Approx Vertex [RANDWALK] Runtime";
+		header[Col.APPROX_CYCLE_CYCCHAIN_RUNTIME.getColIdx()] = "Approx Cycle [CYCCHAIN] Runtime";
 		
 		return header;
 	}

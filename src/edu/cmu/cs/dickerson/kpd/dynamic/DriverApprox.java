@@ -12,6 +12,7 @@ import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesThenChainsPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexRandomWalkPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker.ShuffleType;
@@ -50,7 +51,7 @@ public class DriverApprox {
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = true;
+		boolean usingFailureProbabilities = false;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
@@ -59,9 +60,11 @@ public class DriverApprox {
 		// Cycle and chain limits
 		int cycleCap = 3;
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				0,
-				3,5,//10,100,
+				//0,
+				4,//3,5,//10,100,
+				//100,
 		});
+		int infiniteChainCap = Integer.MAX_VALUE - 2;
 
 		// Number of greedy packings per solve call
 		int numGreedyReps = 100;
@@ -129,6 +132,7 @@ public class DriverApprox {
 						Solution greedyVertexUniformSol = null;
 						Solution greedyVertexInvPropSol = null;
 						Solution greedyVertexRandWalkSol = null;
+						Solution greedyCyclesThenChainsSol = null;
 						double upperBound = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
 						try {
 							GreedyPackingSolver s = new GreedyPackingSolver(pool);
@@ -145,9 +149,21 @@ public class DriverApprox {
 							greedyVertexInvPropSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
 							IOUtil.dPrintln("Greedy Vertex [INVPROP] Value: " + greedyVertexInvPropSol.getObjectiveValue());
 
-							greedyVertexRandWalkSol = s.solve(numGreedyReps, new VertexRandomWalkPacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT, chainCap, usingFailureProbabilities), upperBound);
+							greedyVertexRandWalkSol = s.solve(numGreedyReps, new VertexRandomWalkPacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT, infiniteChainCap, usingFailureProbabilities), upperBound);
 							IOUtil.dPrintln("Greedy Vertex [RANDWALK] Value: " + greedyVertexRandWalkSol.getObjectiveValue());
 
+
+							// Generate only 2- and 3-cycles for the cycles-then-chain packing heuristics
+							long startReducedCycleGen = System.nanoTime();
+							List<Cycle> reducedCycles = (new CycleGenerator(pool)).generateCyclesAndChains(3, 0, usingFailureProbabilities);
+							CycleMembership reducedMembership = new CycleMembership(pool, reducedCycles);
+							long endReducedCycleGen = System.nanoTime();
+							out.set(Col.CYCLE_REDUCED_GEN_TIME, endReducedCycleGen - startReducedCycleGen);
+
+							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, cycles, membership, reducedCycles, reducedMembership, true, infiniteChainCap, usingFailureProbabilities), upperBound);
+							IOUtil.dPrintln("Greedy Cycle [CYCCHAIN] Value: " + greedyCyclesThenChainsSol.getObjectiveValue());
+
+														
 						} catch(SolverException e) {
 							e.printStackTrace();
 							System.exit(-1);
@@ -184,6 +200,12 @@ public class DriverApprox {
 							out.set(Col.APPROX_VERTEX_RANDWALK_RUNTIME, greedyVertexRandWalkSol.getSolveTime());
 						}
 
+						if(null != greedyCyclesThenChainsSol) {
+							out.set(Col.APPROX_CYCLE_CYCCHAIN_OBJECTIVE, greedyCyclesThenChainsSol.getObjectiveValue());		
+							out.set(Col.APPROX_CYCLE_CYCCHAIN_RUNTIME, greedyCyclesThenChainsSol.getSolveTime());
+						}
+						
+						
 						// Write the  row of data
 						try {
 							out.record();

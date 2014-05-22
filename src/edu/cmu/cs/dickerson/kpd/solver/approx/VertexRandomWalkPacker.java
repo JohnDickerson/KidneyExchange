@@ -99,7 +99,7 @@ public class VertexRandomWalkPacker extends Packer {
 	 *   remaining vertices in the pool, sampling neighbors inversely proportional to the number of cycles
 	 *   containing those neighbors.  Weight is discounted (usingFailureProbabilities=True) or raw (=False)
 	 */
-	private Cycle sampleAChain(Vertex alt, Set<Vertex> matchedVerts, int maxChainSize, boolean usingFailureProbabilities) {
+	protected Cycle sampleAChain(Vertex alt, Set<Vertex> matchedVerts, int maxChainSize, boolean usingFailureProbabilities) {
 
 		if(null==alt) { throw new IllegalArgumentException("Altruist cannot be null."); }
 		if(null==matchedVerts) { throw new IllegalArgumentException("Set of matched vertices cannot be null."); }
