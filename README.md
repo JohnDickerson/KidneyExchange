@@ -29,11 +29,11 @@ Related Research
 
 _FutureMatch: Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Working Paper_.
 
-_Multi-Organ Exchange: The Whole is Greater than the Sum of its Parts_.  John P. Dickerson and Tuomas Sandholm.  **AAAI-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14multi.pdf, "John P. Dickerson")
+_Multi-Organ Exchange: The Whole is Greater than the Sum of its Parts_.  John P. Dickerson and Tuomas Sandholm.  **AAAI-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14multi.pdf "John P. Dickerson")
 
 _The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14price.pdf "John P. Dickerson")
 
-_The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory**.  [Link](http://jpdickerson.com/pubs/dickerson14empirical.pdf, "John P. Dickerson")
+_The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory**.  [Link](http://jpdickerson.com/pubs/dickerson14empirical.pdf "John P. Dickerson")
 
 _Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **EC-2013**.  [Link](http://www.cs.cmu.edu/~sandholm/failure-aware%20kidney%20exchange.ec13.pdf "Carnegie Mellon University link")
 

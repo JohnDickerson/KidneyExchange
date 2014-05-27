@@ -88,7 +88,7 @@ public class DriverApprox {
 				for(PoolGenerator gen : genList) {
 					for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 
-						IOUtil.dPrintln("Graph (|V|=" + graphSize + ", #" + graphRep + "/" + numGraphReps + "), cap: " + chainCap+ ", gen: " + gen.getClass().getSimpleName());
+						IOUtil.dPrintln("\n*****\nGraph (|V|=" + graphSize + ", #" + graphRep + "/" + numGraphReps + "), cap: " + chainCap+ ", gen: " + gen.getClass().getSimpleName() + "\n*****\n");
 
 						// Generate pool (~5% altruists, UNOS might be different);
 						int numPairs = (int)Math.round(graphSize * 0.95);
@@ -147,7 +147,7 @@ public class DriverApprox {
 							greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Cycle [UNIFORM] Value: " + greedyCycleSol.getObjectiveValue());
 
-							greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, true), upperBoundFromReducedIP);
+							greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, false), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Cycle [LPRELAX] Value: " + greedyCycleLPRelaxSol.getObjectiveValue());
 
 							greedyVertexUniformSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.UNIFORM_RANDOM), upperBoundFromReducedIP);
@@ -167,7 +167,7 @@ public class DriverApprox {
 							long endReducedCycleGen = System.nanoTime();
 							out.set(Col.CYCLE_REDUCED_GEN_TIME, endReducedCycleGen - startReducedCycleGen);
 
-							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, true, infiniteChainCap, usingFailureProbabilities), upperBound);
+							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, false, infiniteChainCap, usingFailureProbabilities), upperBound);
 							IOUtil.dPrintln("Greedy Cycle [CYCCHAIN] Value: " + greedyCyclesThenChainsSol.getObjectiveValue());
 
 							greedyCyclesSampleChainsIPSol = s.solve(numGreedyReps, new CyclesSampleChainsIPPacker(pool, reducedCycles, chainSamplesPerAltruist, infiniteChainCap, usingFailureProbabilities), upperBound);
