@@ -20,6 +20,7 @@ public class DriverApproxOutput extends Output {
 		APPROX_VERTEX_INVPROP_OBJECTIVE,
 		APPROX_VERTEX_RANDWALK_OBJECTIVE,
 		APPROX_CYCLE_CYCCHAIN_OBJECTIVE,
+		CYCLE_CYCCHAIN_CONSTANT,
 		CYCLE_GEN_TIME,
 		CYCLE_REDUCED_GEN_TIME,  // only 2- and 3-cycles
 		OPT_RUNTIME,
@@ -56,6 +57,7 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_VERTEX_INVPROP_OBJECTIVE.getColIdx()] = "Approx Vertex [INVPROP] Objective";
 		header[Col.APPROX_VERTEX_RANDWALK_OBJECTIVE.getColIdx()] = "Approx Vertex [RANDWALK] Objective";
 		header[Col.APPROX_CYCLE_CYCCHAIN_OBJECTIVE.getColIdx()] = "Approx Cycle [CYCCHAIN] Objective";
+		header[Col.CYCLE_CYCCHAIN_CONSTANT.getColIdx()] = "CYCCHAIN Samples per Altruist";
 		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
 		header[Col.CYCLE_REDUCED_GEN_TIME.getColIdx()] = "Cycle generation runtime (only 2- and 3-cycles)";
 		header[Col.OPT_RUNTIME.getColIdx()] = "Optimal Runtime";

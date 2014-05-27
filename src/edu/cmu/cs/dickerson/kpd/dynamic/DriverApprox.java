@@ -51,7 +51,7 @@ public class DriverApprox {
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = false;
+		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
@@ -68,6 +68,9 @@ public class DriverApprox {
 
 		// Number of greedy packings per solve call
 		int numGreedyReps = 100;
+
+		// Upper bound on number of chains sampled per altruist in some heuristics
+		int chainSamplesPerAltruist = 256;
 
 		// Store output
 		String path = "approx_" + System.currentTimeMillis() + ".csv";
@@ -105,7 +108,7 @@ public class DriverApprox {
 						out.set(Col.APPROX_REP_COUNT, numGreedyReps);
 						out.set(Col.FAILURE_PROBABILITIES_USED, usingFailureProbabilities);
 						out.set(Col.FAILURE_PROBABILITY_DIST, failDist.toString());
-
+						out.set(Col.CYCLE_CYCCHAIN_CONSTANT, chainSamplesPerAltruist);
 
 						// Generate all cycles in pool
 						long startCycleGen = System.nanoTime();
@@ -133,23 +136,25 @@ public class DriverApprox {
 						Solution greedyVertexInvPropSol = null;
 						Solution greedyVertexRandWalkSol = null;
 						Solution greedyCyclesThenChainsSol = null;
-						double upperBound = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
+						// Upper bound from IP might be below absolute upper bound because we do not include very long chains
+						double upperBoundFromReducedIP = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
+						double upperBound = Double.MAX_VALUE;
 						try {
 							GreedyPackingSolver s = new GreedyPackingSolver(pool);
 
-							greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBound);
+							greedyCycleSol = s.solve(numGreedyReps, new CycleShufflePacker(pool, cycles), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Cycle [UNIFORM] Value: " + greedyCycleSol.getObjectiveValue());
 
-							greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, true), upperBound);
+							greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, true), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Cycle [LPRELAX] Value: " + greedyCycleLPRelaxSol.getObjectiveValue());
 
-							greedyVertexUniformSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.UNIFORM_RANDOM), upperBound);
+							greedyVertexUniformSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.UNIFORM_RANDOM), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Vertex [UNIFORM] Value: " + greedyVertexUniformSol.getObjectiveValue());
 
-							greedyVertexInvPropSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBound);
+							greedyVertexInvPropSol = s.solve(numGreedyReps, new VertexShufflePacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Vertex [INVPROP] Value: " + greedyVertexInvPropSol.getObjectiveValue());
 
-							greedyVertexRandWalkSol = s.solve(numGreedyReps, new VertexRandomWalkPacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT, infiniteChainCap, usingFailureProbabilities), upperBound);
+							greedyVertexRandWalkSol = s.solve(numGreedyReps, new VertexRandomWalkPacker(pool, cycles, membership, ShuffleType.INVERSE_PROP_CYCLE_COUNT, infiniteChainCap, usingFailureProbabilities), upperBoundFromReducedIP);
 							IOUtil.dPrintln("Greedy Vertex [RANDWALK] Value: " + greedyVertexRandWalkSol.getObjectiveValue());
 
 
@@ -160,10 +165,10 @@ public class DriverApprox {
 							long endReducedCycleGen = System.nanoTime();
 							out.set(Col.CYCLE_REDUCED_GEN_TIME, endReducedCycleGen - startReducedCycleGen);
 
-							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, cycles, membership, reducedCycles, reducedMembership, true, infiniteChainCap, usingFailureProbabilities), upperBound);
+							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, true, infiniteChainCap, usingFailureProbabilities), upperBound);
 							IOUtil.dPrintln("Greedy Cycle [CYCCHAIN] Value: " + greedyCyclesThenChainsSol.getObjectiveValue());
 
-														
+
 						} catch(SolverException e) {
 							e.printStackTrace();
 							System.exit(-1);
@@ -204,8 +209,8 @@ public class DriverApprox {
 							out.set(Col.APPROX_CYCLE_CYCCHAIN_OBJECTIVE, greedyCyclesThenChainsSol.getObjectiveValue());		
 							out.set(Col.APPROX_CYCLE_CYCCHAIN_RUNTIME, greedyCyclesThenChainsSol.getSolveTime());
 						}
-						
-						
+
+
 						// Write the  row of data
 						try {
 							out.record();

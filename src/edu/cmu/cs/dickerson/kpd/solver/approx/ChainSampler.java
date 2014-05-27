@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.helper.WeightedRandomSample;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -21,6 +20,14 @@ public class ChainSampler {
 		this.pool = pool;
 	}
 	
+	/**
+	 * Temporary -- code mostly copied from VertexRandomWalkPacker
+	 * @param alt
+	 * @param matchedVerts
+	 * @param maxChainSize
+	 * @param usingFailureProbabilities
+	 * @return
+	 */
 	protected Cycle sampleAChain(Vertex alt, Set<Vertex> matchedVerts, int maxChainSize, boolean usingFailureProbabilities) {
 
 		if(null==alt) { throw new IllegalArgumentException("Altruist cannot be null."); }
@@ -41,28 +48,22 @@ public class ChainSampler {
 
 			List<Edge> shuffledOut = new ArrayList<Edge>(pool.outgoingEdgesOf(currentV));
 			Collections.shuffle(shuffledOut);
+			Edge nextE = null;
 			for(Edge edge : shuffledOut) {
 
 				Vertex candidateV = pool.getEdgeTarget(edge);
 
 				// If this neighbor has already been matched (or is in our chain), skip
 				if(matchedVerts.contains(candidateV) || inPath.contains(candidateV)) { continue; }
-				// If this neighbor is an altruist who isn't the starting altruist, skip
-				if(candidateV.isAltruist() && !candidateV.equals(alt)) { continue; }
-
-				// Never want to sample vertices that are not in any cycles (no chance of matching)
-				double cycleCount = membership.getMembershipSet(candidateV).size();
-				if(cycleCount == 0) { continue; }
-
-				// Not worrying about overflow for now, since we won't be using this on big |cycle| counts
-				double weight = (double) cycles.size() / cycleCount;
-				neighborSet.add(weight, edge);
-
+				// If this neighbor is an altruist, skip
+				if(candidateV.isAltruist()) { continue; }
+				// We've sampled a legal next step
+				nextE = edge;
+				break;
 			}
 
-			// Get our next hop in the chain, based on the weights computed above
-			Edge nextE = null;
-			if(path.size() >= maxChainSize - 1 || neighborSet.size() < 1) {
+			// If we're at the chain cap or if there are no legal next hops, end the chain
+			if(path.size() >= maxChainSize - 1 || null==nextE) {
 				
 				// If we're at the last step of the chain due to a chain cap, or if no vertices
 				// are both neighbors of this vertex AND unmatched, then try to hop back to the
@@ -73,8 +74,6 @@ public class ChainSampler {
 					//throw new RuntimeException("Starting with altruist " + alt + ", found a vertex that did not connect (dummy edge or otherwise) back to the altruist.\n" +
 					//		"Vertex: " + currentV + ", neighbors: " + pool.outgoingEdgesOf(currentV));
 				}
-			} else {
-				nextE = neighborSet.sampleWithoutReplacement();
 			}
 
 
