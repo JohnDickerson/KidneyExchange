@@ -3,11 +3,9 @@ Kidney Exchange
 
 #### What is kidney exchange? ####
 
-Kidney failure is a life-threatening health issue that affects hundreds of thousands of people worldwide. In the US alone, the waitlist for a kidney transplant has nearly 100,000 patients. This list is growing: demand far outstrips supply.
+Kidney failure is a life-threatening health issue that affects hundreds of thousands of people worldwide. In the US alone, the waitlist for a kidney transplant has over 100,000 patients. This list is growing: demand far outstrips supply.
 
-A recent innovation, kidney exchange, allows patients to
-bring an (incompatible) donor to a large pool where they
-can swap donors with other patients.  As of 2012&ndash;2013, roughly 10% of US kidney transplants occurred through a variety of kidney exchanges.  Outside of the US, many countries (the UK, the Netherlands, Portugal, Israel, ...) are fielding exchanges.
+A recent innovation, kidney exchange, allows patients to bring an (incompatible) donor to a large pool where they can swap donors with other patients.  As of 2012&ndash;2013, roughly 10% of US kidney transplants occurred through a variety of kidney exchanges.  Outside of the US, many countries (the UK, the Netherlands, Portugal, Israel, ...) are fielding exchanges.
 
 #### What is this code? ####
 
@@ -29,11 +27,13 @@ IBM offers a free academic license for CPLEX as well as a 90-day free trial avai
 Related Research
 ================
 
-_FutureMatch: Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Submitted to KDD-2014_.
+_FutureMatch: Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Working Paper_.
 
-_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://johnpdickerson.com/pubs/dickerson14price.pdf "John P. Dickerson")
+_Multi-Organ Exchange: The Whole is Greater than the Sum of its Parts_.  John P. Dickerson and Tuomas Sandholm.  **AAAI-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14multi.pdf, "John P. Dickerson")
 
-_The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  _Submitted to AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory_.
+_The Price of Fairness in Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14price.pdf "John P. Dickerson")
+
+_The Empirical Price of Fairness in Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **AAMAS-2014 Workshop on Healthcare and Algorithmic Game Theory**.  [Link](http://jpdickerson.com/pubs/dickerson14empirical.pdf, "John P. Dickerson")
 
 _Failure-Aware Kidney Exchange_.  John P. Dickerson, Ariel D. Procaccia, Tuomas Sandholm.  **EC-2013**.  [Link](http://www.cs.cmu.edu/~sandholm/failure-aware%20kidney%20exchange.ec13.pdf "Carnegie Mellon University link")
 
@@ -45,6 +45,6 @@ _Clearing Algorithms for Barter Exchange Markets: Enabling Nationwide Kidney Exc
 
 _Increasing the Opportunity of Live Kidney Donation by Matching for Two and Three Way Exchanges_. S. L. Saidman, Alvin Roth, Tayfun S&ouml;nmez, Utku &Uuml;nver, Frank Delmonico.  **Transplantation, 2006**.  [Link](http://kuznets.fas.harvard.edu/~aroth/papers/SaidmanRothSonmezUnverDelmonico.Transplantation.2006.pdf "Harvard link")
 
-_These are admittedly me-centric references!  Make sure to click around: [Itai Ashlagi](http://web.mit.edu/iashlagi/www/), [Avrim Blum](http://www.cs.cmu.edu/~avrim/), [John Dickerson](http://cs.cmu.edu/~dickerson), [David Gamarnik](http://www.mit.edu/~gamarnik/home.html), [David Parkes](http://www.eecs.harvard.edu/~parkes/), [Ariel Procaccia](http://www.cs.cmu.edu/~arielpro/), [Al Roth](http://www.stanford.edu/~alroth/), [Tuomas Sandholm](http://www.cs.cmu.edu/~sandholm/), [Ankit Sharma](https://sites.google.com/site/ankitsharmahomepage/),  [Tayfun S&ouml;nmez](https://www2.bc.edu/~sonmezt/), [Utku &Uuml;nver](https://www2.bc.edu/~unver/)._ 
+_These are admittedly me-centric references!  Make sure to click around: [Ross Anderson](http://rma350.scripts.mit.edu/home/), [Itai Ashlagi](http://web.mit.edu/iashlagi/www/), [Avrim Blum](http://www.cs.cmu.edu/~avrim/), [John Dickerson](http://cs.cmu.edu/~dickerson), [David Gamarnik](http://www.mit.edu/~gamarnik/home.html), [David Parkes](http://www.eecs.harvard.edu/~parkes/), [Ariel Procaccia](http://www.cs.cmu.edu/~arielpro/), [Al Roth](http://www.stanford.edu/~alroth/), [Tuomas Sandholm](http://www.cs.cmu.edu/~sandholm/), [Ankit Sharma](https://sites.google.com/site/ankitsharmahomepage/), [Tayfun S&ouml;nmez](https://www2.bc.edu/~sonmezt/), [Pingzhong Tang](http://iiis.tsinghua.edu.cn/~kenshin/), [Utku &Uuml;nver](https://www2.bc.edu/~unver/)._ 
 
 If you are interested in other social choice problems, make sure to check out [PrefLib](http://www.preflib.org/), a reference library of preference data assembled by [Nicolas Mattei](http://www.nickmattei.net/) and [Toby Walsh](http://www.cse.unsw.edu.au/~tw/).

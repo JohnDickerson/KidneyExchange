@@ -12,6 +12,7 @@ import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesSampleChainsIPPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesThenChainsPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexRandomWalkPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
@@ -136,6 +137,7 @@ public class DriverApprox {
 						Solution greedyVertexInvPropSol = null;
 						Solution greedyVertexRandWalkSol = null;
 						Solution greedyCyclesThenChainsSol = null;
+						Solution greedyCyclesSampleChainsIPSol = null;
 						// Upper bound from IP might be below absolute upper bound because we do not include very long chains
 						double upperBoundFromReducedIP = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
 						double upperBound = Double.MAX_VALUE;
@@ -168,6 +170,8 @@ public class DriverApprox {
 							greedyCyclesThenChainsSol = s.solve(numGreedyReps, new CyclesThenChainsPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, true, infiniteChainCap, usingFailureProbabilities), upperBound);
 							IOUtil.dPrintln("Greedy Cycle [CYCCHAIN] Value: " + greedyCyclesThenChainsSol.getObjectiveValue());
 
+							greedyCyclesSampleChainsIPSol = s.solve(numGreedyReps, new CyclesSampleChainsIPPacker(pool, reducedCycles, chainSamplesPerAltruist, infiniteChainCap, usingFailureProbabilities), upperBound);
+							IOUtil.dPrintln("Greedy Cycle [IPSAMPLE] Value: " + greedyCyclesSampleChainsIPSol.getObjectiveValue());
 
 						} catch(SolverException e) {
 							e.printStackTrace();
@@ -210,7 +214,11 @@ public class DriverApprox {
 							out.set(Col.APPROX_CYCLE_CYCCHAIN_RUNTIME, greedyCyclesThenChainsSol.getSolveTime());
 						}
 
-
+						if(null != greedyCyclesSampleChainsIPSol) {
+							out.set(Col.APPROX_CYCLE_IPSAMPLE_OBJECTIVE, greedyCyclesSampleChainsIPSol.getObjectiveValue());		
+							out.set(Col.APPROX_CYCLE_IPSAMPLE_RUNTIME, greedyCyclesSampleChainsIPSol.getSolveTime());
+						}
+						
 						// Write the  row of data
 						try {
 							out.record();
