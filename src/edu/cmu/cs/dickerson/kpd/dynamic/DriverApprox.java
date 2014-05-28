@@ -13,6 +13,7 @@ import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesSampleChainsIPPacker;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesThenChainsIPPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesThenChainsPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexRandomWalkPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.VertexShufflePacker;
@@ -46,14 +47,14 @@ public class DriverApprox {
 		// list of |V|s we'll iterate over
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
 				//50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
-				50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 350, 
-				400, 500, 600, 700, 800, 900,
+				50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 
+				400, 500, 600, 700, 800, 900, 1000, 1250, 1500,
 		});
 
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = false;
+		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
@@ -122,14 +123,15 @@ public class DriverApprox {
 						Solution greedyVertexRandWalkSol = null;
 						Solution greedyCyclesThenChainsSol = null;
 						Solution greedyCyclesSampleChainsIPSol = null;
-
+						Solution greedyCyclesThenChainsIPSol = null;
+						
 						// Upper bound from IP might be below absolute upper bound because we do not include very long chains
 						double upperBoundFromReducedIP = Double.MAX_VALUE;
 						double upperBound = Double.MAX_VALUE;
 						
 						List<Cycle> cycles = null;
 						CycleMembership membership = null;
-						if(graphSize <= 250) {
+						if(graphSize <= 100) {
 							// Generate all cycles in pool
 							long startCycleGen = System.nanoTime();
 							CycleGenerator cg = new CycleGenerator(pool);
@@ -186,10 +188,14 @@ public class DriverApprox {
 							greedyCyclesSampleChainsIPSol = s.solve(numGreedyReps, new CyclesSampleChainsIPPacker(pool, reducedCycles, chainSamplesPerAltruist, infiniteChainCap, usingFailureProbabilities), upperBound);
 							IOUtil.dPrintln("Greedy Cycle [IPSAMPLE] Value: " + greedyCyclesSampleChainsIPSol.getObjectiveValue());
 
+							greedyCyclesThenChainsIPSol = s.solve(numGreedyReps, new CyclesThenChainsIPPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, false, infiniteChainCap, usingFailureProbabilities), upperBound);
+							IOUtil.dPrintln("Greedy Cycle [CYCCHAIN-IP] Value: " + greedyCyclesThenChainsIPSol.getObjectiveValue());
+
 						} catch(SolverException e) {
 							e.printStackTrace();
 							System.exit(-1);
 						}
+						
 
 						// Compare the greedy and optimal solutions
 						if(null != optSol) {
@@ -232,6 +238,11 @@ public class DriverApprox {
 							out.set(Col.APPROX_CYCLE_IPSAMPLE_RUNTIME, greedyCyclesSampleChainsIPSol.getSolveTime());
 						}
 
+						if(null != greedyCyclesThenChainsIPSol) {
+							out.set(Col.APPROX_CYCLE_CYCCHAIN_IP_OBJECTIVE, greedyCyclesThenChainsIPSol.getObjectiveValue());		
+							out.set(Col.APPROX_CYCLE_CYCCHAIN_IP_RUNTIME, greedyCyclesThenChainsIPSol.getSolveTime());
+						}
+						
 						// Write the  row of data
 						try {
 							out.record();
