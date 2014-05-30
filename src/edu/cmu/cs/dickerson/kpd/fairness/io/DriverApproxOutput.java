@@ -14,6 +14,7 @@ public class DriverApproxOutput extends Output {
 		FAILURE_PARAMETER_1,
 		APPROX_REP_COUNT,
 		OPT_OBJECTIVE,
+		OPT_UB_OBJECTIVE,
 		APPROX_CYCLE_UNIFORM_OBJECTIVE,
 		APPROX_CYCLE_LPRELAX_OBJECTIVE,
 		APPROX_VERTEX_UNIFORM_OBJECTIVE,
@@ -26,6 +27,7 @@ public class DriverApproxOutput extends Output {
 		CYCLE_GEN_TIME,
 		CYCLE_REDUCED_GEN_TIME,  // only 2- and 3-cycles
 		OPT_RUNTIME,
+		OPT_UB_RUNTIME,
 		APPROX_CYCLE_UNIFORM_RUNTIME,
 		APPROX_CYCLE_LPRELAX_RUNTIME,
 		APPROX_VERTEX_UNIFORM_RUNTIME,
@@ -55,6 +57,7 @@ public class DriverApproxOutput extends Output {
 		header[Col.FAILURE_PARAMETER_1.ordinal()] = "Failure Parameter 1";
 		header[Col.APPROX_REP_COUNT.getColIdx()] = "Approx Rep Count";
 		header[Col.OPT_OBJECTIVE.getColIdx()] = "Optimal Objective";
+		header[Col.OPT_UB_OBJECTIVE.getColIdx()] = "Optimal UB Objective";
 		header[Col.APPROX_CYCLE_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Cycle [UNIFORM] Objective";
 		header[Col.APPROX_CYCLE_LPRELAX_OBJECTIVE.getColIdx()] = "Approx Cycle [LPRELAX] Objective";
 		header[Col.APPROX_VERTEX_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Vertex [UNIFORM] Objective";
@@ -67,6 +70,7 @@ public class DriverApproxOutput extends Output {
 		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
 		header[Col.CYCLE_REDUCED_GEN_TIME.getColIdx()] = "Cycle generation runtime (only 2- and 3-cycles)";
 		header[Col.OPT_RUNTIME.getColIdx()] = "Optimal Runtime";
+		header[Col.OPT_UB_RUNTIME.getColIdx()] = "Optimal UB Runtime";
 		header[Col.APPROX_CYCLE_UNIFORM_RUNTIME.getColIdx()] = "Approx Cycle [UNIFORM] Runtime";
 		header[Col.APPROX_CYCLE_LPRELAX_RUNTIME.getColIdx()] = "Approx Cycle [LPRELAX] Runtime";
 		header[Col.APPROX_VERTEX_UNIFORM_RUNTIME.getColIdx()] = "Approx Vertex [UNIFORM] Runtime";
