@@ -42,6 +42,7 @@ public class CyclesThenChainsPacker extends Packer {
 	private void init() {
 		this.cyclePacker = new CycleLPRelaxationPacker(pool, reducedCycles, reducedMembership, true);
 		this.chainSampler = new ChainSampler(pool);
+		this.isInitialized = true;
 	}
 
 	@Override
