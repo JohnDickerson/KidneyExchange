@@ -44,7 +44,7 @@ public class CycleLPRelaxationPacker extends Packer {
 		CycleFormulationLPRelaxCPLEXSolver solver = new CycleFormulationLPRelaxCPLEXSolver(this.pool, this.cycles, this.membership);
 		try {
 			// Sort CycleIdx->Weight in reverse order by value (higher weights first)
-			this.sortedIndex = MapUtil.sortByValue( solver.solve(), true);
+			this.sortedIndex = MapUtil.sortByValue( solver.solve().getRight(), true);
 		} catch(SolverException e) {
 			e.printStackTrace();
 			System.exit(-1);

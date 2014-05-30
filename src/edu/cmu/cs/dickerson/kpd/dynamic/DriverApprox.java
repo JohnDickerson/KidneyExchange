@@ -9,6 +9,7 @@ import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput;
 import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationLPRelaxCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
@@ -33,7 +34,8 @@ public class DriverApprox {
 
 	public static void main(String[] args) {
 
-		boolean doOpt = true;  // Do optimal IP solve on C(3,4)
+		boolean doOptIP = true;  // Do optimal IP solve on C(3,4)
+		boolean doOptLP = true;  // Do optimal LP solve on C(3,4)
 		boolean doCycle = false;  // Uniform sample cycles packing
 		boolean doCycleLPRelax = false;  // Take LP relaxation on C(3,4), sample based on weights, pack
 		boolean doVertexUniform = false;  // Sample vertices uniformly, then cycles containing vertex, then pack
@@ -128,7 +130,8 @@ public class DriverApprox {
 						out.set(Col.CYCLE_CYCCHAIN_CONSTANT, chainSamplesPerAltruist);
 
 						// All solutions (optimal, greedy packings, etc)
-						Solution optSol = null;
+						Solution optSolIP = null;
+						Solution optSolLP = null;
 						Solution greedyCycleSol = null;
 						Solution greedyCycleLPRelaxSol = null;
 						Solution greedyVertexUniformSol = null;
@@ -155,12 +158,23 @@ public class DriverApprox {
 
 
 							try {
-								if(doOpt) {
+								if(doOptIP) {
 									// Get optimal match size for pool on C(3,some non-infinite chain cap)
-									CycleFormulationCPLEXSolver optS = new CycleFormulationCPLEXSolver(pool, cycles, membership);
-									optSol = optS.solve();
-									IOUtil.dPrintln("'Optimal' (chain-capped) Value: " + optSol.getObjectiveValue());
-									
+									CycleFormulationCPLEXSolver optIPS = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+									optSolIP = optIPS.solve();
+									IOUtil.dPrintln("'Optimal IP' (chain-capped) Value: " + optSolIP.getObjectiveValue());
+								}
+								if(doOptLP) {
+									// Get LP relaxation match size for pool on C(3,some non-infinite chain cap)
+									CycleFormulationLPRelaxCPLEXSolver optLPS = new CycleFormulationLPRelaxCPLEXSolver(pool, cycles, membership);
+									optSolLP = optLPS.solve().getLeft();
+									IOUtil.dPrintln("'Optimal LP' (chain-capped) Value: " + optSolLP.getObjectiveValue());
+								}
+								
+								// We can only compute upper bounds if we have optimal solves on the reduced IP or LP relaxation
+								if(doOptIP || doOptLP) {
+									// Compare against reduced IP value if available, otherwise settle for reduced LP relaxation
+									double lowerObjValue = null!=optSolIP ? optSolIP.getObjectiveValue() : optSolLP.getObjectiveValue();
 									// Get upper bound on optimal match for C(3,infinite chains)
 									double trueOptimalUB = Double.MAX_VALUE;
 									if(!usingFailureProbabilities) {
@@ -172,7 +186,7 @@ public class DriverApprox {
 										double q = 1.0 - failure_param1;
 										if(q != 1.0) {
 											double perChainUB = Math.pow(q, chainCap-1) * (q / (1.0-q));
-											trueOptimalUB = optSol.getObjectiveValue() + (pool.getNumAltruists() * perChainUB);
+											trueOptimalUB = lowerObjValue + (pool.getNumAltruists() * perChainUB);
 										}
 									} else {
 										// We can bound using other distributions, but not implemented yet
@@ -183,7 +197,7 @@ public class DriverApprox {
 
 								if(doCycleLPRelax) {
 									// LP relaxation based on full cycle and chain set
-									upperBoundFromReducedIP = (null==optSol) ? Double.MAX_VALUE : optSol.getObjectiveValue();
+									upperBoundFromReducedIP = (null==optSolIP) ? Double.MAX_VALUE : optSolIP.getObjectiveValue();
 									greedyCycleLPRelaxSol = s.solve(numGreedyReps, new CycleLPRelaxationPacker(pool, cycles, membership, false), upperBoundFromReducedIP);
 									IOUtil.dPrintln("Greedy Cycle [LPRELAX] Value: " + greedyCycleLPRelaxSol.getObjectiveValue());
 								}
@@ -247,9 +261,14 @@ public class DriverApprox {
 
 
 						// Compare the greedy and optimal solutions
-						if(null != optSol) {
-							out.set(Col.OPT_OBJECTIVE, optSol.getObjectiveValue());	
-							out.set(Col.OPT_RUNTIME, optSol.getSolveTime());
+						if(null != optSolIP) {
+							out.set(Col.OPT_IP_OBJECTIVE, optSolIP.getObjectiveValue());	
+							out.set(Col.OPT_IP_RUNTIME, optSolIP.getSolveTime());
+						}
+
+						if(null != optSolLP) {
+							out.set(Col.OPT_LP_OBJECTIVE, optSolLP.getObjectiveValue());	
+							out.set(Col.OPT_LP_RUNTIME, optSolLP.getSolveTime());
 						}
 
 						if(null != greedyCycleSol) {

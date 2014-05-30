@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.helper.Pair;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
@@ -27,13 +28,13 @@ public class CycleFormulationLPRelaxCPLEXSolver extends CPLEXSolver {
 		this.cycles = cycles;
 		this.membership = membership;
 	}
-
+	
 	/**
 	 * Solves the root LP relaxation of the cycle formulation kidney exchange IP
-	 * @return Map cycle index -> respective value in LP solve
+	 * @return Basic solution and a Map cycle index -> respective value in LP solve
 	 * @throws SolverException CPLEX goes bad.
 	 */
-	public Map<Integer, Double> solve() throws SolverException {
+	public Pair<Solution, Map<Integer, Double>> solve() throws SolverException {
 
 		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation LP.");
 
@@ -87,7 +88,7 @@ public class CycleFormulationLPRelaxCPLEXSolver extends CPLEXSolver {
 			cplex.clearModel();
 			//cplex.end();		
 
-			return cycleMap;
+			return new Pair<Solution, Map<Integer, Double>>(sol, cycleMap);
 
 		} catch(IloException e) {
 			System.err.println("Exception thrown during CPLEX solve: " + e);
