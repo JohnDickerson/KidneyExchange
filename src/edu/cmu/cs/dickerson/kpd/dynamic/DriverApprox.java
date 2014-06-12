@@ -11,6 +11,7 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationLPRelaxCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CorrelatedChainSamplePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleLPRelaxationPacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CycleShufflePacker;
 import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesSampleChainsIPPacker;
@@ -44,7 +45,8 @@ public class DriverApprox {
 		boolean doCyclesThenChains = true;  // LP relax pack on C(3,0), random sample altruist random walk pack best path
 		boolean doCyclesSampleChainsIP = false;  // Sample a bunch of chains, solve IP on those chains + C(3,0)
 		boolean doCyclesThenChainsIP = false;  // Solve IP on C(3,0), sample chains, solve IP on C(3,0) + those chains
-
+		boolean doCorrelatedChainSample = true;  // Sample chains in a reasonable way, solve LP on C(3,0) + those chains
+		
 		// Set up our random generators for pools (sample from UNOS data, sample from Saidman distribution)
 		Random r = new Random();
 		UNOSGenerator UNOSGen = UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r);
@@ -140,7 +142,8 @@ public class DriverApprox {
 						Solution greedyCyclesThenChainsSol = null;
 						Solution greedyCyclesSampleChainsIPSol = null;
 						Solution greedyCyclesThenChainsIPSol = null;
-
+						Solution greedyCorrelatedChainSampleSol = null;
+						
 						// Upper bound from IP might be below absolute upper bound because we do not include very long chains
 						double upperBoundFromReducedIP = Double.MAX_VALUE;
 						double upperBound = Double.MAX_VALUE;
@@ -254,6 +257,11 @@ public class DriverApprox {
 								greedyCyclesThenChainsIPSol = s.solve(numGreedyReps, new CyclesThenChainsIPPacker(pool, reducedCycles, reducedMembership, chainSamplesPerAltruist, false, infiniteChainCap, usingFailureProbabilities), upperBound);
 								IOUtil.dPrintln("Greedy Cycle [CYCCHAIN-IP] Value: " + greedyCyclesThenChainsIPSol.getObjectiveValue());
 							}
+							
+							if(doCorrelatedChainSample) {
+								greedyCorrelatedChainSampleSol = s.solve(numGreedyReps, new CorrelatedChainSamplePacker(pool, reducedCycles, chainSamplesPerAltruist, infiniteChainCap, usingFailureProbabilities), upperBound);
+								IOUtil.dPrintln("Greedy Cycle [CHAIN-CYCLE] Value: " + greedyCorrelatedChainSampleSol.getObjectiveValue());	
+							}
 						} catch(SolverException e) {
 							e.printStackTrace();
 							System.exit(-1);
@@ -311,6 +319,13 @@ public class DriverApprox {
 							out.set(Col.APPROX_CYCLE_CYCCHAIN_IP_RUNTIME, greedyCyclesThenChainsIPSol.getSolveTime());
 						}
 
+						if(null != greedyCorrelatedChainSampleSol) {
+							out.set(Col.APPROX_CORRELATED_CHAINS_OBJECTIVE, greedyCorrelatedChainSampleSol.getObjectiveValue());		
+							out.set(Col.APPROX_CORRELATED_CHAINS_RUNTIME, greedyCorrelatedChainSampleSol.getSolveTime());
+						}
+
+						
+						
 						// Write the  row of data
 						try {
 							out.record();

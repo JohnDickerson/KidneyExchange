@@ -24,6 +24,7 @@ public class DriverApproxOutput extends Output {
 		APPROX_CYCLE_CYCCHAIN_OBJECTIVE,
 		APPROX_CYCLE_IPSAMPLE_OBJECTIVE,
 		APPROX_CYCLE_CYCCHAIN_IP_OBJECTIVE,
+		APPROX_CORRELATED_CHAINS_OBJECTIVE,
 		CYCLE_CYCCHAIN_CONSTANT,
 		CYCLE_GEN_TIME,
 		CYCLE_REDUCED_GEN_TIME,  // only 2- and 3-cycles
@@ -38,6 +39,7 @@ public class DriverApproxOutput extends Output {
 		APPROX_CYCLE_CYCCHAIN_RUNTIME,
 		APPROX_CYCLE_IPSAMPLE_RUNTIME,
 		APPROX_CYCLE_CYCCHAIN_IP_RUNTIME,
+		APPROX_CORRELATED_CHAINS_RUNTIME,
 		;
 		
 		public int getColIdx() { return this.ordinal(); }
@@ -69,6 +71,7 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_CYCLE_CYCCHAIN_OBJECTIVE.getColIdx()] = "Approx Cycle [CYCCHAIN] Objective";
 		header[Col.APPROX_CYCLE_IPSAMPLE_OBJECTIVE.getColIdx()] = "Approx Cycle [IPSAMPLE] Objective";
 		header[Col.APPROX_CYCLE_CYCCHAIN_IP_OBJECTIVE.getColIdx()] = "Approx Cycle [CYCCHAIN-IP] Objective";
+		header[Col.APPROX_CORRELATED_CHAINS_OBJECTIVE.getColIdx()] = "Approx Cycle [CHAINS-CYCLES] Objective";
 		header[Col.CYCLE_CYCCHAIN_CONSTANT.getColIdx()] = "CYCCHAIN Samples per Altruist";
 		header[Col.CYCLE_GEN_TIME.getColIdx()] = "Cycle generation runtime";
 		header[Col.CYCLE_REDUCED_GEN_TIME.getColIdx()] = "Cycle generation runtime (only 2- and 3-cycles)";
@@ -83,6 +86,7 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_CYCLE_CYCCHAIN_RUNTIME.getColIdx()] = "Approx Cycle [CYCCHAIN] Runtime";
 		header[Col.APPROX_CYCLE_IPSAMPLE_RUNTIME.getColIdx()] = "Approx Cycle [IPSAMPLE] Runtime";
 		header[Col.APPROX_CYCLE_CYCCHAIN_IP_RUNTIME.getColIdx()] = "Approx Cycle [CYCCHAIN-IP] Runtime";
+		header[Col.APPROX_CORRELATED_CHAINS_RUNTIME.getColIdx()] = "Approx Cycle [CHAINS-CYCLES] Runtime";
 		
 		return header;
 	}
