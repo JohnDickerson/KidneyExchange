@@ -69,7 +69,7 @@ public class DriverApprox {
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = true;
+		boolean usingFailureProbabilities = false;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		double failure_param1 = 0.7;  // e.g., constant failure rate of 70%
 		if(!usingFailureProbabilities) {
@@ -86,7 +86,7 @@ public class DriverApprox {
 		int infiniteChainCap = Integer.MAX_VALUE - 2;
 
 		// Number of greedy packings per solve call
-		int numGreedyReps = 100;
+		int numGreedyReps = 25;
 
 		// Upper bound on number of chains sampled per altruist in some heuristics
 		int chainSamplesPerAltruist = 256;
