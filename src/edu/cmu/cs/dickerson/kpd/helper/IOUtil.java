@@ -1,9 +1,14 @@
 package edu.cmu.cs.dickerson.kpd.helper;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,7 +48,7 @@ public final class IOUtil {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * (John Dickerson-specific)
 	 * @return root directory path of UNOS files
@@ -60,8 +65,8 @@ public final class IOUtil {
 			throw new RuntimeException();
 		}
 	}
-	
-	
+
+
 	/**
 	 * Makes an educated guess at converting a string to a boolean.
 	 * @param s String that looks like a Boolean, like "Y" or "fAlse"
@@ -69,7 +74,7 @@ public final class IOUtil {
 	 * to false, and IllegalArgumentException if we can't figure it out
 	 */
 	public static boolean stringToBool(String raw) {
-		
+
 		String s = raw.trim().toUpperCase();
 		if(s.equals("Y") || s.equals("YES") || s.equals("T") || s.equals("TRUE")) {
 			return true;
@@ -79,8 +84,8 @@ public final class IOUtil {
 			throw new IllegalArgumentException("Could not convert " + s + " to a boolean value.");
 		}
 	}
-	
-	
+
+
 	/**
 	 * Takes a String[] and returns a dictionary of "string" -> integer index in array
 	 * @param headers String[]
@@ -90,17 +95,37 @@ public final class IOUtil {
 		if(null == headers || headers.length < 1) {
 			return new HashMap<String, Integer>();
 		}
-		
+
 		Map<String, Integer> headerMap = new HashMap<String, Integer>();
 		for(int idx=0; idx<headers.length; ++idx) {
 			headerMap.put(headers[idx].toUpperCase().trim(), idx);
 		}
 		return headerMap;
 	}
-	
+
 	public static Set<String> splitOnWhitespace(String s) {
 		Set<String> split = new HashSet<String>();
 		split.addAll(Arrays.asList( s.split("\\s+") ));
 		return split;
+	}
+
+	/**
+	 * Some of our experiments want to record data in terrible, cryptic files.  This
+	 * writes a collection of toStringable()s to a file at filePath, one value per line
+	 * @param filePath output filepath
+	 * @param headers iterable collection of header values, printed before the vals
+	 * @param vals iterable collection of values to printed to file
+	 */
+	public static <T1, T2> void writeValuesToFile(String filePath, Collection<T1> headers, Collection<T2> vals) {
+		Writer writer = null;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "utf-8"));
+			for(T1 header : headers) { writer.write(header.toString()+"\n"); }
+			for(T2 val : vals) { writer.write(val.toString()+"\n"); }
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {writer.close();} catch (Exception e) {}
+		}
 	}
 }

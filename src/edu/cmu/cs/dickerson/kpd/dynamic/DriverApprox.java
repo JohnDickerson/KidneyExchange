@@ -35,14 +35,14 @@ public class DriverApprox {
 
 	public static void main(String[] args) {
 
-		boolean doOptIP = true;  // Do optimal IP solve on C(3,4)
-		boolean doOptLP = true;  // Do optimal LP solve on C(3,4)
+		boolean doOptIP = false;  // Do optimal IP solve on C(3,4)
+		boolean doOptLP = false;  // Do optimal LP solve on C(3,4)
 		boolean doCycle = false;  // Uniform sample cycles packing
 		boolean doCycleLPRelax = false;  // Take LP relaxation on C(3,4), sample based on weights, pack
 		boolean doVertexUniform = false;  // Sample vertices uniformly, then cycles containing vertex, then pack
 		boolean doVertexInvProp = false;  // Weighted sample vertices inversely prop to #cycles containing, pack
 		boolean doVertexRandWalk = false;  // Pack random walk chains/cycles from random sample vertex
-		boolean doCyclesThenChains = true;  // LP relax pack on C(3,0), random sample altruist random walk pack best path
+		boolean doCyclesThenChains = false;  // LP relax pack on C(3,0), random sample altruist random walk pack best path
 		boolean doCyclesSampleChainsIP = false;  // Sample a bunch of chains, solve IP on those chains + C(3,0)
 		boolean doCyclesThenChainsIP = false;  // Solve IP on C(3,0), sample chains, solve IP on C(3,0) + those chains
 		boolean doCorrelatedChainSample = true;  // Sample chains in a reasonable way, solve LP on C(3,0) + those chains
@@ -61,7 +61,7 @@ public class DriverApprox {
 		// list of |V|s we'll iterate over
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
 				//50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
-				50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 
+				50, 100, 150, 200, 250, 300, 
 				400, 500, 600, 700, 800, 900, 1000, 1250, 1500,
 		});
 
@@ -69,7 +69,7 @@ public class DriverApprox {
 		int numGraphReps = 25; 
 
 		// Optimize w.r.t. discounted or raw utility?
-		boolean usingFailureProbabilities = false;
+		boolean usingFailureProbabilities = true;
 		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;
 		double failure_param1 = 0.7;  // e.g., constant failure rate of 70%
 		if(!usingFailureProbabilities) {
@@ -150,7 +150,7 @@ public class DriverApprox {
 
 						List<Cycle> cycles = null;
 						CycleMembership membership = null;
-						if(graphSize <= Integer.MAX_VALUE) {
+						if(graphSize <= -1) {//Integer.MAX_VALUE) {
 							// Generate all cycles in pool
 							long startCycleGen = System.nanoTime();
 							CycleGenerator cg = new CycleGenerator(pool);

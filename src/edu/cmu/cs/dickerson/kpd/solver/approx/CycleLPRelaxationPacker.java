@@ -1,6 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.solver.approx;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,6 +21,8 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
 public class CycleLPRelaxationPacker extends Packer {
 
+	public static boolean WRITE_STATISTICS_TO_FILE = true;
+	
 	private List<Cycle> cycles;
 	private CycleMembership membership;
 	private Pool pool;
@@ -103,6 +106,11 @@ public class CycleLPRelaxationPacker extends Packer {
 		long end = System.nanoTime();
 		long totalTime = end - start;
 
+		// Are we writing decision variable values to a file?  Then write now
+		if(WRITE_STATISTICS_TO_FILE) {
+			List<String> headers = new ArrayList<String>(Arrays.asList(new String[] { String.valueOf(matching.size()), }));
+			IOUtil.writeValuesToFile("decvars_v"+pool.vertexSet().size()+"_"+System.currentTimeMillis()+".csv", headers, sortedIndex.values());
+		}
 
 		// Construct formal matching, return
 		Solution sol = new Solution();
