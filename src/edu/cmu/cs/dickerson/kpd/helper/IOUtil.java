@@ -11,8 +11,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 
 public final class IOUtil {
 
@@ -114,14 +117,17 @@ public final class IOUtil {
 	 * writes a collection of toStringable()s to a file at filePath, one value per line
 	 * @param filePath output filepath
 	 * @param headers iterable collection of header values, printed before the vals
-	 * @param vals iterable collection of values to printed to file
+	 * @param indexMap <cycle index, LP relaxed value of that cycle decvar>
+	 * @params cycles list of cycle objects to be index into (so we can grab, e.g., cycle weights)
 	 */
-	public static <T1, T2> void writeValuesToFile(String filePath, Collection<T1> headers, Collection<T2> vals) {
+	public static <T1, T2> void writeValuesToFile(String filePath, Collection<T1> headers, Map<Integer,Double> indexMap, List<Cycle> cycles) {
 		Writer writer = null;
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "utf-8"));
-			for(T1 header : headers) { writer.write(header.toString()+"\n"); }
-			for(T2 val : vals) { writer.write(val.toString()+"\n"); }
+			for(T1 header : headers) { writer.write(header.toString()+",0.0\n"); }
+			for(Map.Entry<Integer, Double> cycleEntry : indexMap.entrySet()) { 
+				writer.write(cycleEntry.getValue().toString()+","+cycles.get(cycleEntry.getKey()).getWeight()+"\n"); 
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {

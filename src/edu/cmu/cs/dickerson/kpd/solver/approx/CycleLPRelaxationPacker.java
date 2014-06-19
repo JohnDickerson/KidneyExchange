@@ -11,6 +11,7 @@ import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.helper.MapUtil;
+import edu.cmu.cs.dickerson.kpd.helper.Pair;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationLPRelaxCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
@@ -27,7 +28,8 @@ public class CycleLPRelaxationPacker extends Packer {
 	private CycleMembership membership;
 	private Pool pool;
 	private Map<Integer, Double> sortedIndex;
-
+	private double lpObjVal;
+	
 	private boolean isInitialized = false;
 
 	public CycleLPRelaxationPacker(Pool pool, List<Cycle> cycles, CycleMembership membership, boolean doInitialization) {
@@ -46,8 +48,10 @@ public class CycleLPRelaxationPacker extends Packer {
 
 		CycleFormulationLPRelaxCPLEXSolver solver = new CycleFormulationLPRelaxCPLEXSolver(this.pool, this.cycles, this.membership);
 		try {
+			Pair<Solution, Map<Integer,Double>> solPair = solver.solve();
+			this.lpObjVal = solPair.getLeft().getObjectiveValue();
 			// Sort CycleIdx->Weight in reverse order by value (higher weights first)
-			this.sortedIndex = MapUtil.sortByValue( solver.solve().getRight(), true);
+			this.sortedIndex = MapUtil.sortByValue( solPair.getRight(), true);
 		} catch(SolverException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -108,8 +112,11 @@ public class CycleLPRelaxationPacker extends Packer {
 
 		// Are we writing decision variable values to a file?  Then write now
 		if(WRITE_STATISTICS_TO_FILE) {
-			List<String> headers = new ArrayList<String>(Arrays.asList(new String[] { String.valueOf(matching.size()), }));
-			IOUtil.writeValuesToFile("decvars_v"+pool.vertexSet().size()+"_"+System.currentTimeMillis()+".csv", headers, sortedIndex.values());
+			List<String> headers = new ArrayList<String>(Arrays.asList(new String[] { 
+					String.valueOf(matching.size()),     // #cycles/chains in match
+					String.valueOf(this.lpObjVal),       // LP relaxation complete objective
+					String.valueOf(objVal) }));          // objective of packed solution
+			IOUtil.writeValuesToFile("decvars_v"+pool.vertexSet().size()+"_"+System.currentTimeMillis()+".csv", headers, sortedIndex, cycles);
 		}
 
 		// Construct formal matching, return
