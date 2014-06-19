@@ -122,7 +122,7 @@ public class ChainSampler {
 			
 			// Adds geometric sum to end of tail if the chain is max-length
 			if(addInfiniteTailUtility && path.size()==maxChainSize) {
-				discountedPathWeight += ( Math.pow(infiniteTailFailureProb, maxChainSize) / (1.0-infiniteTailFailureProb) );
+				discountedPathWeight += ( Math.pow(1.0-infiniteTailFailureProb, maxChainSize) / (infiniteTailFailureProb) );
 			}
 			
 			return Cycle.makeCycle(path, discountedPathWeight);

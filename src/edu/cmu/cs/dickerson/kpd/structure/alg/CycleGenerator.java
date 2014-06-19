@@ -170,9 +170,9 @@ public class CycleGenerator {
 					} else {
 						
 						
-						// Adds geometric sum to end of tail if the chain is max-length
+						// Adds geometric sum to end of tail if the chain is max-length (successProb = 1.0-failureProb)
 						if(addInfiniteTailUtility && path.size()==maxChainSize) {
-							discountedPathWeight += ( Math.pow(infiniteTailFailureProb, maxChainSize) / (1.0-infiniteTailFailureProb) );
+							discountedPathWeight += ( Math.pow(1.0-infiniteTailFailureProb, maxChainSize) / (infiniteTailFailureProb) );
 						}
 						
 						// We assume the dummy edge is infallible, but it might be nonzero weight, so add that
