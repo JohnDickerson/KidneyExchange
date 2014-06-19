@@ -15,7 +15,8 @@ public class DriverApproxOutput extends Output {
 		APPROX_REP_COUNT,
 		OPT_IP_OBJECTIVE,
 		OPT_LP_OBJECTIVE,
-		OPT_UB_OBJECTIVE,
+		OPT_UB1_OBJECTIVE,
+		OPT_UB2_OBJECTIVE,
 		APPROX_CYCLE_UNIFORM_OBJECTIVE,
 		APPROX_CYCLE_LPRELAX_OBJECTIVE,
 		APPROX_VERTEX_UNIFORM_OBJECTIVE,
@@ -30,7 +31,8 @@ public class DriverApproxOutput extends Output {
 		CYCLE_REDUCED_GEN_TIME,  // only 2- and 3-cycles
 		OPT_IP_RUNTIME,
 		OPT_LP_RUNTIME,
-		OPT_UB_RUNTIME,
+		OPT_UB1_RUNTIME,
+		OPT_UB2_RUNTIME,
 		APPROX_CYCLE_UNIFORM_RUNTIME,
 		APPROX_CYCLE_LPRELAX_RUNTIME,
 		APPROX_VERTEX_UNIFORM_RUNTIME,
@@ -62,7 +64,8 @@ public class DriverApproxOutput extends Output {
 		header[Col.APPROX_REP_COUNT.getColIdx()] = "Approx Rep Count";
 		header[Col.OPT_IP_OBJECTIVE.getColIdx()] = "Reduced Optimal IP Objective";
 		header[Col.OPT_LP_OBJECTIVE.getColIdx()] = "Reduced Optimal LP Objective";
-		header[Col.OPT_UB_OBJECTIVE.getColIdx()] = "Full Optimal UB";
+		header[Col.OPT_UB1_OBJECTIVE.getColIdx()] = "Full Optimal UB1";
+		header[Col.OPT_UB2_OBJECTIVE.getColIdx()] = "Full Optimal UB2";
 		header[Col.APPROX_CYCLE_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Cycle [UNIFORM] Objective";
 		header[Col.APPROX_CYCLE_LPRELAX_OBJECTIVE.getColIdx()] = "Approx Cycle [LPRELAX] Objective";
 		header[Col.APPROX_VERTEX_UNIFORM_OBJECTIVE.getColIdx()] = "Approx Vertex [UNIFORM] Objective";
@@ -77,7 +80,8 @@ public class DriverApproxOutput extends Output {
 		header[Col.CYCLE_REDUCED_GEN_TIME.getColIdx()] = "Cycle generation runtime (only 2- and 3-cycles)";
 		header[Col.OPT_IP_RUNTIME.getColIdx()] = "Reduced Optimal IP Runtime";
 		header[Col.OPT_LP_RUNTIME.getColIdx()] = "Reduced Optimal LP Runtime";
-		header[Col.OPT_UB_RUNTIME.getColIdx()] = "Full Optimal UB Runtime";
+		header[Col.OPT_UB1_RUNTIME.getColIdx()] = "Full Optimal UB1 Runtime";
+		header[Col.OPT_UB2_RUNTIME.getColIdx()] = "Full Optimal UB2 Runtime";
 		header[Col.APPROX_CYCLE_UNIFORM_RUNTIME.getColIdx()] = "Approx Cycle [UNIFORM] Runtime";
 		header[Col.APPROX_CYCLE_LPRELAX_RUNTIME.getColIdx()] = "Approx Cycle [LPRELAX] Runtime";
 		header[Col.APPROX_VERTEX_UNIFORM_RUNTIME.getColIdx()] = "Approx Vertex [UNIFORM] Runtime";

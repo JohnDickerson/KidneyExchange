@@ -20,7 +20,7 @@ public class CycleGenerator {
 	public CycleGenerator(Pool pool) {
 		this.pool = pool;
 	}
-
+	
 	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize) {
 		// By default, generate cycles without paying attention to failure probabilities
 		return generateCyclesAndChains(maxCycleSize, maxChainSize, false);
@@ -32,9 +32,26 @@ public class CycleGenerator {
 	 * @param maxCycleSize
 	 * @param maxChainSize
 	 * @return
-	 */
+	 */	
 	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize, boolean usingFailureProbabilities) {
+		return generateCyclesAndChains(maxCycleSize, maxChainSize, usingFailureProbabilities, false, 0.5);
+	}
+		
 
+	/**
+	 * 
+	 * @param maxCycleSize
+	 * @param maxChainSize
+	 * @param usingFailureProbabilities
+	 * @param addInfiniteTailUtility
+	 * @param infiniteTailFailureProb
+	 * @return
+	 */
+	public List<Cycle> generateCyclesAndChains(int maxCycleSize, int maxChainSize, boolean usingFailureProbabilities, boolean addInfiniteTailUtility, double infiniteTailFailureProb) {
+
+		if(addInfiniteTailUtility && (infiniteTailFailureProb <= 0.0 || infiniteTailFailureProb >= 1.0)) { throw new IllegalArgumentException("infiniteFailureProb must be in (0,1); your value=" + infiniteTailFailureProb); }
+		if(!usingFailureProbabilities && addInfiniteTailUtility) { throw new IllegalArgumentException("Infinite tail extension without failure probabilities is infinite; arguments don't make sense."); }
+		
 		IOUtil.dPrintln(getClass().getSimpleName(), "Generating all (at-most) " + maxCycleSize + "-cycles and " + maxChainSize + "-chains ...");
 		
 		if(maxCycleSize < 0 || maxChainSize < 0) {
@@ -65,7 +82,7 @@ public class CycleGenerator {
 				path.push(startE);
 				if(startV.isAltruist()) {
 					double discountedPathWeight = 0.0;
-					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb, discountedPathWeight);
+					generateChains(maxChainSize, generatedCycles, startV, nextV, path, pathWeight, inPath, usingFailureProbabilities, pathSuccProb, discountedPathWeight, addInfiniteTailUtility, infiniteTailFailureProb);
 				} else {
 					// If the target hop has a lower ID than the source, we've generated these cycles already
 					if( nextV.getID() > startV.getID() ) {
@@ -80,7 +97,7 @@ public class CycleGenerator {
 		return generatedCycles;
 	}
 
-	private void generateCycles(int maxCycleSize, Collection<Cycle> cycles, Vertex startV, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath, boolean usingFailureProbabilities, double pathSuccProb) {
+	private void generateCycles(final int maxCycleSize, Collection<Cycle> cycles, Vertex startV, Vertex lastV, Deque<Edge> path, double pathWeight, Set<Vertex> inPath, final boolean usingFailureProbabilities, double pathSuccProb) {
 
 		if(startV.equals(lastV)) {
 			// We've completed a cycle <startV, V1, V2, ..., lastV=startV>
@@ -128,7 +145,7 @@ public class CycleGenerator {
 		}
 	}
 
-	private void generateChains(int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double rawPathWeight, Set<Vertex> inPath, boolean usingFailureProbabilities, double pathSuccProb, double discountedPathWeight) {
+	private void generateChains(final int maxChainSize, Collection<Cycle> cycles, Vertex startingAlt, Vertex lastV, Deque<Edge> path, double rawPathWeight, Set<Vertex> inPath, final boolean usingFailureProbabilities, double pathSuccProb, double discountedPathWeight, final boolean addInfiniteTailUtility, final double infiniteTailFailureProb) {
 
 		if(inPath.contains(lastV)               // Must be a simple cycle
 				|| path.size() > maxChainSize   // Cap chain length to maxChainSize (ignore altruist)
@@ -151,6 +168,13 @@ public class CycleGenerator {
 					if(!usingFailureProbabilities) {
 						cycles.add( Cycle.makeCycle(path, rawPathWeight + pool.getEdgeWeight(nextE)) );
 					} else {
+						
+						
+						// Adds geometric sum to end of tail if the chain is max-length
+						if(addInfiniteTailUtility && path.size()==maxChainSize) {
+							discountedPathWeight += ( Math.pow(infiniteTailFailureProb, maxChainSize) / (1.0-infiniteTailFailureProb) );
+						}
+						
 						// We assume the dummy edge is infallible, but it might be nonzero weight, so add that
 						// Also add the probability of the chain executing in its entirety (sum of weights * product of success probs)
 						cycles.add( Cycle.makeCycle(path, discountedPathWeight + (rawPathWeight * pathSuccProb) + pool.getEdgeWeight(nextE)) );
@@ -176,7 +200,9 @@ public class CycleGenerator {
 					inPath,
 					usingFailureProbabilities,
 					newPathSuccProb,
-					newDiscountedPathWeight   // Discounted weight + discounted utility of reaching exactly this point
+					newDiscountedPathWeight,   // Discounted weight + discounted utility of reaching exactly this point
+					addInfiniteTailUtility,
+					infiniteTailFailureProb
 					);
 				path.pop();
 			}

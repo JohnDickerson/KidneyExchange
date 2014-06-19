@@ -16,8 +16,19 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 public class ChainSampler {
 
 	private Pool pool;
+	private boolean addInfiniteTailUtility = false;
+	private double infiniteTailFailureProb = 0.5;
+	
 	public ChainSampler(Pool pool) {
+		this(pool, false, 0.5);
+	}
+	
+	public ChainSampler(Pool pool, boolean addInfiniteTailUtility, double infiniteTailFailureProb) {
+		if(addInfiniteTailUtility && (infiniteTailFailureProb <= 0.0 || infiniteTailFailureProb >= 1.0)) { throw new IllegalArgumentException("infiniteFailureProb must be in (0,1); your value=" + infiniteTailFailureProb); }
+		
 		this.pool = pool;
+		this.addInfiniteTailUtility = addInfiniteTailUtility;
+		this.infiniteTailFailureProb = infiniteTailFailureProb;
 	}
 	
 	/**
@@ -30,6 +41,8 @@ public class ChainSampler {
 	 */
 	protected Cycle sampleAChain(Vertex alt, Set<Vertex> matchedVerts, int maxChainSize, boolean usingFailureProbabilities) {
 
+		if(!usingFailureProbabilities && addInfiniteTailUtility) { throw new IllegalArgumentException("Infinite tail extension without failure probabilities is infinite; arguments don't make sense."); }
+		
 		if(null==alt) { throw new IllegalArgumentException("Altruist cannot be null."); }
 		if(null==matchedVerts) { throw new IllegalArgumentException("Set of matched vertices cannot be null."); }
 		if(maxChainSize < 2) { throw new IllegalArgumentException("Cannot sample chains if maxChainSize<2 (maxChainSize=" + maxChainSize); }
@@ -106,6 +119,12 @@ public class ChainSampler {
 		if(!usingFailureProbabilities) {
 			return Cycle.makeCycle(path, rawPathWeight);
 		} else {
+			
+			// Adds geometric sum to end of tail if the chain is max-length
+			if(addInfiniteTailUtility && path.size()==maxChainSize) {
+				discountedPathWeight += ( Math.pow(infiniteTailFailureProb, maxChainSize) / (1.0-infiniteTailFailureProb) );
+			}
+			
 			return Cycle.makeCycle(path, discountedPathWeight);
 		}		
 	}

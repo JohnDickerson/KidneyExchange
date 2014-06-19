@@ -35,8 +35,9 @@ public class DriverApprox {
 
 	public static void main(String[] args) {
 
-		boolean doOptIP = false;  // Do optimal IP solve on C(3,4)
-		boolean doOptLP = false;  // Do optimal LP solve on C(3,4)
+		boolean doOptIP = true;  // Do optimal IP solve on C(3,4)
+		boolean doOptLP = true;  // Do optimal LP solve on C(3,4)
+		boolean doOptIPUB2 = true;  // Do optimal IP solve on C(3,4) but using infinite chain extension on 4-chains
 		boolean doCycle = false;  // Uniform sample cycles packing
 		boolean doCycleLPRelax = false;  // Take LP relaxation on C(3,4), sample based on weights, pack
 		boolean doVertexUniform = false;  // Sample vertices uniformly, then cycles containing vertex, then pack
@@ -62,7 +63,7 @@ public class DriverApprox {
 		List<Integer> graphSizeList = Arrays.asList(new Integer[] {
 				//50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000,
 				50, 100, 150, 200, 250, 300, 
-				400, 500, 600, 700, 800, 900, 1000, 1250, 1500,
+		//		400, 500, 600, 700, 800, 900, 1000, 1250, 1500,
 		});
 
 		// Number of randomly generated graphs per parameter vector instantiation
@@ -134,6 +135,7 @@ public class DriverApprox {
 						// All solutions (optimal, greedy packings, etc)
 						Solution optSolIP = null;
 						Solution optSolLP = null;
+						Solution optSolIPUB2 = null;
 						Solution greedyCycleSol = null;
 						Solution greedyCycleLPRelaxSol = null;
 						Solution greedyVertexUniformSol = null;
@@ -150,7 +152,7 @@ public class DriverApprox {
 
 						List<Cycle> cycles = null;
 						CycleMembership membership = null;
-						if(graphSize <= -1) {//Integer.MAX_VALUE) {
+						if(graphSize <= 250) {//Integer.MAX_VALUE) {
 							// Generate all cycles in pool
 							long startCycleGen = System.nanoTime();
 							CycleGenerator cg = new CycleGenerator(pool);
@@ -173,6 +175,17 @@ public class DriverApprox {
 									optSolLP = optLPS.solve().getLeft();
 									IOUtil.dPrintln("'Optimal LP' (chain-capped) Value: " + optSolLP.getObjectiveValue());
 								}
+								if(doOptIPUB2) {
+									List<Cycle> cyclesUB2 = cg.generateCyclesAndChains(cycleCap, chainCap, usingFailureProbabilities, true, failure_param1);
+									CycleMembership membershipUB2 = new CycleMembership(pool, cyclesUB2);;
+									// Get optimal match size for pool on C(3,some non-infinite chain cap + infinite extension)
+									CycleFormulationCPLEXSolver optIPUB2S = new CycleFormulationCPLEXSolver(pool, cyclesUB2, membershipUB2);
+									optSolIPUB2 = optIPUB2S.solve();
+									IOUtil.dPrintln("'Optimal IP' (UB extension) Value: " + optSolIPUB2.getObjectiveValue());
+									// Try to GC
+									cyclesUB2 = null; membershipUB2 = null;
+									System.gc();
+								}
 								
 								// We can only compute upper bounds if we have optimal solves on the reduced IP or LP relaxation
 								if(doOptIP || doOptLP) {
@@ -194,8 +207,8 @@ public class DriverApprox {
 									} else {
 										// We can bound using other distributions, but not implemented yet
 									}
-									out.set(Col.OPT_UB_OBJECTIVE, trueOptimalUB);
-									IOUtil.dPrintln("UB on true Optimal Value: " + trueOptimalUB);
+									out.set(Col.OPT_UB1_OBJECTIVE, trueOptimalUB);
+									IOUtil.dPrintln("UB1 on true Optimal Value: " + trueOptimalUB);
 								}
 
 								if(doCycleLPRelax) {
@@ -236,6 +249,11 @@ public class DriverApprox {
 								}
 							}
 
+							// Try to kill off the full cycle/chain enumeration; hope against hope ...
+							cycles=null;
+							membership=null;
+							System.gc();
+							
 							// Generate only 2- and 3-cycles for the cycles-then-chain packing heuristics
 							long startReducedCycleGen = System.nanoTime();
 							List<Cycle> reducedCycles = (new CycleGenerator(pool)).generateCyclesAndChains(3, 0, usingFailureProbabilities);
@@ -278,7 +296,12 @@ public class DriverApprox {
 							out.set(Col.OPT_LP_OBJECTIVE, optSolLP.getObjectiveValue());	
 							out.set(Col.OPT_LP_RUNTIME, optSolLP.getSolveTime());
 						}
-
+						
+						if(null != optSolIPUB2) {
+							out.set(Col.OPT_UB2_OBJECTIVE, optSolIPUB2.getObjectiveValue());	
+							out.set(Col.OPT_UB2_RUNTIME, optSolIPUB2.getSolveTime());
+						}
+						
 						if(null != greedyCycleSol) {
 							out.set(Col.APPROX_CYCLE_UNIFORM_OBJECTIVE, greedyCycleSol.getObjectiveValue());		
 							out.set(Col.APPROX_CYCLE_UNIFORM_RUNTIME, greedyCycleSol.getSolveTime());
