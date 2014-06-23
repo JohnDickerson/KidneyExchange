@@ -50,7 +50,7 @@ public abstract class Vertex implements Comparable<Vertex> {
 		}
 		
 		Vertex other = (Vertex) obj;
-		if (ID != other.ID) {
+		if (!ID.equals(other.ID)) {
 			return false;
 		}
 		return true;
