@@ -139,7 +139,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 			Matcher m = antigenPattern.matcher(ant);
 			if(m.find()) {
 				String antType = m.group(1).toUpperCase();
-				int antNum = Integer.valueOf(m.group(2));
+				int antNum = Integer.parseInt(m.group(2));
 				
 				if(antType.equals("A")) {
 					if( this.a1 == antNum || this.a2 == antNum) { return false; }
@@ -249,26 +249,26 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		
 		// Sometimes these aren't specified (show up as "Not specif" or "No second") {
 		try {
-			donor.dp1 = Integer.valueOf(line[headers.get("DP1")]);
+			donor.dp1 = Integer.parseInt(line[headers.get("DP1")]);
 		} catch(NumberFormatException e) {
 			donor.dp1 = -1;
 		}
 		try {
-			donor.dp2 = Integer.valueOf(line[headers.get("DP2")]);
+			donor.dp2 = Integer.parseInt(line[headers.get("DP2")]);
 		} catch(NumberFormatException e) {
 			donor.dp2 = -1;
 		}
 		
 		
 		// Social characteristics and preferences
-		donor.age = Integer.valueOf(line[headers.get("AGE")]);
+		donor.age = Integer.parseInt(line[headers.get("AGE")]);
 		donor.homeCtr = line[headers.get("HOME_CTR")].trim();
 		
 		String travCentersHeader = headers.containsKey("CENTERS WHERE DONOR IS WILLING T") ? "CENTERS WHERE DONOR IS WILLING T" : "TRAV_CENTERS";
 		donor.travCenters = IOUtil.splitOnWhitespace(line[headers.get(travCentersHeader)]);
 		
 		try {
-			donor.region = Integer.valueOf(line[headers.get("REGION")]);
+			donor.region = Integer.parseInt(line[headers.get("REGION")]);
 		} catch(NumberFormatException e) {
 			// Sometimes given as "not reported"; we don't use this, so whatever
 			donor.region = -1;
@@ -309,7 +309,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 				donor.maxPairsCycle = 2;   // only allow two-way matches
 			}
 		} else {
-			donor.maxPairsCycle = Integer.valueOf(line[headers.get("MAX_PAIRS_CYCLE")]);
+			donor.maxPairsCycle = Integer.parseInt(line[headers.get("MAX_PAIRS_CYCLE")]);
 		}
 		
 		if(headers.containsKey("BRIDGE_MATCH")) {
@@ -320,7 +320,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 				donor.maxPairsChain = 0;
 			}
 		} else {
-			donor.maxPairsChain = Integer.valueOf(line[headers.get("MAX_PAIRS_CHAIN")]);
+			donor.maxPairsChain = Integer.parseInt(line[headers.get("MAX_PAIRS_CHAIN")]);
 		}
 		
 		

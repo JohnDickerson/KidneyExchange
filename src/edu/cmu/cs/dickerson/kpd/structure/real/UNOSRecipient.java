@@ -51,21 +51,21 @@ public class UNOSRecipient implements Comparable<UNOSRecipient> {
 		String aboHeader = headers.containsKey("ABO BLOOD GROUP") ? "ABO BLOOD GROUP" : "ABO";
 		r.abo = BloodType.getBloodType(line[headers.get(aboHeader)]);
 
-		r.a1 = Integer.valueOf(line[headers.get("A1")]);
-		r.a2 = Integer.valueOf(line[headers.get("A2")]);
-		r.b1 = Integer.valueOf(line[headers.get("B1")]);
-		r.b2 = Integer.valueOf(line[headers.get("B2")]);
-		r.dr1 = Integer.valueOf(line[headers.get("DR1")]);
-		r.dr2 = Integer.valueOf(line[headers.get("DR2")]);
+		r.a1 = Integer.parseInt(line[headers.get("A1")]);
+		r.a2 = Integer.parseInt(line[headers.get("A2")]);
+		r.b1 = Integer.parseInt(line[headers.get("B1")]);
+		r.b2 = Integer.parseInt(line[headers.get("B2")]);
+		r.dr1 = Integer.parseInt(line[headers.get("DR1")]);
+		r.dr2 = Integer.parseInt(line[headers.get("DR2")]);
 		r.a2Eligible = IOUtil.stringToBool(line[headers.get("A2_ELIGIBLE")]);
 		r.a2bEligible = IOUtil.stringToBool(line[headers.get("A2B_ELIGIBLE")]);
-		r.dr1 = Integer.valueOf(line[headers.get("DR1")]);
-		r.dr2 = Integer.valueOf(line[headers.get("DR2")]);
+		r.dr1 = Integer.parseInt(line[headers.get("DR1")]);
+		r.dr2 = Integer.parseInt(line[headers.get("DR2")]);
 		r.unacceptableAntigens = IOUtil.splitOnWhitespace(line[headers.get("UNNACCEPTABLE_ANTIGENS")]);
 		r.undesirableAntigens = IOUtil.splitOnWhitespace(line[headers.get("UNDESIRABLE_ANTIGENS")]);
 
 		// Social characteristics and preferences
-		r.age = Integer.valueOf(line[headers.get("AGE")]);
+		r.age = Integer.parseInt(line[headers.get("AGE")]);
 
 		String transplantCtrHeader = headers.containsKey("CTR") ? "CTR" : "TRANSPLANT_CTR";
 		r.transplantCtr = line[headers.get(transplantCtrHeader)].trim();
@@ -74,19 +74,19 @@ public class UNOSRecipient implements Comparable<UNOSRecipient> {
 		String shipCentersHeader = headers.containsKey("CENTERS CANDIDATE WILL ALLOW SHI") ? "CENTERS CANDIDATE WILL ALLOW SHI" : "SHIP_CENTERS";
 		r.shipCenters = IOUtil.splitOnWhitespace(line[headers.get(shipCentersHeader)]);
 
-		r.region = Integer.valueOf(line[headers.get("REGION")]);
+		r.region = Integer.parseInt(line[headers.get("REGION")]);
 		r.dsa = line[headers.get("DSA")].trim();
 
 		r.pedCandidate = IOUtil.stringToBool(line[headers.get("PED_CANDIDATE")]);
-		r.numKPDMatchRuns = Integer.valueOf(line[headers.get("NUM_KPD_MATCH_RUNS")]);
+		r.numKPDMatchRuns = Integer.parseInt(line[headers.get("NUM_KPD_MATCH_RUNS")]);
 
 		String acceptKiTypeHeader = headers.containsKey("RIGHT/LEFT/EITHER KI ACCEPTED?") ? "RIGHT/LEFT/EITHER KI ACCEPTED?" : "ACCEPT_KI_TYPE";
 		r.acceptKiType = line[headers.get(acceptKiTypeHeader)].trim();
 
 		String priorLivingDonorHeader = headers.containsKey("PRIOR LIVING DONOR") ? "PRIOR LIVING DONOR" : "PRIOR_LIVING_DONOR";
 		r.priorLivingDonor = IOUtil.stringToBool(line[headers.get(priorLivingDonorHeader)]);
-		r.minDonorAge = Integer.valueOf(line[headers.get("MIN_DONOR_AGE")]);
-		r.maxDonorAge = Integer.valueOf(line[headers.get("MAX_DONOR_AGE")]);
+		r.minDonorAge = Integer.parseInt(line[headers.get("MIN_DONOR_AGE")]);
+		r.maxDonorAge = Integer.parseInt(line[headers.get("MAX_DONOR_AGE")]);
 		r.acceptHepbPos = IOUtil.stringToBool(line[headers.get("ACCEPT_HEPB_POS")]);
 		r.highlySensitized = IOUtil.stringToBool(line[headers.get("HIGHLY_SENSITIZED")]);
 		r.minDonorCreat = Double.valueOf(line[headers.get("MIN_DONOR_CREAT")]);

@@ -124,14 +124,16 @@ public final class IOUtil {
 		Writer writer = null;
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "utf-8"));
-			for(T1 header : headers) { writer.write(header.toString()+",0.0\n"); }
-			for(Map.Entry<Integer, Double> cycleEntry : indexMap.entrySet()) { 
-				writer.write(cycleEntry.getValue().toString()+","+cycles.get(cycleEntry.getKey()).getWeight()+"\n"); 
+			try {
+				for(T1 header : headers) { writer.write(header.toString()+",0.0\n"); }
+				for(Map.Entry<Integer, Double> cycleEntry : indexMap.entrySet()) { 
+					writer.write(cycleEntry.getValue().toString()+","+cycles.get(cycleEntry.getKey()).getWeight()+"\n"); 
+				}
+			} finally {
+				writer.close();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			try {writer.close();} catch (Exception e) {}
 		}
 	}
 }

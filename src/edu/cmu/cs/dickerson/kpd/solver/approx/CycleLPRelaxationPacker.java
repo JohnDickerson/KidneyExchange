@@ -14,6 +14,7 @@ import edu.cmu.cs.dickerson.kpd.helper.MapUtil;
 import edu.cmu.cs.dickerson.kpd.helper.Pair;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationLPRelaxCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverRuntimeException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -54,7 +55,7 @@ public class CycleLPRelaxationPacker extends Packer {
 			this.sortedIndex = MapUtil.sortByValue( solPair.getRight(), true);
 		} catch(SolverException e) {
 			e.printStackTrace();
-			System.exit(-1);
+			throw new SolverRuntimeException("Something catastrophic happened during LP Relaxation solve/packing; can't recover.");
 		}
 		this.cycles = new ArrayList<Cycle>(cycles);
 		this.isInitialized = true;
