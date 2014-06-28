@@ -22,6 +22,7 @@ public abstract class ArrivalDistribution {
 	}
 	
 	public abstract int draw();
+	public abstract int expectedDraw();
 
 	public int getMin() {
 		return min;

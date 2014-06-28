@@ -21,10 +21,15 @@ public class UniformArrivalDistribution extends ArrivalDistribution {
 	@Override
 	public int draw() {
 		if(max == min) { 
-			return min; 
+			return expectedDraw(); 
 		} else {
 			return min + random.nextInt(max-min);
 		}
+	}
+
+	@Override
+	public int expectedDraw() {
+		return min+(max-min)/2;   // Not worried about int truncation; caller is responsible for not doing a dumb thing here
 	}
 
 	@Override

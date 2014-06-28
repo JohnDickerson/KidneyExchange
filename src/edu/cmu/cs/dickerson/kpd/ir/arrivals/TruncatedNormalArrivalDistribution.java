@@ -7,7 +7,7 @@ public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
 	// Truncate the normal at +/- this many standard deviations from mean
 	// (Warning: setting this to a small value will result in long draw times)
 	private double stdevTrunc = Math.abs( 2.0 );
-	
+
 	public TruncatedNormalArrivalDistribution(int min, int max) {
 		super(min, max);
 	}
@@ -22,27 +22,32 @@ public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
 	public TruncatedNormalArrivalDistribution(int min, int max, Random random) {
 		super(min, max, random);
 	}
-	
+
 	@Override
 	public int draw() {
-		
-		if(min==max) { 
-			return min; // point interval, return single point
-		} else if(stdevTrunc <= 0) {
-			return (max-min)/2; // point Gaussian distribution, return mean (halfway point between min and max)
+
+		if(min==max || // point interval, return single point
+				stdevTrunc <= 0 // point Gaussian distribution, return mean (halfway point between min and max)
+				) { 
+			return expectedDraw();
 		}
-		
+
 		// Repeatedly sample until we're within two unit stdevs of the mean
 		double sample = 0.0;
 		do {
 			sample = random.nextGaussian();
 		} while(sample > stdevTrunc || sample < -stdevTrunc);
-		
+
 		// Scales the sample to [0,1]
 		double scaledSample = (sample+stdevTrunc)/(2*stdevTrunc);
-		
+
 		// Scale the sample to [min, max] and rounds to an integer
 		return min + (int)Math.min(Math.round( scaledSample * (max-min) ), max);
+	}
+
+	@Override
+	public int expectedDraw() {
+		return min+(max-min)/2;   // Not worried about int truncation; caller is responsible for not doing a dumb thing here
 	}
 
 	@Override
