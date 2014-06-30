@@ -1,10 +1,10 @@
 package edu.cmu.cs.dickerson.kpd.dynamic.simulator;
 
-public class DynamicSimulator {
+public abstract class DynamicSimulator {
 
 	
-	public static void main(String[] args) {
-
+	public DynamicSimulator() {
+		
 	}
 
 }
