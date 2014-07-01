@@ -7,4 +7,8 @@ public abstract class DynamicSimulator {
 		
 	}
 
+	public void tick() {
+		
+		
+	}
 }

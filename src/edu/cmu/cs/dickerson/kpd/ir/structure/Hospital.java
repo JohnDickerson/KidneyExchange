@@ -1,20 +1,28 @@
-package edu.cmu.cs.dickerson.kpd.ir;
+package edu.cmu.cs.dickerson.kpd.ir.structure;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
+import edu.cmu.cs.dickerson.kpd.helper.MathUtil;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
+import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverRuntimeException;
+import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
+import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
 public class Hospital {
 
-	
+
 	private ArrivalDistribution arrivalDist;
 	private final Integer ID;
 	private boolean isTruthful;
-	
+
 	private Set<Vertex> vertices;
 
 	private int numCredits;
@@ -25,11 +33,25 @@ public class Hospital {
 		this.ID = ID;
 		this.arrivalDist = arrivalDist;
 		this.isTruthful = isTruthful;
-		
+
 		// New hospitals have no credits, no history of matches, no patient-donor pairs, etc
 		this.numCredits = 0;
 		this.numMatched = 0;
 		this.vertices = new HashSet<Vertex>();
+	}
+
+	public Solution doInternalMatching(Pool reducedPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) throws SolverException {
+		
+		CycleGenerator cg = new CycleGenerator(reducedPool);
+		List<Cycle> internalCycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
+		Solution internalMatch =
+				(new CycleFormulationCPLEXSolver(reducedPool, internalCycles, 
+						new CycleMembership(reducedPool, internalCycles))).solve();
+		cg = null; internalCycles = null;
+		System.gc();
+
+		if(!MathUtil.isInteger(internalMatch.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
+		return internalMatch;
 	}
 
 	/**
@@ -39,16 +61,35 @@ public class Hospital {
 	 */
 	public Set<Vertex> getPublicVertexSet() {
 		if(isTruthful) {
-			// Truthful hospitals truthfully report their full type (set of vertices)
 			return vertices;
 		} else {
-			// Non-truthful hospitals only report those vertices they can't match internally
-			// TODO call out to a solver, get the subset of vertices this hospital can't match
-			throw new UnsupportedOperationException("Need to implement greedy hospitals.");
+			throw new UnsupportedOperationException("Must call getPublicVertexSet with pool information for non-truthful hospitals.");
 		}
 	}
 
-	
+	public Set<Vertex> getPublicVertexSet(Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) {
+		if(isTruthful) {
+			// Truthful hospitals truthfully report their full type (set of vertices)
+			return vertices;
+		} else {
+			try {
+				// Internally match on all vertices, not just publicly reported vertices	
+				Pool realInternalPool = fullPool.makeSubPool( this.getPublicAndPrivateVertices() );
+				Solution internalMatch = doInternalMatching(realInternalPool, cycleCap, chainCap, usingFailureProbabilities);
+				
+				// Report only those vertices that weren't matched (so AllVertices - InternallyMatchedVertices)
+				Set<Vertex> usedVerts = Cycle.getConstituentVertices(internalMatch.getMatching(), realInternalPool);
+				Set<Vertex> reportedVerts = new HashSet<Vertex>(this.getPublicAndPrivateVertices());
+				reportedVerts.removeAll(usedVerts);
+				return reportedVerts;
+				
+			} catch(SolverException e) {
+				e.printStackTrace();
+				throw new SolverRuntimeException("Unrecoverable error solving internal matching on non-truthful hospital " + this + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+			}
+		}
+	}
+
 	/**
 	 * Draws an arrival rate (i.e., number of vertices to enter at this time period)
 	 */
@@ -62,7 +103,7 @@ public class Hospital {
 	public int getExpectedArrival() {
 		return this.arrivalDist.expectedDraw();
 	}
-	
+
 	/**
 	 * Deducts from credit balance of hospital
 	 * @param credits Number of credits to deduct
@@ -71,7 +112,7 @@ public class Hospital {
 	public int removeCredits(int credits) {
 		return addCredits(-credits);
 	}
-	
+
 	/**
 	 * Adds to credit balance of hospital
 	 * @param credits Number of credits to add

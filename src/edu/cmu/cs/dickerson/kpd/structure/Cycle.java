@@ -61,7 +61,7 @@ public class Cycle {
 		}
 		return isChain;
 	}
-	
+
 	/**
 	 * Given a cycle and a pool, returns the set of vertices in the pool that
 	 * are also in the cycle
@@ -73,13 +73,13 @@ public class Cycle {
 		Set<Vertex> vertices = new HashSet<Vertex>();
 		if(null == c) { return vertices; }
 		if(null == pool) { throw new RuntimeException("Need a valid pool to do vertex lookups in a cycle."); }
-		
+
 		for(Edge edge : c.getEdges()) {
 			vertices.add( pool.getEdgeTarget(edge) );
 		}
 		return vertices;
 	}
-	
+
 	/**
 	 * Given a set of cycles and a pool, returns the set of vertices in the pool that
 	 * are also in at least one of the cylces
@@ -95,5 +95,42 @@ public class Cycle {
 		}
 		return vertices;
 	}
-}
+
+
+	/**
+	 * Given a cycle from a full pool and a reduced pool, returns the set of vertices in the cycle
+	 * that are also in the reduced pool
+	 * @param c
+	 * @param fullPool
+	 * @param reducedPool
+	 * @return Set containing vertices that are in cycle and also in reduced pool
+	 */
+	public static Set<Vertex> getConstituentVerticesInSubPool(Cycle c, Pool fullPool, Pool reducedPool) {
+		Set<Vertex> vertices = new HashSet<Vertex>();
+		for(Edge edge : c.getEdges()) {
+			Vertex tgtInFullVertex = fullPool.getEdgeTarget(edge);
+			if(reducedPool.vertexSet().contains(tgtInFullVertex)) { vertices.add(tgtInFullVertex); }
+		}
+		return vertices;
+	}
+
+	/**
+	 * Given a set of cycles from a full pool and a reduced pool, returns the set of vertices in
+	 * at least one cycle that are also in the reduced pool
+	 * @param cycles
+	 * @param fullPool
+	 * @param reducedPool
+	 * @return Set containing vertices that are in cycle and also in reduced pool
+	 */
+	public static Set<Vertex> getConstituentVerticesInSubPool(Set<Cycle> cycles, Pool fullPool, Pool reducedPool) {
+		Set<Vertex> vertices = new HashSet<Vertex>();
+		if(null == cycles) { return vertices; }
+		for(Cycle c : cycles) {
+			vertices.addAll(Cycle.getConstituentVerticesInSubPool(c, fullPool, reducedPool));
+		}
+		return vertices;
+	}
+	
+	
+} // end of class
 

@@ -50,6 +50,9 @@ public class PoolTest {
 		CycleGenerator cg = new CycleGenerator(subPool);
 		assertEquals(numPairs/2*((numPairs/2)-1)/2, cg.generateCyclesAndChains(2, Integer.MAX_VALUE).size());
 		
+		for(Vertex v : subPool.vertexSet()) {
+			assertTrue(pool.vertexSet().contains(v));
+		}
 	}
 	
 	@Test

@@ -3,8 +3,8 @@ package edu.cmu.cs.dickerson.kpd.dynamic.simulator;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.ir.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
+import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 
 public class IRICDynamicSimulator extends DynamicSimulator {
 
