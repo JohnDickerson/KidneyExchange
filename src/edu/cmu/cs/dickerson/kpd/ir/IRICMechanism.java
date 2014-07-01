@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRCPLEXSolver;
@@ -43,6 +44,10 @@ public class IRICMechanism {
 	}
 
 	public Solution doMatching(Pool entirePool) {
+		return doMatching(entirePool, new Random());
+	}
+	
+	public Solution doMatching(Pool entirePool, Random r) {
 
 		//
 		// Initial credit balance update based on reported types
@@ -101,7 +106,7 @@ public class IRICMechanism {
 
 		// Random permutation of hospitals
 		List<Hospital> shuffledHospitals = new ArrayList<Hospital>( this.hospitals );
-		Collections.shuffle(shuffledHospitals);
+		Collections.shuffle(shuffledHospitals, r);
 
 		// Build constraints based on this ordering
 		Solution finalSol = null;

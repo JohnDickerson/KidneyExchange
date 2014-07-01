@@ -25,20 +25,21 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	
 	private Set<Hospital> hospitals;
 	private IRICMechanism mechanism;
-	private Random r;
 	private PoolGenerator poolGen;
+	private Random r;
 	
-	public IRICDynamicSimulator(Set<Hospital> hospitals, Random r, PoolGenerator poolGen) {
+	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, Random r) {
 		super();
 		this.hospitals = hospitals;
 		this.mechanism = new IRICMechanism(hospitals, 3, 0);
-		this.r = r;
 		this.poolGen = poolGen;
+		this.r = r;
 	}
 	
 	
 	public void run(int timeLimit) {
 		
+		int totalNumVertsMatched = 0;
 		for(int timeIdx=0; timeIdx<timeLimit; timeIdx++) {
 			logger.info("Time period: " + timeIdx);
 			
@@ -67,13 +68,16 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			Solution sol = tick(pool);
 			
 			// Record statistics for each hospital
-			int totalVertsMatched = Cycle.getConstituentVertices(sol.getMatching(), pool).size();
-			logger.info("Time period: " + timeIdx + ", Vertices matched: " + totalVertsMatched);
+			int numVertsMatched = Cycle.getConstituentVertices(sol.getMatching(), pool).size();
+			totalNumVertsMatched += numVertsMatched;
+			logger.info("Time period: " + timeIdx + ", Vertices matched: " + numVertsMatched);
 		}
+		logger.info("After " + timeLimit + " periods, matched " + totalNumVertsMatched + " vertices.");
+		
 	}
 	
 	public Solution tick(Pool pool) {
-		Solution sol = mechanism.doMatching(pool);
+		Solution sol = mechanism.doMatching(pool, this.r);
 		return sol;
 	}
 	
@@ -83,11 +87,11 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		
 		// Create a set of 3 truthful hospitals, with urand arrival rates
 		Set<Hospital> hospitals = new HashSet<Hospital>();
-		for(int idx=0; idx<3; idx++) {
-			hospitals.add( new Hospital(idx, new UniformArrivalDistribution(0,50,r), true) );
+		for(int idx=0; idx<10; idx++) {
+			hospitals.add( new Hospital(idx, new UniformArrivalDistribution(10,10,r), true) );
 		}
 		
-		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, r, new SaidmanPoolGenerator(r) );
-		sim.run(1);
+		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, new SaidmanPoolGenerator(r), r);
+		sim.run(10);
 	}
 }

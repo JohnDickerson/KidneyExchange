@@ -47,8 +47,6 @@ public class Hospital {
 		Solution internalMatch =
 				(new CycleFormulationCPLEXSolver(reducedPool, internalCycles, 
 						new CycleMembership(reducedPool, internalCycles))).solve();
-		cg = null; internalCycles = null;
-		System.gc();
 
 		if(!MathUtil.isInteger(internalMatch.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
 		return internalMatch;
@@ -61,7 +59,7 @@ public class Hospital {
 	 */
 	public Set<Vertex> getPublicVertexSet() {
 		if(isTruthful) {
-			return vertices;
+			return this.getPublicAndPrivateVertices();
 		} else {
 			throw new UnsupportedOperationException("Must call getPublicVertexSet with pool information for non-truthful hospitals.");
 		}
@@ -70,7 +68,7 @@ public class Hospital {
 	public Set<Vertex> getPublicVertexSet(Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) {
 		if(isTruthful) {
 			// Truthful hospitals truthfully report their full type (set of vertices)
-			return vertices;
+			return this.getPublicAndPrivateVertices();
 		} else {
 			try {
 				// Internally match on all vertices, not just publicly reported vertices	
@@ -79,7 +77,8 @@ public class Hospital {
 				
 				// Report only those vertices that weren't matched (so AllVertices - InternallyMatchedVertices)
 				Set<Vertex> usedVerts = Cycle.getConstituentVertices(internalMatch.getMatching(), realInternalPool);
-				Set<Vertex> reportedVerts = new HashSet<Vertex>(this.getPublicAndPrivateVertices());
+				Set<Vertex> reportedVerts = new HashSet<Vertex>();
+				reportedVerts.addAll(this.getPublicAndPrivateVertices());
 				reportedVerts.removeAll(usedVerts);
 				return reportedVerts;
 				
