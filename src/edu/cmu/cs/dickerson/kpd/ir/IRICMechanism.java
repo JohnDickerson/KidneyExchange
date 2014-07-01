@@ -3,12 +3,14 @@ package edu.cmu.cs.dickerson.kpd.ir;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalInfo;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -16,6 +18,7 @@ import edu.cmu.cs.dickerson.kpd.solver.exception.SolverRuntimeException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
@@ -43,19 +46,22 @@ public class IRICMechanism {
 		for(Hospital hospital : hospitals) { hospital.setNumCredits(0); }   // all hospitals start out with no history
 	}
 
-	public Solution doMatching(Pool entirePool) {
+	public IRSolution doMatching(Pool entirePool) {
 		return doMatching(entirePool, new Random());
 	}
 	
-	public Solution doMatching(Pool entirePool, Random r) {
+	public IRSolution doMatching(Pool entirePool, Random r) {
 
 		//
 		// Initial credit balance update based on reported types
 		Map<Hospital, HospitalInfo> infoMap = new HashMap<Hospital, HospitalInfo>();
+		Set<Vertex> allReportedVertices = new HashSet<Vertex>();
 		for(Hospital hospital : hospitals) {
 
 			// Ask the hospital for its reported type
-			Pool reportedInternalPool = entirePool.makeSubPool( hospital.getPublicVertexSet(entirePool, cycleCap, chainCap, false) );
+			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(entirePool, cycleCap, chainCap, false);
+			allReportedVertices.addAll(reportedVertices);
+			Pool reportedInternalPool = entirePool.makeSubPool(reportedVertices);
 			
 			// Update hospital's credits based on reported type
 			// c_i += 4 * k_i * ( |reported| - |expected| )
@@ -82,11 +88,13 @@ public class IRICMechanism {
 			System.out.println(hospitalInfo);
 		}
 
-		// We use the same global set of cycles, cycle membership for each of the subpool solves
-		CycleGenerator cg = new CycleGenerator(entirePool);
+		// We use the same global set of cycles, cycle membership for each of the subpool solves,
+		// on our new global pool consisting of all publicly reported pairs
+		Pool entireReportedPool = entirePool.makeSubPool(allReportedVertices);
+		CycleGenerator cg = new CycleGenerator(entireReportedPool);
 		List<Cycle> allCycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
-		CycleMembership cycleMembership = new CycleMembership(entirePool, allCycles);
-		IRCPLEXSolver solver = new IRCPLEXSolver(entirePool, allCycles, cycleMembership, hospitals);
+		CycleMembership cycleMembership = new CycleMembership(entireReportedPool, allCycles);
+		IRCPLEXSolver solver = new IRCPLEXSolver(entireReportedPool, allCycles, cycleMembership, hospitals);
 		
 		
 		// Get maximum matching subject to each hospital getting at least as many matches
@@ -101,7 +109,7 @@ public class IRICMechanism {
 			throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem for max s.t. only IR; experiments are bunk.\nOriginal Message: " + e.getMessage());
 		}
 		// Constrain future matchings to include at least as many vertices as were in the all-IR matching
-		int maxMatchingNumPairs = Cycle.getConstituentVertices(allIRMatching.getMatching(), entirePool).size();
+		int maxMatchingNumPairs = Cycle.getConstituentVertices(allIRMatching.getMatching(), entireReportedPool).size();
 		
 
 		// Random permutation of hospitals
@@ -148,7 +156,10 @@ public class IRICMechanism {
 
 		assert(finalSol != null);
 		
-		return finalSol;
+		// Convert solution to IRSolution with more information
+		IRSolution finalIRSol = new IRSolution(finalSol, infoMap);
+		
+		return finalIRSol;
 	}
 
 }

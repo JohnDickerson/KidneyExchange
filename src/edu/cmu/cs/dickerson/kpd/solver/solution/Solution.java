@@ -11,6 +11,12 @@ public class Solution {
 	private double objectiveValue = 0.0;
 	private Set<Cycle> matching;
 	
+	public Solution(long solveTime, double objectiveValue, Set<Cycle> matching) {
+		this.solveTime = solveTime;
+		this.objectiveValue = objectiveValue;
+		this.matching = matching;
+	}
+	
 	public Solution() {
 		matching = new HashSet<Cycle>();
 	}
