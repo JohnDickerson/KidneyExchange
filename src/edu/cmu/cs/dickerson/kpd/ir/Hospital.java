@@ -37,7 +37,7 @@ public class Hospital {
 	 * this reported set of vertices is a subset of its internal Set<Vertex> vertices
 	 * @return publicly reported set of vertices belonging to hospital
 	 */
-	public Set<Vertex> reportVertexSet() {
+	public Set<Vertex> getPublicVertexSet() {
 		if(isTruthful) {
 			// Truthful hospitals truthfully report their full type (set of vertices)
 			return vertices;
@@ -90,11 +90,11 @@ public class Hospital {
 		this.arrivalDist = arrivalDist;
 	}
 
-	public Set<Vertex> getVertices() {
+	public Set<Vertex> getPublicAndPrivateVertices() {
 		return vertices;
 	}
 
-	public void setVertices(Set<Vertex> vertices) {
+	public void setPublicAndPrivateVertices(Set<Vertex> vertices) {
 		this.vertices = vertices;
 	}
 

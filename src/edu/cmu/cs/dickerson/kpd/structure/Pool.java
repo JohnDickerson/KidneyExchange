@@ -23,7 +23,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
-
+	
 	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
 		pairs = new TreeSet<VertexPair>();
@@ -75,7 +75,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	public String toString() {
 		return "< (" + getNumPairs() + ", " + getNumAltruists() + "), " + super.edgeSet().size() + " >";
 	}
-
+	
 	public Set<VertexPair> getPairsOfType(BloodType btPatient, BloodType btDonor) {
 
 		Set<VertexPair> vSet = new HashSet<VertexPair>();
@@ -88,6 +88,31 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		return vSet;
 	}
 
+	public Pool makeSubPool(Set<Vertex> subsetV) {
+		
+		// TODO Look into subgraph-ing in JGraphT library; not sure about backing sets, so playing it safe now
+		//DirectedWeightedSubgraph<Vertex, Edge> subGraph = new DirectedWeightedSubgraph<Vertex, Edge>(this, subsetV, null);
+		
+		// Add all legal vertices to new pool
+		Pool subPool = new Pool(Edge.class);
+		for(Vertex v : subsetV) {
+			if(this.containsVertex(v)) {
+				subPool.addVertex(v);
+			}
+		}
+		
+		// Add all legal edges to new pool 
+		for(Vertex src : subPool.vertexSet()) {
+			for(Vertex sink : subPool.vertexSet()) {
+				if(this.containsEdge(src, sink)) {
+					subPool.addEdge(src, sink, this.getEdge(src, sink));
+				}
+			}
+		}
+		
+		return subPool;
+	}
+	
 	/**
 	 * Outputs this graph to files that can be read by the current UNOS solver
 	 * This should *NOT* be used in UNOS production, since we gloss over a couple of
