@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.helper.MathUtil;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalInfo;
@@ -51,8 +50,8 @@ public class IRICMechanism {
 		for(Hospital hospital : hospitals) {
 
 			// Ask the hospital for its reported type
-			Pool reportedInternalPool = entirePool.makeSubPool( hospital.getPublicVertexSet() );
-
+			Pool reportedInternalPool = entirePool.makeSubPool( hospital.getPublicVertexSet(entirePool, cycleCap, chainCap, false) );
+			
 			// Update hospital's credits based on reported type
 			// c_i += 4 * k_i * ( |reported| - |expected| )
 			int expectedType = hospital.getExpectedArrival();
@@ -75,6 +74,7 @@ public class IRICMechanism {
 			hospitalInfo.minRequiredNumPairs = hospitalInfo.maxReportedInternalMatchSize;
 			hospitalInfo.exactRequiredNumPairs = -1;  // tell solver to ignore equality constraints
 			infoMap.put(hospital, hospitalInfo);
+			System.out.println(hospitalInfo);
 		}
 
 		// We use the same global set of cycles, cycle membership for each of the subpool solves
@@ -89,7 +89,7 @@ public class IRICMechanism {
 		Solution allIRMatching = null;
 		try {
 			allIRMatching = solver.solve(infoMap, 0, null, true);
-			if(!MathUtil.isInteger(allIRMatching.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
+			//if(!MathUtil.isInteger(allIRMatching.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
 			
 		} catch(SolverException e) {
 			e.printStackTrace();
@@ -115,9 +115,9 @@ public class IRICMechanism {
 				solMax = solver.solve(infoMap, maxMatchingNumPairs, hospital, true);
 				solMin = solver.solve(infoMap, maxMatchingNumPairs, hospital, false);
 				
-				if(!MathUtil.isInteger(solMax.getObjectiveValue()) || !MathUtil.isInteger(solMin.getObjectiveValue())) { 
-					throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); 
-				}
+				//if(!MathUtil.isInteger(solMax.getObjectiveValue()) || !MathUtil.isInteger(solMin.getObjectiveValue())) { 
+				//	throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); 
+				//}
 			} catch(SolverException e) {
 				e.printStackTrace();
 				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
@@ -142,6 +142,7 @@ public class IRICMechanism {
 		}
 
 		assert(finalSol != null);
+		
 		return finalSol;
 	}
 

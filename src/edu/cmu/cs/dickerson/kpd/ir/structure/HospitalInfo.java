@@ -13,4 +13,9 @@ public class HospitalInfo {
 	public int maxReportedInternalMatchSize; // max #pairs matched given reported type
 	public int minRequiredNumPairs;          // min #pairs that must be matched  [changes during mechanism]
 	public int exactRequiredNumPairs = -1;   // exact #pairs that must be matched  [changes during mechanism]
+	
+	@Override
+	public String toString() {
+		return (null!=reportedInternalPool ? reportedInternalPool.vertexSet().size() : "0") + ", " + maxReportedInternalMatchSize + ", " + minRequiredNumPairs + ", " + exactRequiredNumPairs;
+	}
 }

@@ -166,4 +166,9 @@ public class Hospital {
 	public void setTruthful(boolean isTruthful) {
 		this.isTruthful = isTruthful;
 	}
+	
+	@Override
+	public String toString() {
+		return "H" + ID + "<" + isTruthful + ", " + arrivalDist + ", |V|=" + vertices.size() + ", Cred=" + numCredits + ">";
+	}
 }

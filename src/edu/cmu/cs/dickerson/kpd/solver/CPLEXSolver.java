@@ -44,7 +44,7 @@ public abstract class CPLEXSolver extends Solver {
 
 		if(solvedOK) {
 
-			IOUtil.dPrintln(getID(), "Found an answer! CPLEX status: " + cplex.getStatus() + ", Time: " + ((double) solveTime / 1000000000.0));
+			IOUtil.dPrintln(getID(), "Found an answer! Obj: " + cplex.getObjValue() + ", CPLEX status: " + cplex.getStatus() + ", Time: " + ((double) solveTime / 1000000000.0));
 			Solution sol = new Solution();
 
 			// The objective value is the Dodgson score for a*
@@ -63,7 +63,7 @@ public abstract class CPLEXSolver extends Solver {
 
 	@Override
 	public String getID() {
-		return "CPLEX Fairness Solver";
+		return "CPLEX Solver";
 	}
 
 }
