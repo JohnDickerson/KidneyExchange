@@ -9,7 +9,11 @@ A recent innovation, kidney exchange, allows patients to bring an (incompatible)
 
 #### What is this code? ####
 
-TBD.
+This codebase includes: structural elements of kidney exchange like "pools", "hospitals", and "pairs", a couple of kidney exchange graph generators, a couple of kidney exchange solvers (max weight, failure-aware, fairness-aware, individually rational), and a dynamic kidney exchange simulator.
+
+If you use this codebase, please cite one of our recent papers like:
+
+John P. Dickerson, Ariel D. Procaccia, and Tuomas Sandholm. 2014. Price of Fairness in Kidney Exchange. In _Proceedings of the 2014 International Conference on Autonomous Agents and Multi-agent Systems_ (AAMAS-2014).  Paris, France (pp. 1013&ndash;1020). 
 
 **NOTE:** This is _not_ the code used in the UNOS [Kidney Paired Donation Pilot Program](http://optn.transplant.hrsa.gov/resources/KPDPP.asp "Kidney Paired Donation Pilot Program information via OPTN") (KPDPP).  The solvers here are meant to be accessible research code for the community and do not use branch-and-price, hopefully resulting in greater ease of use (at the cost of scalability).  Forks and pull requests welcome!
 
@@ -27,7 +31,7 @@ IBM offers a free academic license for CPLEX as well as a 90-day free trial avai
 Related Research
 ================
 
-_FutureMatch: Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Working Paper_.
+_FutureMatch: Combining Human Value Judgments and Machine Learning to Match in Dynamic Environments_.  John P. Dickerson and Tuomas Sandholm.  _Working Paper_.
 
 _Multi-Organ Exchange: The Whole is Greater than the Sum of its Parts_.  John P. Dickerson and Tuomas Sandholm.  **AAAI-2014**.  [Link](http://jpdickerson.com/pubs/dickerson14multi.pdf "John P. Dickerson")
 
