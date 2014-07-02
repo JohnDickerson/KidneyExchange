@@ -16,7 +16,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
-public class Hospital {
+public class Hospital implements Comparable<Hospital> {
 
 
 	private ArrivalDistribution arrivalDist;
@@ -169,5 +169,10 @@ public class Hospital {
 	@Override
 	public String toString() {
 		return "H" + ID + "<" + isTruthful + ", " + arrivalDist + ", |V|=" + vertices.size() + ", Cred=" + numCredits + ">";
+	}
+
+	@Override
+	public int compareTo(Hospital h) {
+		return this.getID().compareTo(h.getID());
 	}
 }

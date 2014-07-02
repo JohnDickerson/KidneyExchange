@@ -2,12 +2,12 @@ package edu.cmu.cs.dickerson.kpd.ir;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
@@ -54,14 +54,19 @@ public class IRICMechanism {
 
 		//
 		// Initial credit balance update based on reported types
-		Map<Hospital, HospitalInfo> infoMap = new HashMap<Hospital, HospitalInfo>();
+		SortedMap<Hospital, HospitalInfo> infoMap = new TreeMap<Hospital, HospitalInfo>();
 		Set<Vertex> allReportedVertices = new HashSet<Vertex>();
 		for(Hospital hospital : hospitals) {
 
+			HospitalInfo hospitalInfo = new HospitalInfo();
+			
 			// Ask the hospital for its reported type
 			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(entirePool, cycleCap, chainCap, false);
 			allReportedVertices.addAll(reportedVertices);
 			Pool reportedInternalPool = entirePool.makeSubPool(reportedVertices);
+			hospitalInfo.reportedInternalPool = reportedInternalPool;
+			hospitalInfo.publicVertexCt = reportedVertices.size();
+			hospitalInfo.privateVertexCt = hospital.getPublicAndPrivateVertices().size();
 			
 			// Update hospital's credits based on reported type
 			// c_i += 4 * k_i * ( |reported| - |expected| )
@@ -74,15 +79,26 @@ public class IRICMechanism {
 				internalMatch = hospital.doInternalMatching(reportedInternalPool, this.cycleCap, this.chainCap, false);
 			} catch(SolverException e) {
 				e.printStackTrace();
-				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
-
-			// Record details
-			HospitalInfo hospitalInfo = new HospitalInfo();
-			hospitalInfo.reportedInternalPool = reportedInternalPool;
 			hospitalInfo.maxReportedInternalMatchSize = Cycle.getConstituentVertices(
 					internalMatch.getMatching(), reportedInternalPool).size();  // recording match SIZE, not UTILITY [for now]
 			hospitalInfo.minRequiredNumPairs = hospitalInfo.maxReportedInternalMatchSize;
+			
+			
+			// Figure out a maximum utility internal match on PRIVATE type (need this for experimental records only)
+			Solution maxPrivateInternalMatch = null;
+			try {
+				Pool privatePublicPool = entirePool.makeSubPool(hospital.getPublicAndPrivateVertices());
+				maxPrivateInternalMatch = hospital.doInternalMatching(privatePublicPool, this.cycleCap, this.chainCap, false);
+				hospitalInfo.maxPossibleInternalMatchSize = Cycle.getConstituentVertices(
+						maxPrivateInternalMatch.getMatching(), privatePublicPool).size();
+			} catch(SolverException e) {
+				e.printStackTrace();
+				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on public+private reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+			}
+			
+			// Initialize remaining details and record
 			hospitalInfo.exactRequiredNumPairs = -1;  // tell solver to ignore equality constraints
 			infoMap.put(hospital, hospitalInfo);
 			System.out.println(hospitalInfo);
@@ -157,7 +173,7 @@ public class IRICMechanism {
 		assert(finalSol != null);
 		
 		// Convert solution to IRSolution with more information
-		IRSolution finalIRSol = new IRSolution(finalSol, infoMap);
+		IRSolution finalIRSol = new IRSolution(finalSol, entireReportedPool, infoMap);
 		
 		return finalIRSol;
 	}
