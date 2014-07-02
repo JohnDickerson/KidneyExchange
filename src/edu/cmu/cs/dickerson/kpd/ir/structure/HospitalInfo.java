@@ -12,6 +12,7 @@ public class HospitalInfo {
 	public Pool reportedInternalPool;        // reported type
 	public int maxReportedInternalMatchSize; // max #pairs matched given reported type
 	public int maxPossibleInternalMatchSize; // max #pairs that could've been matched internally
+	public int numMatchedInternally;         // #pairs matched internally by hospital
 	public int actualMechanismMatchSize;     // #pairs that were actually matched by mechanism
 	public int privateVertexCt;              // #pairs held privately+publicly
 	public int publicVertexCt;               // #pairs held publicly

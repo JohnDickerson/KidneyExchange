@@ -1,6 +1,5 @@
 package edu.cmu.cs.dickerson.kpd.ir.solver;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -31,7 +30,6 @@ public class IRSolution extends Solution {
 	 */
 	private void computePerHospitalStats() {
 		for(Map.Entry<Hospital, HospitalInfo> e : hospInfoMap.entrySet()) {
-			Hospital h = e.getKey();
 			HospitalInfo hInfo = e.getValue();
 
 			int numHospVertsMatched = Cycle.getConstituentVerticesInSubPool(super.getMatching(), fullPublicPool, hInfo.reportedInternalPool).size();
@@ -74,4 +72,15 @@ public class IRSolution extends Solution {
 		return hospInfoMap.get(hospital).privateVertexCt;
 	}
 
+	public int getNumMatchedInternally() {
+		int ct = 0;
+		for(Hospital hospital : hospInfoMap.keySet()) {
+			ct += this.getNumMatchedInternally(hospital);
+		}
+		return ct;
+	}
+	
+	public int getNumMatchedInternally(Hospital hospital) {
+		return hospInfoMap.get(hospital).numMatchedInternally;
+	}
 }

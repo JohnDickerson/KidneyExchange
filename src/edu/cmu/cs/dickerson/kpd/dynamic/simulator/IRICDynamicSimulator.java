@@ -13,7 +13,6 @@ import edu.cmu.cs.dickerson.kpd.ir.IRICMechanism;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
-import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
@@ -68,10 +67,9 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			// Run the IRIC Mechanism on this pool
 			IRSolution sol = tick(pool);
 
-			// Record statistics for each hospital
-			int numVertsMatched = Cycle.getConstituentVertices(sol.getMatching(), pool).size();
-			totalExternalNumVertsMatched += numVertsMatched;
-			logger.info("Time period: " + timeIdx + ", Vertices matched: " + numVertsMatched);
+			totalExternalNumVertsMatched += sol.getNumMatchedByMechanism();
+			totalInternalNumVertsMatched += sol.getNumMatchedInternally();
+			logger.info("Time period: " + timeIdx + ", Vertices matched: " + sol.getNumMatchedByMechanism());
 		}
 		logger.info("After " + timeLimit + " periods, matched:\n" 
 				+ totalExternalNumVertsMatched + " external vertices,\n"
@@ -92,10 +90,10 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		// Create a set of 3 truthful hospitals, with urand arrival rates
 		Set<Hospital> hospitals = new HashSet<Hospital>();
 		for(int idx=0; idx<3; idx++) {
-			hospitals.add( new Hospital(idx, new UniformArrivalDistribution(50,75,r), false) );
+			hospitals.add( new Hospital(idx, new UniformArrivalDistribution(50,75,r), true) );
 		}
 
 		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, new SaidmanPoolGenerator(r), r);
-		sim.run(10);
+		sim.run(3);
 	}
 }

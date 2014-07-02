@@ -57,17 +57,18 @@ public class Hospital implements Comparable<Hospital> {
 	 * this reported set of vertices is a subset of its internal Set<Vertex> vertices
 	 * @return publicly reported set of vertices belonging to hospital
 	 */
-	public Set<Vertex> getPublicVertexSet() {
+	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo) {
 		if(isTruthful) {
-			return this.getPublicAndPrivateVertices();
+			return this.getPublicVertexSet(hospitalInfo, null, 0, 0, false);
 		} else {
 			throw new UnsupportedOperationException("Must call getPublicVertexSet with pool information for non-truthful hospitals.");
 		}
 	}
 
-	public Set<Vertex> getPublicVertexSet(Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) {
+	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo, Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) {
 		if(isTruthful) {
 			// Truthful hospitals truthfully report their full type (set of vertices)
+			hospitalInfo.numMatchedInternally = 0; // no internal matches
 			return this.getPublicAndPrivateVertices();
 		} else {
 			try {
@@ -77,6 +78,8 @@ public class Hospital implements Comparable<Hospital> {
 				
 				// Report only those vertices that weren't matched (so AllVertices - InternallyMatchedVertices)
 				Set<Vertex> usedVerts = Cycle.getConstituentVertices(internalMatch.getMatching(), realInternalPool);
+				hospitalInfo.numMatchedInternally = usedVerts.size();
+
 				Set<Vertex> reportedVerts = new HashSet<Vertex>();
 				reportedVerts.addAll(this.getPublicAndPrivateVertices());
 				reportedVerts.removeAll(usedVerts);

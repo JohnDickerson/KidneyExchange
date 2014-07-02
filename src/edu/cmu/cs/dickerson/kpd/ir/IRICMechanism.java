@@ -61,7 +61,7 @@ public class IRICMechanism {
 			HospitalInfo hospitalInfo = new HospitalInfo();
 			
 			// Ask the hospital for its reported type
-			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(entirePool, cycleCap, chainCap, false);
+			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(hospitalInfo, entirePool, cycleCap, chainCap, false);
 			allReportedVertices.addAll(reportedVertices);
 			Pool reportedInternalPool = entirePool.makeSubPool(reportedVertices);
 			hospitalInfo.reportedInternalPool = reportedInternalPool;
