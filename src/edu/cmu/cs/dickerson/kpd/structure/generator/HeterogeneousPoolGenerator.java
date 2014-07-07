@@ -85,4 +85,9 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 		return pool;
 	}
 
+	@Override
+	public void addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+		throw new UnsupportedOperationException("Have not implementedt his method yet.");
+	}
+
 }

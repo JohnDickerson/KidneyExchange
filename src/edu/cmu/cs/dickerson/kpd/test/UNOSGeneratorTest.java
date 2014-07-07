@@ -52,7 +52,7 @@ public class UNOSGeneratorTest {
 		Pool pool = gen.generatePool(initialSize);
 
 		// Add a few vertices
-		gen.addVertices(pool, initialAddition);
+		gen.addVerticesToPool(pool, initialAddition);
 
 		// Make sure we've generated something sane
 		assertEquals("Raw vertex count check", initialSize+initialAddition, pool.getNumPairs() + pool.getNumAltruists());

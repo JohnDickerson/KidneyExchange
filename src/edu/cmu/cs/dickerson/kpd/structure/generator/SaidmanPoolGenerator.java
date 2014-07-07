@@ -6,6 +6,7 @@ import java.util.Random;
 
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
@@ -162,6 +163,20 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 	}
 
 
+	public boolean isCompatible(VertexPair donor, VertexPair patient) { 
+		boolean compatible = donor.getBloodTypeDonor().canGiveTo(patient.getBloodTypePatient())    // Donor must be blood type compatible with patient
+				&& !isPositiveCrossmatch(patient.getPatientCPRA());   // Crossmatch must be negative
+		return compatible;
+	}
+	
+	public boolean isCompatible(VertexAltruist alt, VertexPair patient) { 
+		boolean compatible = alt.getBloodTypeDonor().canGiveTo(patient.getBloodTypePatient())    // Donor must be blood type compatible with patient
+				&& !isPositiveCrossmatch(patient.getPatientCPRA());   // Crossmatch must be negative
+		return compatible;
+	}
+	
+	
+	
 	@Override
 	public Pool generate(int numPairs, int numAltruists) {
 
@@ -189,18 +204,19 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 			}
 		}
 
+		// Generate altruistic donor vertices
+		while(altruists.size() < numAltruists) {
+			VertexAltruist altruist = generateAltruist(ID++);
+			altruists.add(altruist);
+		}
+
+		
+		
 
 		// Only add the incompatible pairs to the pool
 		Pool pool = new Pool(Edge.class);
 		for(VertexPair pair : incompatiblePairs) {
 			pool.addPair(pair);	
-		}
-
-
-		// Generate altruistic donor vertices
-		while(altruists.size() < numAltruists) {
-			VertexAltruist altruist = generateAltruist(ID++);
-			altruists.add(altruist);
 		}
 
 
@@ -216,9 +232,7 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 
 				if(donorPair.equals(patientPair)) { continue; }
 
-				boolean compatible = donorPair.getBloodTypeDonor().canGiveTo(patientPair.getBloodTypePatient())    // Donor must be blood type compatible with patient
-						&& !isPositiveCrossmatch(patientPair.getPatientCPRA());   // Crossmatch must be negative
-				if(compatible) {
+				if(isCompatible(donorPair, patientPair)) {
 					Edge e = pool.addEdge(donorPair, patientPair);
 					pool.setEdgeWeight(e, 1.0);
 				}
@@ -232,9 +246,7 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 			for(VertexPair patientPair : incompatiblePairs) {
 
 				// Add edges from a donor to a compatible patient elsewhere
-				boolean compatible = alt.getBloodTypeDonor().canGiveTo(patientPair.getBloodTypePatient())    // Donor must be blood type compatible with patient
-						&& !isPositiveCrossmatch(patientPair.getPatientCPRA());   // Crossmatch must be negative
-				if(compatible) {
+				if(isCompatible(alt, patientPair)) {
 					Edge e = pool.addEdge(alt, patientPair);
 					pool.setEdgeWeight(e, 1.0);
 				}
@@ -246,6 +258,56 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 		}
 
 		return pool;
+	}
+
+	
+	@Override
+	public void addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+		
+		// Generate new vertices
+		Pool more = this.generate(numPairs, numAltruists);
+		
+		// Add edges from/to the new vertices
+		for(VertexPair v : more.getPairs()) { pool.addPair(v); }
+		for(VertexPair vN : more.getPairs()) {
+			for(VertexPair vO : pool.getPairs()) {
+				if(vN.equals(vO)) { continue; }  // Don't add self-edges
+				
+				// Donate from new vertex to other vertex
+				if(isCompatible(vN, vO) && !pool.containsEdge(vN, vO)) {
+					pool.setEdgeWeight(pool.addEdge(vN, vO), 1.0);
+				}
+				// Donate from other vertex to new vertex
+				if(isCompatible(vO, vN)&& !pool.containsEdge(vO, vN)) {
+					pool.setEdgeWeight(pool.addEdge(vO, vN), 1.0);
+				}
+			}
+			
+			// Adds edges from old altruists to new vertices
+			for(VertexAltruist altO : pool.getAltruists()) {
+				if(isCompatible(altO, vN)) {
+					pool.setEdgeWeight(pool.addEdge(altO, vN), 1.0);
+				}
+				// Add dummy edges from a non-altruist donor to each of the altruists
+				pool.setEdgeWeight(pool.addEdge(vN, altO), 0.0);
+			}
+		}
+		
+		
+		// Add edges from/to the new altruists from all (old+new) vertices
+		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }
+		for(VertexAltruist altN : more.getAltruists()) {
+			// No edges between altruists
+			for(VertexPair v : pool.getPairs()) {
+				if(isCompatible(altN, v)) {
+					pool.setEdgeWeight(pool.addEdge(altN, v), 1.0);
+				}
+				
+				// Add dummy edges from a non-altruist donor to each of the altruists
+				pool.setEdgeWeight(pool.addEdge(v, altN), 0.0);
+			}
+		}
+		
 	}
 
 }

@@ -14,6 +14,8 @@ public abstract class PoolGenerator {
 	
 	public abstract Pool generate(int numPairs, int numAltruists);
 	
+	public abstract void addVerticesToPool(Pool pool, int numPairs, int numAltruists);
+	
 	// TODO write to a file, specifically in our UNOS KPD format
 	// TODO include compatible pairs
 }
