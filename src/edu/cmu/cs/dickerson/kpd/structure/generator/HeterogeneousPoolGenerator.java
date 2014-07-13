@@ -1,9 +1,11 @@
 package edu.cmu.cs.dickerson.kpd.structure.generator;
 
 import java.util.Random;
+import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
@@ -86,7 +88,7 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 	}
 
 	@Override
-	public void addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		throw new UnsupportedOperationException("Have not implementedt his method yet.");
 	}
 

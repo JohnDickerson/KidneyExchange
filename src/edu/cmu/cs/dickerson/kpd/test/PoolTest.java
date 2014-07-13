@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.generate.GraphGenerator;
@@ -13,7 +15,11 @@ import org.junit.Test;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
+import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
+import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.factories.AllMatchVertexPairFactory;
 
@@ -53,6 +59,36 @@ public class PoolTest {
 		for(Vertex v : subPool.vertexSet()) {
 			assertTrue(pool.vertexSet().contains(v));
 		}
+	}
+	
+	@Test
+	public void testRemoveVertex() {
+		PoolGenerator poolGen = new SaidmanPoolGenerator(new Random());
+		Pool p = poolGen.generate(3, 2);
+		assertEquals(p.getAltruists().size(), 2);
+		assertEquals(p.getPairs().size(), 3);
+		assertEquals(p.vertexSet().size(), 5);
+		
+		SortedSet<VertexAltruist> alts = new TreeSet<VertexAltruist>(p.getAltruists());
+		int removedAlts = 0;
+		for(VertexAltruist alt : alts) {
+			p.removeVertex(alt); removedAlts++;
+			assertEquals(p.getAltruists().size(), 2-removedAlts);
+			assertEquals(p.getPairs().size(), 3);
+			assertEquals(p.vertexSet().size(), 5-removedAlts);
+		}
+		
+		SortedSet<VertexPair> pairs = new TreeSet<VertexPair>(p.getPairs());
+		int removedPairs = 0;
+		for(VertexPair pair : pairs) {
+			p.removeVertex(pair); removedPairs++;
+			assertEquals(p.getAltruists().size(), 2-removedAlts);
+			assertEquals(p.getPairs().size(), 3-removedPairs);
+			assertEquals(p.vertexSet().size(), 5-removedAlts-removedPairs);
+		}
+		
+		assertEquals(p.getNumPairs(),0);
+		assertEquals(p.getNumAltruists(),0);
 	}
 	
 	@Test

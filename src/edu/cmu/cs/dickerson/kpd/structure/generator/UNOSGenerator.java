@@ -14,7 +14,6 @@ import java.util.Random;
 import java.util.Set;
 
 import au.com.bytecode.opencsv.CSVReader;
-
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -93,12 +92,13 @@ public class UNOSGenerator extends PoolGenerator {
 	}
 
 	@Override
-	public void addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		// We sample from data, so we don't control #pairs or #altruists
-		addVerticesToPool(pool, numPairs+numAltruists);
+		return addVerticesToPool(pool, numPairs+numAltruists);
 	}
 	
-	public void addVerticesToPool(Pool pool, int numNewVerts) {
+	public Set<Vertex> addVerticesToPool(Pool pool, int numNewVerts) {
+		Set<Vertex> newVerts = new HashSet<Vertex>();
 		for(int idx=0; idx<numNewVerts; idx++) {
 
 			// Sample a pair from the real data, make it a new pool Vertex
@@ -108,6 +108,7 @@ public class UNOSGenerator extends PoolGenerator {
 			// Spawn a new unique Vertex linked back to the underlying UNOSPair
 			Vertex sampleVert = samplePair.toBaseVertex(this.currentVertexID++);
 			pool.addVertex(sampleVert);
+			newVerts.add(sampleVert);
 			
 			// Check di-edge compatibility between this new vertex and ALL vertices in the current pool
 			for(Vertex v : pool.getPairs()) {
@@ -145,6 +146,7 @@ public class UNOSGenerator extends PoolGenerator {
 			// Keep track of who maps to whom, optimization -> real data
 			vertexMap.put(sampleVert, samplePair);
 		}
+		return newVerts;
 	}
 
 	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim) {

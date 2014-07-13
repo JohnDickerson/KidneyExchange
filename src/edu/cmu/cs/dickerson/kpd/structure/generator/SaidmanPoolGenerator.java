@@ -3,6 +3,7 @@ package edu.cmu.cs.dickerson.kpd.structure.generator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -262,7 +263,7 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 
 	
 	@Override
-	public void addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		
 		// Generate new vertices
 		Pool more = this.generate(numPairs, numAltruists);
@@ -308,6 +309,8 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 			}
 		}
 		
+		// Return only the new vertices that were generated
+		return more.vertexSet();
 	}
 
 }

@@ -39,6 +39,13 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 	}
 
+	@Override
+	public boolean removeVertex(Vertex v) {
+		if(v.isAltruist()) { altruists.remove(v); }
+		else {	pairs.remove(v); }
+		return super.removeVertex(v);
+	}
+	
 	public boolean addPair(VertexPair pair) {
 		boolean newVert = super.addVertex(pair);
 		if(newVert) {

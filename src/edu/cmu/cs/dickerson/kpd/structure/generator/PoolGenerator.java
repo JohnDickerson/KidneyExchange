@@ -1,8 +1,10 @@
 package edu.cmu.cs.dickerson.kpd.structure.generator;
 
 import java.util.Random;
+import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 
 public abstract class PoolGenerator {
 
@@ -14,7 +16,7 @@ public abstract class PoolGenerator {
 	
 	public abstract Pool generate(int numPairs, int numAltruists);
 	
-	public abstract void addVerticesToPool(Pool pool, int numPairs, int numAltruists);
+	public abstract Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists);
 	
 	// TODO write to a file, specifically in our UNOS KPD format
 	// TODO include compatible pairs
