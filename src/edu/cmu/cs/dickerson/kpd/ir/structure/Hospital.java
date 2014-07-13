@@ -20,6 +20,7 @@ public class Hospital implements Comparable<Hospital> {
 
 
 	private ArrivalDistribution arrivalDist;
+	private ArrivalDistribution lifeExpectancyDist;
 	private final Integer ID;
 	private boolean isTruthful;
 
@@ -28,10 +29,11 @@ public class Hospital implements Comparable<Hospital> {
 	private int numCredits;
 	private int numMatched;
 
-	public Hospital(Integer ID, ArrivalDistribution arrivalDist, boolean isTruthful) {
+	public Hospital(Integer ID, ArrivalDistribution arrivalDist, ArrivalDistribution lifeExpectancyDist, boolean isTruthful) {
 
 		this.ID = ID;
 		this.arrivalDist = arrivalDist;
+		this.lifeExpectancyDist = lifeExpectancyDist;
 		this.isTruthful = isTruthful;
 
 		// New hospitals have no credits, no history of matches, no patient-donor pairs, etc
@@ -133,6 +135,14 @@ public class Hospital implements Comparable<Hospital> {
 		this.arrivalDist = arrivalDist;
 	}
 
+	public ArrivalDistribution getLifeExpectancyDist() {
+		return lifeExpectancyDist;
+	}
+
+	public void setLifeExpectancyDist(ArrivalDistribution lifeExpectancyDist) {
+		this.lifeExpectancyDist = lifeExpectancyDist;
+	}
+
 	public Set<Vertex> getPublicAndPrivateVertices() {
 		return vertices;
 	}
@@ -141,6 +151,10 @@ public class Hospital implements Comparable<Hospital> {
 		this.vertices = vertices;
 	}
 
+	public void addPublicAndPrivateVertices(Set<Vertex> newVertices) {
+		this.vertices.addAll(newVertices);
+	}
+	
 	public int getNumCredits() {
 		return numCredits;
 	}
