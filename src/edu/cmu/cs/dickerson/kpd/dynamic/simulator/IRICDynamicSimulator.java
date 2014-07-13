@@ -11,7 +11,6 @@ import com.sun.istack.internal.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.ir.IRICMechanism;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
-import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalVertexInfo;
@@ -20,7 +19,6 @@ import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 
 public class IRICDynamicSimulator extends DynamicSimulator {
 
@@ -141,45 +139,4 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		return sol;
 	}
 	
-
-	public static void main(String[] args) {
-
-		long seed = 1234;
-		Random r = new Random(seed);
-
-		// For now, assume all patients entering any hospital have same distribution of life expectancy
-		ArrivalDistribution lifeExpectancyDist = new UniformArrivalDistribution(1,1,r);
-		int meanLifeExpectancy = lifeExpectancyDist.expectedDraw();
-		
-		// Global chain length cap
-		int chainCap = 0;
-		
-		// Create a set of 3 truthful hospitals, with urand arrival rates
-		int totalExpectedPairsPerPeriod = 0;
-		Set<Hospital> hospitals = new HashSet<Hospital>();
-		for(int idx=0; idx<3; idx++) {
-			ArrivalDistribution arrivalDist = new UniformArrivalDistribution(10,25,r);
-			totalExpectedPairsPerPeriod += arrivalDist.expectedDraw();
-			hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, true) );
-		}
-		totalExpectedPairsPerPeriod /= hospitals.size();
-
-		// Create an altruistic donor input arrival
-		double pctAlts = 0.05;
-		int expectedAltsPerPeriodMin = (int) Math.rint((pctAlts - (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
-		int expectedAltsPerPeriodMax = (int) Math.rint((pctAlts + (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
-		ArrivalDistribution altArrivalDist = new UniformArrivalDistribution(expectedAltsPerPeriodMin, expectedAltsPerPeriodMax, r);
-
-		
-		// Create dynamic simulator
-		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, 
-				new SaidmanPoolGenerator(r), 
-				altArrivalDist, 
-				chainCap,
-				meanLifeExpectancy, 
-				r);
-		
-		// Run a bunch of times
-		sim.run(50);
-	}
 }

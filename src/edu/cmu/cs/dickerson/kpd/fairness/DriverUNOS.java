@@ -12,9 +12,9 @@ import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.fairness.alg.FairnessUtil;
-import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput;
-import edu.cmu.cs.dickerson.kpd.fairness.io.ExperimentalOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.io.ExperimentalOutput;
+import edu.cmu.cs.dickerson.kpd.io.ExperimentalOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;

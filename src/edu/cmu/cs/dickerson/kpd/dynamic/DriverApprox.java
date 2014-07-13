@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput;
-import edu.cmu.cs.dickerson.kpd.fairness.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.io.DriverApproxOutput;
+import edu.cmu.cs.dickerson.kpd.io.DriverApproxOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationLPRelaxCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;

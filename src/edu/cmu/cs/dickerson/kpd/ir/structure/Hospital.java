@@ -87,7 +87,7 @@ public class Hospital implements Comparable<Hospital> {
 			return this.getPublicAndPrivateVertices();
 		} else {
 			try {
-				// Internally match on all vertices, not just publicly reported vertices	
+				// Internally match on all private+public vertices, not just publicly reported vertices	
 				Pool realInternalPool = fullPool.makeSubPool( this.getPublicAndPrivateVertices() );
 				Solution internalMatch = doInternalMatching(realInternalPool, cycleCap, chainCap, usingFailureProbabilities);
 				
@@ -95,6 +95,10 @@ public class Hospital implements Comparable<Hospital> {
 				Set<Vertex> usedVerts = Cycle.getConstituentVertices(internalMatch.getMatching(), realInternalPool);
 				hospitalInfo.numMatchedInternally = usedVerts.size();
 
+				// Remove these internally-matched vertices from the pool
+				fullPool.removeAllVertices(usedVerts);
+				this.vertices.removeAll(usedVerts);
+				
 				Set<Vertex> reportedVerts = new HashSet<Vertex>();
 				reportedVerts.addAll(this.getPublicAndPrivateVertices());
 				reportedVerts.removeAll(usedVerts);
