@@ -97,6 +97,15 @@ public class Cycle {
 	}
 
 
+	public static Set<Vertex> getConstituentAltruists(Set<Cycle> cycles, Pool pool) {
+		// Why aren't there lambdas :(.
+		Set<Vertex> alts = new HashSet<Vertex>();
+		for(Vertex v : Cycle.getConstituentVertices(cycles, pool)) {
+			if(v.isAltruist()) { alts.add(v); }
+		}
+		return alts;
+	}
+	
 	/**
 	 * Given a cycle from a full pool and a reduced pool, returns the set of vertices in the cycle
 	 * that are also in the reduced pool

@@ -38,10 +38,11 @@ public class IRSolution extends Solution {
 	}
 
 	/**
-	 * @return total number of vertices matched publicly by mechanism
+	 * @return total number of vertices matched publicly by mechanism (not including altruistic donors)
 	 */
 	public int getNumMatchedByMechanism() {
-		return Cycle.getConstituentVertices(super.getMatching(), fullPublicPool).size();
+		return Cycle.getConstituentVertices(super.getMatching(), fullPublicPool).size() - 
+				Cycle.getConstituentAltruists(super.getMatching(), fullPublicPool).size();
 	}
 	
 	/**

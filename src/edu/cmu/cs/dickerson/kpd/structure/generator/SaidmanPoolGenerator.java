@@ -15,7 +15,7 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 /**
  * Compatibility graph generator based on the following paper:
  * <i>Increasing the Opportunity of Live Kidney Donation by Matching for Two and Three Way Exchanges.</i>
- * S. L. Saidman, Alvin Roth, Tayfun Sönmez, Utku Ünver, Frank Delmonico.
+ * S. L. Saidman, Alvin Roth, Tayfun Sonmez, Utku Unver, Frank Delmonico.
  * <b>Transplantation</b>.  Volume 81, Number 5, March 15, 2006.
  * 
  * This is known colloquially as the "Saidman Generator".
@@ -48,8 +48,12 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 	protected double Pr_DONOR_TYPE_A = 0.3373;
 	protected double Pr_DONOR_TYPE_B = 0.1428;
 	
+	// Current unused vertex ID for optimization graphs
+	private int currentVertexID;
+
 	public SaidmanPoolGenerator(Random random) {
 		super(random);
+		this.currentVertexID = 0;
 	}
 
 	/**
@@ -190,14 +194,10 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 		List<VertexPair> compatiblePairs = new ArrayList<VertexPair>();
 		List<VertexAltruist> altruists = new ArrayList<VertexAltruist>();
 
-
-		// Keep a unique identifier for each vertex
-		int ID = 0;
-
 		// Generate enough incompatible and compatible patient-donor pair vertices
 		while(incompatiblePairs.size() < numPairs) {
 
-			VertexPair v = generatePair(ID++);
+			VertexPair v = generatePair(currentVertexID++);
 			if(v.isCompatible()) {
 				compatiblePairs.add(v);
 			} else {
@@ -207,7 +207,7 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 
 		// Generate altruistic donor vertices
 		while(altruists.size() < numAltruists) {
-			VertexAltruist altruist = generateAltruist(ID++);
+			VertexAltruist altruist = generateAltruist(currentVertexID++);
 			altruists.add(altruist);
 		}
 

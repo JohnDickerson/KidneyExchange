@@ -14,6 +14,8 @@ import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
+import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalVertexInfo;
+import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
@@ -30,10 +32,10 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	private ArrivalDistribution altArrivalDist;
 	private Random r;
 
-	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution altArrivalDist, Random r) {
+	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution altArrivalDist, int chainCap, int meanLifeExpectancy, Random r) {
 		super();
 		this.hospitals = hospitals;
-		this.mechanism = new IRICMechanism(hospitals, 3, 0);
+		this.mechanism = new IRICMechanism(hospitals, 3, chainCap, meanLifeExpectancy);
 		this.poolGen = poolGen;
 		this.altArrivalDist = altArrivalDist;
 		this.r = r;
@@ -45,9 +47,11 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		// Empty pool (add/remove vertices in the tick method)
 		Pool pool = new Pool(Edge.class);
 		
+		// Reset instance-specific stuff, for multiple experimental runs
 		for(Hospital hospital : hospitals) {
-			hospital.setNumCredits(0);
+			hospital.reset();
 		}
+		mechanism.reset();
 		
 		int totalExternalNumVertsMatched = 0;
 		int totalInternalNumVertsMatched = 0;
@@ -78,10 +82,27 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 						// All altruists are assumed to be public always, and stay forever
 					} else {
 						// Add pairs only to hospital, privately
-						hospVerts.add(vIt.next());
+						hospVerts.add(v);
+						HospitalVertexInfo hospVertInfo = new HospitalVertexInfo();
+						hospVertInfo.entranceTime = timeIdx;  // when did vertex enter pool?
+						hospVertInfo.lifeExpectancy = hospital.getLifeExpectancyDist().draw();  // how long will vertex live?
+						hospital.getVertexInfo().put(v, hospVertInfo);
 					}
 				}
 				hospital.addPublicAndPrivateVertices(hospVerts);
+			}
+			
+			// Remove any expired vertices
+			for(Hospital h : hospitals) {
+				Iterator<Vertex> hvIt = h.getPublicAndPrivateVertices().iterator();
+				while(hvIt.hasNext()) {
+					Vertex v = hvIt.next();
+					int vertAge = timeIdx - h.getVertexInfo().get(v).entranceTime;
+					if(vertAge >= h.getVertexInfo().get(v).lifeExpectancy) {
+						pool.removeVertex(v);  // delete the vertex from the full pool
+						hvIt.remove();  // delete vertex from hospital's private list
+					}
+				}
 			}
 			
 			// Evolve pool and run the IRIC Mechanism on it
@@ -90,6 +111,20 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			totalExternalNumVertsMatched += sol.getNumMatchedByMechanism();
 			totalInternalNumVertsMatched += sol.getNumMatchedInternally();
 			logger.info("Time period: " + timeIdx + ", Vertices matched: " + sol.getNumMatchedByMechanism());
+			
+			// Remove any matched vertices from pool + hospitals
+			Set<Vertex> toRemove = new HashSet<Vertex>(Cycle.getConstituentVertices(sol.getMatching(), pool));
+			for(Hospital h : hospitals) {
+				Iterator<Vertex> hvIt = h.getPublicAndPrivateVertices().iterator();
+				while(hvIt.hasNext()) {
+					Vertex v = hvIt.next();
+					if(toRemove.contains(v)) {
+						hvIt.remove();
+					}
+				}
+			}
+			pool.removeAllVertices(toRemove);  // remove matched vertex from pool
+			
 		}
 		logger.info("After " + timeLimit + " periods, matched:\n" 
 				+ totalExternalNumVertsMatched + " external vertices,\n"
@@ -112,12 +147,18 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		long seed = 1234;
 		Random r = new Random(seed);
 
+		// For now, assume all patients entering any hospital have same distribution of life expectancy
+		ArrivalDistribution lifeExpectancyDist = new UniformArrivalDistribution(1,1,r);
+		int meanLifeExpectancy = lifeExpectancyDist.expectedDraw();
+		
+		// Global chain length cap
+		int chainCap = 0;
+		
 		// Create a set of 3 truthful hospitals, with urand arrival rates
 		int totalExpectedPairsPerPeriod = 0;
 		Set<Hospital> hospitals = new HashSet<Hospital>();
 		for(int idx=0; idx<3; idx++) {
-			ArrivalDistribution arrivalDist = new UniformArrivalDistribution(50,75,r);
-			ArrivalDistribution lifeExpectancyDist = new UniformArrivalDistribution(1,12,r);
+			ArrivalDistribution arrivalDist = new UniformArrivalDistribution(10,25,r);
 			totalExpectedPairsPerPeriod += arrivalDist.expectedDraw();
 			hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, true) );
 		}
@@ -125,13 +166,20 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 
 		// Create an altruistic donor input arrival
 		double pctAlts = 0.05;
-		int expectedAltsPerPeriodMin = (int) Math.rint(pctAlts - (pctAlts*0.5) * totalExpectedPairsPerPeriod);
-		int expectedAltsPerPeriodMax = (int) Math.rint(pctAlts + (pctAlts*0.5) * totalExpectedPairsPerPeriod);
+		int expectedAltsPerPeriodMin = (int) Math.rint((pctAlts - (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
+		int expectedAltsPerPeriodMax = (int) Math.rint((pctAlts + (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
 		ArrivalDistribution altArrivalDist = new UniformArrivalDistribution(expectedAltsPerPeriodMin, expectedAltsPerPeriodMax, r);
 
 		
-		// D
-		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, new SaidmanPoolGenerator(r), altArrivalDist, r);
-		sim.run(3);
+		// Create dynamic simulator
+		IRICDynamicSimulator sim = new IRICDynamicSimulator(hospitals, 
+				new SaidmanPoolGenerator(r), 
+				altArrivalDist, 
+				chainCap,
+				meanLifeExpectancy, 
+				r);
+		
+		// Run a bunch of times
+		sim.run(50);
 	}
 }

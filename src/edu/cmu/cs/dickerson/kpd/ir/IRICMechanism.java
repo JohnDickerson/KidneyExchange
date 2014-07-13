@@ -34,18 +34,25 @@ public class IRICMechanism {
 	private Set<Hospital> hospitals;
 	private int cycleCap = 3;
 	private int chainCap = 0;
-
+	private int meanLifeExpectancy = 1;
+	private Set<Vertex> everRevealedVertices; // keep track of all vertices ever revealed to mechanism
+	
 	public IRICMechanism(Set<Hospital> hospitals) {
-		this(hospitals, 3, 0);   // default to 3-cycles and 0-chains
+		this(hospitals, 3, 0, 1);   // default to 3-cycles and 0-chains
 	}
 
-	public IRICMechanism(Set<Hospital> hospitals, int cycleCap, int chainCap) {
+	public IRICMechanism(Set<Hospital> hospitals, int cycleCap, int chainCap, int meanLifeExpectancy) {
 		this.hospitals = hospitals;	
 		this.cycleCap = cycleCap;  // internal and external matching cycle limit
 		this.chainCap = chainCap;  // internal and external matching chain limit
-		for(Hospital hospital : hospitals) { hospital.setNumCredits(0); }   // all hospitals start out with no history
+		this.reset();
 	}
 
+	public void reset() {
+		for(Hospital hospital : hospitals) { hospital.setNumCredits(0); }   // all hospitals start out with no history
+		everRevealedVertices = new HashSet<Vertex>();
+	}
+	
 	public IRSolution doMatching(Pool entirePool) {
 		return doMatching(entirePool, new Random());
 	}
@@ -69,10 +76,22 @@ public class IRICMechanism {
 			hospitalInfo.privateVertexCt = hospital.getPublicAndPrivateVertices().size();
 			
 			// Update hospital's credits based on reported type
-			// c_i += 4 * k_i * ( |reported| - |expected| )
-			int expectedType = hospital.getExpectedArrival();
-			hospital.addCredits( 4*expectedType * (reportedInternalPool.vertexSet().size() - expectedType) );
+			// c_i += 4*k_i*\sum{v in reported V} \ell_v   -   4*k_i^2*\ell_m
+			int expectedType = hospital.getExpectedArrival();   // "k_i"
+			int creditDelta = 0;
+			for(Vertex v : reportedInternalPool.vertexSet()) {
+				if(everRevealedVertices.contains(v)) {
+					// Hospital has previously revealed and received credits for this vertex
+				} else {
+					// Hospital gets credits proportional to the life expectancy of this vertex
+					creditDelta += 4*expectedType*hospital.getVertexInfo().get(v).lifeExpectancy;
+					everRevealedVertices.add(v);
+				}
+			}
+			creditDelta -= 4*expectedType*expectedType*this.meanLifeExpectancy;
+			hospital.addCredits( creditDelta );
 
+			
 			// Figure out a maximum utility internal match on reported type
 			Solution internalMatch = null;
 			try {

@@ -1,7 +1,9 @@
 package edu.cmu.cs.dickerson.kpd.ir.structure;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.MathUtil;
@@ -25,6 +27,7 @@ public class Hospital implements Comparable<Hospital> {
 	private boolean isTruthful;
 
 	private Set<Vertex> vertices;
+	private Map<Vertex, HospitalVertexInfo> vertexInfo;
 
 	private int numCredits;
 	private int numMatched;
@@ -37,11 +40,16 @@ public class Hospital implements Comparable<Hospital> {
 		this.isTruthful = isTruthful;
 
 		// New hospitals have no credits, no history of matches, no patient-donor pairs, etc
+		this.reset();
+	}
+
+	public void reset() {
 		this.numCredits = 0;
 		this.numMatched = 0;
 		this.vertices = new HashSet<Vertex>();
+		this.vertexInfo = new HashMap<Vertex, HospitalVertexInfo>();
 	}
-
+	
 	public Solution doInternalMatching(Pool reducedPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) throws SolverException {
 		
 		CycleGenerator cg = new CycleGenerator(reducedPool);
@@ -52,6 +60,11 @@ public class Hospital implements Comparable<Hospital> {
 
 		if(!MathUtil.isInteger(internalMatch.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
 		return internalMatch;
+	}
+
+	
+	public Map<Vertex, HospitalVertexInfo> getVertexInfo() {
+		return vertexInfo;
 	}
 
 	/**

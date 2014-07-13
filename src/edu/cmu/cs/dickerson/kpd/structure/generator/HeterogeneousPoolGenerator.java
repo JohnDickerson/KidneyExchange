@@ -21,8 +21,12 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
  */
 public class HeterogeneousPoolGenerator extends PoolGenerator {
 
+	// Current unused vertex ID for optimization graphs
+	private int currentVertexID;
+
 	public HeterogeneousPoolGenerator(Random random) {
 		super(random);
+		this.currentVertexID = 0;
 	}
 
 	@Override
@@ -42,7 +46,6 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 		
 		
 		// Make n1 easy-to-match vertices with low CPRA and n2 hard-to-match with high CPRA
-		int ID = 0;
 		for(int pairIdx=0; pairIdx < numPairs; pairIdx++) {
 
 			double cpra;
@@ -52,7 +55,7 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 				cpra = HARD_CPRA;
 			}
 
-			VertexPair v = new VertexPair(ID++, BloodType.O, BloodType.O, false, cpra, false);
+			VertexPair v = new VertexPair(currentVertexID++, BloodType.O, BloodType.O, false, cpra, false);
 			pool.addPair(v);
 		}
 
@@ -74,7 +77,7 @@ public class HeterogeneousPoolGenerator extends PoolGenerator {
 		// Add in altruists, with high probability of edges going to easy-to-match patients
 		// and low probability otherwise (along with 0.0-weight dummy back-edges)
 		for(int altIdx=0; altIdx < numAltruists; altIdx++) {
-			VertexAltruist alt = new VertexAltruist(ID++, BloodType.O);
+			VertexAltruist alt = new VertexAltruist(currentVertexID++, BloodType.O);
 			pool.addAltruist(alt);
 			for(VertexPair v : pool.getPairs()) {
 				if(random.nextDouble() > v.getPatientCPRA()) {

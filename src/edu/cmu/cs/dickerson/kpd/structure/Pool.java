@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,15 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		if(v.isAltruist()) { altruists.remove(v); }
 		else {	pairs.remove(v); }
 		return super.removeVertex(v);
+	}
+	
+	@Override
+	public boolean removeAllVertices(Collection<? extends Vertex> vertices) {
+		boolean changed = false;
+		for(Vertex v : vertices) {
+			changed |= this.removeVertex(v);
+		}
+		return changed;
 	}
 	
 	public boolean addPair(VertexPair pair) {
