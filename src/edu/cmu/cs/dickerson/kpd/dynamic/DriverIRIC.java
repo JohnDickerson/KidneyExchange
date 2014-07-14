@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.IRICDynamicSimulator;
+import edu.cmu.cs.dickerson.kpd.dynamic.simulator.IRICDynamicSimulatorData;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.io.IRICOutput;
 import edu.cmu.cs.dickerson.kpd.io.IRICOutput.Col;
@@ -36,15 +37,15 @@ public class DriverIRIC {
 
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
-				//2, 3,
+				2, 3,
 				4, 5, 10, 15, 20,
 		});
 
 		// arrival rate distributions (we record distribution type and mean)
 		List<ArrivalDistribution> arrivalDistList = Arrays.asList(new ArrivalDistribution[] {
-				//new UniformArrivalDistribution(5,15),
+				new UniformArrivalDistribution(5,15),
 				//new UniformArrivalDistribution(15,25),
-				new UniformArrivalDistribution(30,50),
+				//new UniformArrivalDistribution(30,50),
 		});
 
 		// life expectancy distributions (we record distribution type and mean)
@@ -57,12 +58,12 @@ public class DriverIRIC {
 
 		// Cycle and chain limits
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				//0,
-				4,
+				0,
+				//4,
 		});
 
 		// How many time periods should the simulation have?
-		int simTimePeriods = 1000;
+		int simTimePeriods = 100;
 
 		// Number of repetitions for each parameter vector
 		int numReps = 25; 
@@ -130,14 +131,14 @@ public class DriverIRIC {
 											r);
 
 
-									int numMatched = -1;
+									IRICDynamicSimulatorData res = null;
 									try {
 										// Run a bunch of times
-										numMatched = sim.run(simTimePeriods);
+										res = sim.run(simTimePeriods);
 									} catch(SolverException e) {
 										IOUtil.dPrintln("Exception: " + e);
 									}
-									if(numMatched < 0) { continue; }
+									if(null==res) { continue; }
 
 									out.set(Col.SEED_MAIN, seedMain);
 									out.set(Col.SEED_ARRIVAL, seedArrival);
@@ -152,8 +153,10 @@ public class DriverIRIC {
 									out.set(Col.ARRIVAL_MEAN, arrivalDist.expectedDraw());
 									out.set(Col.LIFE_EXPECTANCY_DIST, lifeExpectancyDist);
 									out.set(Col.LIFE_EXPECTANCY_MEAN, lifeExpectancyDist.expectedDraw());
-									out.set(Col.NUM_MATCHED, numMatched);
-
+									out.set(Col.NUM_MATCHED, res.getTotalNumVertsMatched());
+									out.set(Col.NUM_INTERNALLY_MATCHED, res.getTotalInternalNumVertsMatched());
+									out.set(Col.NUM_EXTERNALLY_MATCHED, res.getTotalExternalNumVertsMatched());
+									
 									// Write the  row of data
 									try {
 										out.record();

@@ -41,7 +41,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	}
 
 
-	public int run(int timeLimit) throws SolverException {
+	public IRICDynamicSimulatorData run(int timeLimit) throws SolverException {
 
 		// Empty pool (add/remove vertices in the tick method)
 		Pool pool = new Pool(Edge.class);
@@ -129,7 +129,12 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				+ totalExternalNumVertsMatched + " external vertices,\n"
 				+ totalInternalNumVertsMatched + " internal vertices,\n"
 				+ (totalExternalNumVertsMatched+totalInternalNumVertsMatched) + " total vertices.");
-		return totalExternalNumVertsMatched+totalInternalNumVertsMatched;
+		
+		IRICDynamicSimulatorData results = new IRICDynamicSimulatorData();
+		results.setTotalExternalNumVertsMatched(totalExternalNumVertsMatched);
+		results.setTotalInternalNumVertsMatched(totalInternalNumVertsMatched);
+		results.setTotalNumVertsMatched(totalExternalNumVertsMatched+totalInternalNumVertsMatched);
+		return results;
 				
 	}
 
