@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.helper.MathUtil;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -26,7 +25,8 @@ public class Hospital implements Comparable<Hospital> {
 	private final Integer ID;
 	private boolean isTruthful;
 
-	private Set<Vertex> vertices;
+	private Set<Vertex> vertices;   // current set of private vertices (type)
+	private Set<Vertex> everRevealedVertices;  // once a vertex is revealed, it can't be taken back or matched privately
 	private Map<Vertex, HospitalVertexInfo> vertexInfo;
 
 	private int numCredits;
@@ -47,6 +47,7 @@ public class Hospital implements Comparable<Hospital> {
 		this.numCredits = 0;
 		this.numMatched = 0;
 		this.vertices = new HashSet<Vertex>();
+		this.everRevealedVertices = new HashSet<Vertex>();
 		this.vertexInfo = new HashMap<Vertex, HospitalVertexInfo>();
 	}
 	
@@ -84,11 +85,14 @@ public class Hospital implements Comparable<Hospital> {
 		if(isTruthful) {
 			// Truthful hospitals truthfully report their full type (set of vertices)
 			hospitalInfo.numMatchedInternally = 0; // no internal matches
+			this.everRevealedVertices.addAll(this.getPublicAndPrivateVertices());
 			return this.getPublicAndPrivateVertices();
 		} else {
 			try {
-				// Internally match on all private+public vertices, not just publicly reported vertices	
-				Pool realInternalPool = fullPool.makeSubPool( this.getPublicAndPrivateVertices() );
+				// Internally match on all private vertices that haven't been revealed ever
+				Set<Vertex> currentlyHiddenVerts = new HashSet<Vertex>(this.getPublicAndPrivateVertices());
+				currentlyHiddenVerts.removeAll(this.everRevealedVertices);
+				Pool realInternalPool = fullPool.makeSubPool( currentlyHiddenVerts );
 				Solution internalMatch = doInternalMatching(realInternalPool, cycleCap, chainCap, usingFailureProbabilities);
 				
 				// Report only those vertices that weren't matched (so AllVertices - InternallyMatchedVertices)

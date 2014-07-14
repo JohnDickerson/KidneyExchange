@@ -14,6 +14,7 @@ import edu.cmu.cs.dickerson.kpd.io.IRICOutput.Col;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 
@@ -41,32 +42,32 @@ public class DriverIRIC {
 
 		// arrival rate distributions (we record distribution type and mean)
 		List<ArrivalDistribution> arrivalDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(5,15),
-				new UniformArrivalDistribution(15,25),
+				//new UniformArrivalDistribution(5,15),
+				//new UniformArrivalDistribution(15,25),
 				new UniformArrivalDistribution(30,50),
 		});
 
 		// life expectancy distributions (we record distribution type and mean)
 		List<ArrivalDistribution> lifeExpectancyDistList = Arrays.asList(new ArrivalDistribution[] {
 				new UniformArrivalDistribution(1,1), // die after one round
-				new UniformArrivalDistribution(1,11),
-				new UniformArrivalDistribution(1,21),
-				new UniformArrivalDistribution(1,31),
+				//new UniformArrivalDistribution(1,11),
+				//new UniformArrivalDistribution(1,21),
+				//new UniformArrivalDistribution(1,31),
 		});
 
 		// Cycle and chain limits
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				0,
+				//0,
 				4,
 		});
 
 		// How many time periods should the simulation have?
-		int simTimePeriods = 100;
-						
+		int simTimePeriods = 1000;
+
 		// Number of repetitions for each parameter vector
 		int numReps = 25; 
 
-		
+
 		// Store output
 		String path = "iric_" + System.currentTimeMillis() + ".csv";
 		IRICOutput out = null;
@@ -80,7 +81,7 @@ public class DriverIRIC {
 		long seedMain = System.currentTimeMillis();
 		long seedLife = System.currentTimeMillis()+69149;
 		long seedArrival = System.currentTimeMillis()+104711;
-		
+
 		for(int numHospitals : numHospitalsList) {
 			for(int chainCap : chainCapList) {
 				for(PoolGenerator gen : genList) {
@@ -94,14 +95,14 @@ public class DriverIRIC {
 
 								// Hold seeds constant across similar runs
 								seedLife++; seedArrival++; seedMain++;
-								
+
 								// Compare truthful vs. non-truthful reporting
 								for(Boolean isTruthful : Arrays.asList(new Boolean[] { Boolean.TRUE, Boolean.FALSE })) {
-									
+
 									r.setSeed(seedMain);
 									arrivalDist.getRandom().setSeed(seedArrival);
 									lifeExpectancyDist.getRandom().setSeed(seedLife);
-									
+
 									int meanLifeExpectancy = lifeExpectancyDist.expectedDraw();
 
 									// Create a set of |H| truthful hospitals, with urand arrival rates
@@ -112,7 +113,7 @@ public class DriverIRIC {
 										hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, isTruthful) );
 									}
 									totalExpectedPairsPerPeriod /= hospitals.size();
-									
+
 									// Create an altruistic donor input arrival
 									double pctAlts = 0.05;
 									int expectedAltsPerPeriodMin = (int) Math.rint((pctAlts - (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
@@ -128,10 +129,19 @@ public class DriverIRIC {
 											meanLifeExpectancy, 
 											r);
 
-									// Run a bunch of times
-									int numMatched = sim.run(simTimePeriods);
-									
-									
+
+									int numMatched = -1;
+									try {
+										// Run a bunch of times
+										numMatched = sim.run(simTimePeriods);
+									} catch(SolverException e) {
+										IOUtil.dPrintln("Exception: " + e);
+									}
+									if(numMatched < 0) { continue; }
+
+									out.set(Col.SEED_MAIN, seedMain);
+									out.set(Col.SEED_ARRIVAL, seedArrival);
+									out.set(Col.SEED_LIFE, seedLife);
 									out.set(Col.CYCLE_CAP, 3);
 									out.set(Col.CHAIN_CAP, chainCap);
 									out.set(Col.GENERATOR, gen.toString());
@@ -143,7 +153,7 @@ public class DriverIRIC {
 									out.set(Col.LIFE_EXPECTANCY_DIST, lifeExpectancyDist);
 									out.set(Col.LIFE_EXPECTANCY_MEAN, lifeExpectancyDist.expectedDraw());
 									out.set(Col.NUM_MATCHED, numMatched);
-									
+
 									// Write the  row of data
 									try {
 										out.record();
@@ -152,10 +162,10 @@ public class DriverIRIC {
 										e.printStackTrace();
 										System.exit(-1);
 									}
-									
+
 								} // end of truthful/non-truthful hospital switch
-								
-								
+
+
 							} // numReps
 						} // lifeExpectancyDistList
 					} // arrivalDistList
@@ -164,5 +174,5 @@ public class DriverIRIC {
 		} // numHospitalsList
 
 	} // end of main method
-	
+
 }

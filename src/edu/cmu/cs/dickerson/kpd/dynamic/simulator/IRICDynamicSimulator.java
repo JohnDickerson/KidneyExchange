@@ -14,6 +14,7 @@ import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalVertexInfo;
+import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -40,7 +41,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	}
 
 
-	public int run(int timeLimit) {
+	public int run(int timeLimit) throws SolverException {
 
 		// Empty pool (add/remove vertices in the tick method)
 		Pool pool = new Pool(Edge.class);
@@ -54,7 +55,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 		int totalExternalNumVertsMatched = 0;
 		int totalInternalNumVertsMatched = 0;
 		for(int timeIdx=0; timeIdx<timeLimit; timeIdx++) {
-			logger.info("Time period: " + timeIdx);
+			logger.info("\n\n*** Time period: " + timeIdx + " ***\n\n");
 
 			// Draw new vertex counts for each of the hospitals
 			int totalArrivingPairs = 0;
@@ -132,7 +133,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				
 	}
 
-	public IRSolution tick(Pool pool) {
+	public IRSolution tick(Pool pool) throws SolverException {
 
 		// Run the mechanism on the pool, get a matching
 		IRSolution sol = mechanism.doMatching(pool, this.r);

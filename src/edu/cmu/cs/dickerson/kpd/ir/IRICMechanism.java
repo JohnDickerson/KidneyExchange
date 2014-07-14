@@ -22,11 +22,6 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
-// To start:
-// Everybody dies every timestep
-// No chains
-// No discount
-
 public class IRICMechanism {
 
 	// TODO We assume that all edges are unit weight; the objective value is equal to #pairs matched
@@ -53,11 +48,11 @@ public class IRICMechanism {
 		everRevealedVertices = new HashSet<Vertex>();
 	}
 	
-	public IRSolution doMatching(Pool entirePool) {
+	public IRSolution doMatching(Pool entirePool) throws SolverException {
 		return doMatching(entirePool, new Random());
 	}
 	
-	public IRSolution doMatching(Pool entirePool, Random r) {
+	public IRSolution doMatching(Pool entirePool, Random r) throws SolverException {
 
 		//
 		// Initial credit balance update based on reported types
@@ -98,7 +93,7 @@ public class IRICMechanism {
 				internalMatch = hospital.doInternalMatching(reportedInternalPool, this.cycleCap, this.chainCap, false);
 			} catch(SolverException e) {
 				e.printStackTrace();
-				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				throw new SolverException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
 			hospitalInfo.maxReportedInternalMatchSize = Cycle.getConstituentVertices(
 					internalMatch.getMatching(), reportedInternalPool).size();  // recording match SIZE, not UTILITY [for now]
@@ -114,7 +109,7 @@ public class IRICMechanism {
 						maxPrivateInternalMatch.getMatching(), privatePublicPool).size();
 			} catch(SolverException e) {
 				e.printStackTrace();
-				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on public+private reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				throw new SolverException("Unrecoverable error solving cycle packing problem on public+private reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
 			
 			// Initialize remaining details and record
@@ -141,7 +136,7 @@ public class IRICMechanism {
 			
 		} catch(SolverException e) {
 			e.printStackTrace();
-			throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem for max s.t. only IR; experiments are bunk.\nOriginal Message: " + e.getMessage());
+			throw new SolverException("Unrecoverable error solving cycle packing problem for max s.t. only IR; experiments are bunk.\nOriginal Message: " + e.getMessage());
 		}
 		// Constrain future matchings to include at least as many vertices as were in the all-IR matching
 		int maxMatchingNumPairs = Cycle.getConstituentVertices(allIRMatching.getMatching(), entireReportedPool).size();
@@ -168,7 +163,7 @@ public class IRICMechanism {
 				//}
 			} catch(SolverException e) {
 				e.printStackTrace();
-				throw new SolverRuntimeException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				throw new SolverException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
 			assert(solMax != null);
 			assert(solMin != null);

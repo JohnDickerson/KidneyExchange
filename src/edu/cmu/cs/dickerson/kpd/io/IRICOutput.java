@@ -5,6 +5,9 @@ import java.io.IOException;
 public class IRICOutput extends Output {
 	
 	public enum Col implements OutputCol { 
+		SEED_MAIN,
+		SEED_ARRIVAL,
+		SEED_LIFE,
 		CYCLE_CAP,
 		CHAIN_CAP,
 		GENERATOR,
@@ -24,6 +27,9 @@ public class IRICOutput extends Output {
 
 	public static String[] getHeader() {
 		String[] header = new String[Col.values().length];
+		header[Col.SEED_MAIN.getColIdx()] = "Seed (Main)";
+		header[Col.SEED_ARRIVAL.getColIdx()] = "Seed (Arrival Rate)";
+		header[Col.SEED_LIFE.getColIdx()] = "Seed (Life Expectancy)";
 		header[Col.CYCLE_CAP.getColIdx()] = "Cycle Cap";
 		header[Col.CHAIN_CAP.getColIdx()] = "Chain Cap";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
