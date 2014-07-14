@@ -32,6 +32,11 @@ public class CycleFormulationCPLEXSolver extends CPLEXSolver {
 
 		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation IP.");
 
+		// If no cycles, problem is possibly unbounded; return 0-value empty solution
+		if(cycles.size() == 0) {
+			return new Solution(0,0,new HashSet<Cycle>());
+		}
+		
 		try {
 			super.initializeCPLEX();
 

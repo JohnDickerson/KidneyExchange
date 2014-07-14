@@ -57,7 +57,7 @@ public abstract class CPLEXSolver extends Solver {
 			return sol;
 
 		} else {
-			throw new SolverException("cplex.solve() returned false.");
+			throw new SolverException("cplex.solve() returned false.\n"+cplex.getCplexStatus());
 		}
 	}
 

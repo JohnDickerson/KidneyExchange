@@ -35,7 +35,8 @@ public class DriverIRIC {
 
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
-				2, 3, 4, 5, 10, 15, 20,
+				//2, 3,
+				4, 5, 10, 15, 20,
 		});
 
 		// arrival rate distributions (we record distribution type and mean)

@@ -4,6 +4,7 @@ import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +42,12 @@ public class IRCPLEXSolver extends CPLEXSolver {
 			throw new IllegalArgumentException("The set of hospital constraints does not contain distinguished hospital " + distinguishedHospital);
 		}
 
+		// Unbounded problem if no cycles, return
+		if(cycles.size() == 0) {
+			return new Solution(0,0,new HashSet<Cycle>());
+		}
 
+		
 		try {
 			super.initializeCPLEX();
 
