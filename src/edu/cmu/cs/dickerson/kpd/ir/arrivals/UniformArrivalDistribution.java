@@ -34,6 +34,6 @@ public class UniformArrivalDistribution extends ArrivalDistribution {
 
 	@Override
 	public String toString() {
-		return "Uniform( [" + min + ", " + max + "] )";
+		return "Uniform( [" + min + " " + max + "] )";
 	}
 }

@@ -40,7 +40,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	}
 
 
-	public void run(int timeLimit) {
+	public int run(int timeLimit) {
 
 		// Empty pool (add/remove vertices in the tick method)
 		Pool pool = new Pool(Edge.class);
@@ -128,7 +128,8 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				+ totalExternalNumVertsMatched + " external vertices,\n"
 				+ totalInternalNumVertsMatched + " internal vertices,\n"
 				+ (totalExternalNumVertsMatched+totalInternalNumVertsMatched) + " total vertices.");
-
+		return totalExternalNumVertsMatched+totalInternalNumVertsMatched;
+				
 	}
 
 	public IRSolution tick(Pool pool) {

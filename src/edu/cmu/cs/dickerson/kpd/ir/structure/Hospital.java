@@ -58,7 +58,7 @@ public class Hospital implements Comparable<Hospital> {
 				(new CycleFormulationCPLEXSolver(reducedPool, internalCycles, 
 						new CycleMembership(reducedPool, internalCycles))).solve();
 
-		if(!MathUtil.isInteger(internalMatch.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
+		//if(!MathUtil.isInteger(internalMatch.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
 		return internalMatch;
 	}
 

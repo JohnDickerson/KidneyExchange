@@ -31,4 +31,8 @@ public abstract class ArrivalDistribution {
 	public int getMax() {
 		return max;
 	}
+
+	public Random getRandom() {
+		return random;
+	}
 }

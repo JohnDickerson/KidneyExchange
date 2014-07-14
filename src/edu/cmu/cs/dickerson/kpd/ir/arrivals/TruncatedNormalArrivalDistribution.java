@@ -52,6 +52,7 @@ public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
 
 	@Override
 	public String toString() {
-		return "TruncatedNormal( [" + min + ", " + max + "], stdev=" + stdevTrunc + ")";
+		return "TruncatedNormal( [" + min + " " + max + "] stdev=" + stdevTrunc + ")";
 	}
+	
 }
