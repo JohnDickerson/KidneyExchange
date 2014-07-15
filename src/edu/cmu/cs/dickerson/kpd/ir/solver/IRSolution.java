@@ -1,6 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.ir.solver;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
@@ -37,6 +38,10 @@ public class IRSolution extends Solution {
 		}
 	}
 
+	public Set<Hospital> getHospitals() {
+		return hospInfoMap.keySet();
+	}
+	
 	/**
 	 * @return total number of vertices matched publicly by mechanism (not including altruistic donors)
 	 */

@@ -51,6 +51,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			hospital.reset();
 		}
 		mechanism.reset();
+		IRICDynamicSimulatorData results = new IRICDynamicSimulatorData();
 		
 		int totalExternalNumVertsMatched = 0;
 		int totalInternalNumVertsMatched = 0;
@@ -106,10 +107,13 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			
 			// Evolve pool and run the IRIC Mechanism on it
 			IRSolution sol = tick(pool);
-
 			totalExternalNumVertsMatched += sol.getNumMatchedByMechanism();
 			totalInternalNumVertsMatched += sol.getNumMatchedInternally();
 			logger.info("Time period: " + timeIdx + ", Vertices matched: " + sol.getNumMatchedByMechanism());
+			
+			// Record results for experimental stuff
+			results.getNumMatchedSoFar().add(totalExternalNumVertsMatched+totalInternalNumVertsMatched);
+			results.registerTimePeriod(sol);
 			
 			// Remove any matched vertices from pool + hospitals
 			Set<Vertex> toRemove = new HashSet<Vertex>(Cycle.getConstituentVertices(sol.getMatching(), pool));
@@ -130,7 +134,6 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				+ totalInternalNumVertsMatched + " internal vertices,\n"
 				+ (totalExternalNumVertsMatched+totalInternalNumVertsMatched) + " total vertices.");
 		
-		IRICDynamicSimulatorData results = new IRICDynamicSimulatorData();
 		results.setTotalExternalNumVertsMatched(totalExternalNumVertsMatched);
 		results.setTotalInternalNumVertsMatched(totalInternalNumVertsMatched);
 		results.setTotalNumVertsMatched(totalExternalNumVertsMatched+totalInternalNumVertsMatched);

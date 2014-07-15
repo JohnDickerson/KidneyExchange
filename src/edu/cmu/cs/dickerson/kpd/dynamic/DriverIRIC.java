@@ -38,7 +38,7 @@ public class DriverIRIC {
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
 				2, 3,
-				4, 5, 10, 15, 20,
+				//4, 5, 10, 15, 20,
 		});
 
 		// arrival rate distributions (we record distribution type and mean)
@@ -97,6 +97,18 @@ public class DriverIRIC {
 								// Hold seeds constant across similar runs
 								seedLife++; seedArrival++; seedMain++;
 
+								int meanLifeExpectancy = lifeExpectancyDist.expectedDraw();
+
+								// Create a set of |H| truthful hospitals, with urand arrival rates
+								int totalExpectedPairsPerPeriod = 0;
+								Set<Hospital> hospitals = new HashSet<Hospital>();
+								for(int idx=0; idx<numHospitals; idx++) {
+									totalExpectedPairsPerPeriod += arrivalDist.expectedDraw();
+									hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, true) );
+								}
+								totalExpectedPairsPerPeriod /= hospitals.size();
+
+								IRICDynamicSimulatorData truthfulRes = null;  // keep track of truthful mechanism's results
 								// Compare truthful vs. non-truthful reporting
 								for(Boolean isTruthful : Arrays.asList(new Boolean[] { Boolean.TRUE, Boolean.FALSE })) {
 
@@ -104,17 +116,12 @@ public class DriverIRIC {
 									arrivalDist.getRandom().setSeed(seedArrival);
 									lifeExpectancyDist.getRandom().setSeed(seedLife);
 
-									int meanLifeExpectancy = lifeExpectancyDist.expectedDraw();
-
-									// Create a set of |H| truthful hospitals, with urand arrival rates
-									int totalExpectedPairsPerPeriod = 0;
-									Set<Hospital> hospitals = new HashSet<Hospital>();
-									for(int idx=0; idx<numHospitals; idx++) {
-										totalExpectedPairsPerPeriod += arrivalDist.expectedDraw();
-										hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, isTruthful) );
+									// Reset hospitals and set their truthfulness
+									for(Hospital h : hospitals) {
+										h.reset();
+										h.setTruthful(isTruthful);
 									}
-									totalExpectedPairsPerPeriod /= hospitals.size();
-
+									
 									// Create an altruistic donor input arrival
 									double pctAlts = 0.05;
 									int expectedAltsPerPeriodMin = (int) Math.rint((pctAlts - (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
@@ -139,12 +146,14 @@ public class DriverIRIC {
 										IOUtil.dPrintln("Exception: " + e);
 									}
 									if(null==res) { continue; }
-
+									if(isTruthful) { truthfulRes = res; }
+									
 									out.set(Col.SEED_MAIN, seedMain);
 									out.set(Col.SEED_ARRIVAL, seedArrival);
 									out.set(Col.SEED_LIFE, seedLife);
 									out.set(Col.CYCLE_CAP, 3);
 									out.set(Col.CHAIN_CAP, chainCap);
+									out.set(Col.PCT_ALTRUISTS, pctAlts);
 									out.set(Col.GENERATOR, gen.toString());
 									out.set(Col.NUM_HOSPITALS, numHospitals);
 									out.set(Col.FRAC_TRUTHFUL_HOSPITALS, isTruthful ? "1.0" : "0.0");
@@ -157,6 +166,31 @@ public class DriverIRIC {
 									out.set(Col.NUM_INTERNALLY_MATCHED, res.getTotalInternalNumVertsMatched());
 									out.set(Col.NUM_EXTERNALLY_MATCHED, res.getTotalExternalNumVertsMatched());
 									
+									// If this is the non-truthful run, figure out when it was dominated by the truthful run
+									if(isTruthful || null == truthfulRes) {
+										out.set(Col.OVERALL_DOMINATED_TIME_PERIOD, -1);
+										out.set(Col.AVG_HOSPITAL_DOMINATED_TIME_PERIOD, -1.0);
+									} else {
+										// Compute when the total # matches started dominating
+										int dominatedPeriod = DriverIRIC.getDominatedPeriod(
+												truthfulRes.getNumMatchedSoFar(), res.getNumMatchedSoFar(), 10);
+										System.out.println(truthfulRes.getNumMatchedSoFar());
+										System.out.println(res.getNumMatchedSoFar());
+										System.out.println(dominatedPeriod);
+										System.exit(-1);
+										out.set(Col.OVERALL_DOMINATED_TIME_PERIOD, dominatedPeriod);
+										
+										// Compute the average period of domination on a per-hospital basis, non-dominated = max period
+										int hospDomTimePeriodCt=0;
+										for(Hospital h : hospitals) {
+											int domPeriod = DriverIRIC.getDominatedPeriod(
+													truthfulRes.getHospNumMatchSoFar().get(h), res.getHospNumMatchSoFar().get(h), 10);
+											if(domPeriod < 0) { domPeriod = simTimePeriods; }
+											hospDomTimePeriodCt += domPeriod;
+										}
+										double avgHospDomTimePeriod = hospDomTimePeriodCt / (double) hospitals.size();
+										out.set(Col.AVG_HOSPITAL_DOMINATED_TIME_PERIOD, avgHospDomTimePeriod);
+									}
 									// Write the  row of data
 									try {
 										out.record();
@@ -178,4 +212,26 @@ public class DriverIRIC {
 
 	} // end of main method
 
+	
+	/**
+	 * Determines if one list dominates another list started at a certain time period, going on
+	 * for a certain number of time periods.  Returns the first index of domination (or -1).
+	 * @param dominator
+	 * @param dominatee
+	 * @param domMaxPeriods
+	 * @return
+	 */
+	public static int getDominatedPeriod(List<Integer> dominator, List<Integer> dominatee, final int domMaxPeriods) {
+		int dominatedCtr=0; int dominatedPeriod = -1;
+		for(int timeIdx=0; timeIdx<dominator.size(); timeIdx++) {
+			// If truthful>non-truthful for enough rounds, consider it dominated
+			if(dominator.get(timeIdx) >= dominatee.get(timeIdx)) {
+				dominatedCtr++;
+			} else {
+				dominatedCtr = 0;
+			}
+			if(dominatedCtr >= domMaxPeriods) { dominatedPeriod = (timeIdx-dominatedCtr); break; }
+		}
+		return dominatedPeriod;
+	}
 }

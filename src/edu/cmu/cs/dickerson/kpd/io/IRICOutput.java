@@ -10,6 +10,7 @@ public class IRICOutput extends Output {
 		SEED_LIFE,
 		CYCLE_CAP,
 		CHAIN_CAP,
+		PCT_ALTRUISTS,
 		GENERATOR,
 		NUM_HOSPITALS,
 		FRAC_TRUTHFUL_HOSPITALS,
@@ -21,6 +22,8 @@ public class IRICOutput extends Output {
 		NUM_MATCHED,
 		NUM_EXTERNALLY_MATCHED,
 		NUM_INTERNALLY_MATCHED,
+		OVERALL_DOMINATED_TIME_PERIOD,
+		AVG_HOSPITAL_DOMINATED_TIME_PERIOD
 		;
 		public int getColIdx() { return this.ordinal(); }
 	}
@@ -32,6 +35,7 @@ public class IRICOutput extends Output {
 		header[Col.SEED_LIFE.getColIdx()] = "Seed (Life Expectancy)";
 		header[Col.CYCLE_CAP.getColIdx()] = "Cycle Cap";
 		header[Col.CHAIN_CAP.getColIdx()] = "Chain Cap";
+		header[Col.PCT_ALTRUISTS.getColIdx()] = "Pct Altruists";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
 		header[Col.NUM_HOSPITALS.getColIdx()] = "Num Hospitals";
 		header[Col.FRAC_TRUTHFUL_HOSPITALS.getColIdx()] = "Fraction Truthful Hospitals";
@@ -43,6 +47,8 @@ public class IRICOutput extends Output {
 		header[Col.NUM_MATCHED.getColIdx()] = "Num Matched";
 		header[Col.NUM_EXTERNALLY_MATCHED.getColIdx()] = "Num Matched Externally";
 		header[Col.NUM_INTERNALLY_MATCHED.getColIdx()] = "Num Matched Internally";
+		header[Col.OVERALL_DOMINATED_TIME_PERIOD.getColIdx()] = "Overall Dominated (Time Period)";
+		header[Col.AVG_HOSPITAL_DOMINATED_TIME_PERIOD.getColIdx()] = "Avg Hospital Dominatd (Time Period)";
 		return header;
 	}
 	
