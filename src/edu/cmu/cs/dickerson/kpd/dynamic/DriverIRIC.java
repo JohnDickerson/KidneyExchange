@@ -174,10 +174,6 @@ public class DriverIRIC {
 										// Compute when the total # matches started dominating
 										int dominatedPeriod = DriverIRIC.getDominatedPeriod(
 												truthfulRes.getNumMatchedSoFar(), res.getNumMatchedSoFar(), 10);
-										System.out.println(truthfulRes.getNumMatchedSoFar());
-										System.out.println(res.getNumMatchedSoFar());
-										System.out.println(dominatedPeriod);
-										System.exit(-1);
 										out.set(Col.OVERALL_DOMINATED_TIME_PERIOD, dominatedPeriod);
 										
 										// Compute the average period of domination on a per-hospital basis, non-dominated = max period
@@ -230,7 +226,7 @@ public class DriverIRIC {
 			} else {
 				dominatedCtr = 0;
 			}
-			if(dominatedCtr >= domMaxPeriods) { dominatedPeriod = (timeIdx-dominatedCtr); break; }
+			if(dominatedCtr >= domMaxPeriods) { dominatedPeriod = (timeIdx-dominatedCtr+1); break; }
 		}
 		return dominatedPeriod;
 	}
