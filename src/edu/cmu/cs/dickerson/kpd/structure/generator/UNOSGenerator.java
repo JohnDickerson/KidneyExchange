@@ -21,6 +21,9 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
+import edu.cmu.cs.dickerson.kpd.structure.real.sampler.ExactSplitUNOSSampler;
+import edu.cmu.cs.dickerson.kpd.structure.real.sampler.RealSplitUNOSSampler;
+import edu.cmu.cs.dickerson.kpd.structure.real.sampler.UNOSSampler;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 // TODO    Invariance assumptions for generator:
@@ -91,19 +94,32 @@ public class UNOSGenerator extends PoolGenerator {
 		return pool;
 	}
 
+	/**
+	 * Adds N new vertices to the pool, of which exactly numPairs are pairs and numAltruists are
+	 * altruists, sampled from the base UNOS set of pairs and altruists
+	 */
 	@Override
 	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		// We sample from data, so we don't control #pairs or #altruists
-		return addVerticesToPool(pool, numPairs+numAltruists);
+		return addVerticesToPool(pool, numPairs+numAltruists, 
+				new ExactSplitUNOSSampler(this.pairs,this.random,numPairs,numAltruists));
 	}
 	
+	/**
+	 * Adds N new vertices to the pool, sampling from the base UNOS distribution of alts and pairs
+	 */
 	public Set<Vertex> addVerticesToPool(Pool pool, int numNewVerts) {
+		return addVerticesToPool(pool, numNewVerts, 
+				new RealSplitUNOSSampler(this.pairs,this.random));
+	}
+	
+	
+	public Set<Vertex> addVerticesToPool(Pool pool, int numNewVerts, UNOSSampler sampler) {
 		Set<Vertex> newVerts = new HashSet<Vertex>();
 		for(int idx=0; idx<numNewVerts; idx++) {
 
 			// Sample a pair from the real data, make it a new pool Vertex
-			int rndPairIdx = this.random.nextInt(pairs.size());
-			UNOSPair samplePair = pairs.get( rndPairIdx );
+			UNOSPair samplePair = sampler.takeSample();
 
 			// Spawn a new unique Vertex linked back to the underlying UNOSPair
 			Vertex sampleVert = samplePair.toBaseVertex(this.currentVertexID++);

@@ -40,6 +40,7 @@ public class IRICMechanism {
 		this.hospitals = hospitals;	
 		this.cycleCap = cycleCap;  // internal and external matching cycle limit
 		this.chainCap = chainCap;  // internal and external matching chain limit
+		this.meanLifeExpectancy = meanLifeExpectancy;
 		this.reset();
 	}
 

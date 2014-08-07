@@ -71,7 +71,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			int totalArrivingAlts = altArrivalDist.draw();
 			
 			// Generate a pool and assign vertices to each hospital
-			Set<Vertex> newVerts = poolGen.addVerticesToPool(pool, totalArrivingPairs, totalArrivingAlts); // need to change this if we starting using UNOS Gen (because altruists)
+			Set<Vertex> newVerts = poolGen.addVerticesToPool(pool, totalArrivingPairs, totalArrivingAlts); 
 			Iterator<Vertex> vIt = newVerts.iterator();
 			for(Hospital hospital : hospitals) {
 				int newVertCt = vertArrivalMap.get(hospital);
