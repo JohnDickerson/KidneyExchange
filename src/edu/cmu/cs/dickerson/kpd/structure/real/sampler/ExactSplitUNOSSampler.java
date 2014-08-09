@@ -20,9 +20,12 @@ public class ExactSplitUNOSSampler extends UNOSSampler {
 			UNOSPair samplePair = pairs.get( r.nextInt(pairs.size()) );
 			
 			// Keep the pair or altruist if we need it, otherwise ignore and repeat
-			if( (samplePair.isAltruist() && altCt<numAlts) || 
-					(pairCt<numPairs) ) {
+			if( samplePair.isAltruist() && altCt<numAlts ) {
 				sampledPairs.add(samplePair);
+				altCt++;
+			} else if( !samplePair.isAltruist() && pairCt<numPairs) {
+				sampledPairs.add(samplePair);
+				pairCt++;
 			} else {
 				// We have enough of this vertex type already; resample until we hit a different kind
 			}

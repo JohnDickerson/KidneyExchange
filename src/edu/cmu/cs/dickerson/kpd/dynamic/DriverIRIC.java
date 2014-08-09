@@ -18,6 +18,7 @@ import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 /**
  * Credit-based mechanism paper experiments.
@@ -32,7 +33,8 @@ public class DriverIRIC {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				new SaidmanPoolGenerator(r),
+				//new SaidmanPoolGenerator(r),
+				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		// list of |H|s we'll iterate over

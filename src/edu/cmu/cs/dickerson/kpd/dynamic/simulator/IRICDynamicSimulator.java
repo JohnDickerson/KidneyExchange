@@ -72,6 +72,7 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 			
 			// Generate a pool and assign vertices to each hospital
 			Set<Vertex> newVerts = poolGen.addVerticesToPool(pool, totalArrivingPairs, totalArrivingAlts); 
+			
 			Iterator<Vertex> vIt = newVerts.iterator();
 			for(Hospital hospital : hospitals) {
 				int newVertCt = vertArrivalMap.get(hospital);
