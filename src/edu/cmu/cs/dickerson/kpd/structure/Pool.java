@@ -179,6 +179,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			PrintWriter writerDetails = new PrintWriter(baseFileName + "-vertex-details.input", "UTF-8");
 			writerDetails.println("ID ABO-Patient ABO-Donor Wife-Patient? PRA In-Degree Out-degree Is-altruist? Marginalized?");
 			Set<Vertex> marginalizedVerts = DriverKDD.getMarginalizedVertices(this);
+			//Set<Vertex> marginalizedVerts = new HashSet<Vertex>();
 			
 			for(Vertex v : this.vertexSet()) {
 				// <donor_id> <max_pairs_cycle> <max_pairs_chain> <home-ctr-ID>

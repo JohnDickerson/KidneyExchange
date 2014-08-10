@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
@@ -25,7 +26,7 @@ public class UNOSLoaderTest {
 		UNOSLoader loader = new UNOSLoader(',');
 
 		// Change this to reflect base loading path for UNOS files
-		String basePath = "C:\\amem\\kpd\\files_real_runs\\zips\\KPD_CSV_IO_091012\\";
+		String basePath = IOUtil.getBaseUNOSFilePath() + "/KPD_CSV_IO_091012/";
 		String donorFilePath = basePath + "20120910_donor.csv";
 		String recipientFilePath = basePath + "20120910_recipient.csv";
 		String edgeFilePath = basePath + "31_edgeweights.csv";
@@ -41,6 +42,8 @@ public class UNOSLoaderTest {
 		// Check vertex sizes, edge counts, etc
 		assertTrue(184 == pool.getNumPairs());
 		assertTrue(7 == pool.getNumAltruists());
+		
+		//pool.writeToUNOSKPDFile("unos20120910");
 	}
 
 }
