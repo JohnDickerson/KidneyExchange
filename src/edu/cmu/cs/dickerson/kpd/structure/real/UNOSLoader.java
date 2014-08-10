@@ -105,6 +105,9 @@ public class UNOSLoader {
 					// If the donor is paired, add to the respective candidate's donor list
 					String candidateID = line[DonorIdx.CANDIDATE_ID.idx()].trim();
 					donorToCand.put(donorID, candidateID);
+					// Update vertex blood type for the donor
+					VertexPair vp = (VertexPair) idToVertex.get( strIDtoIntID.get(donorToCand.get(donorID) ));
+					vp.setBloodTypeDonor(donorBloodType);
 				}
 				
 			}

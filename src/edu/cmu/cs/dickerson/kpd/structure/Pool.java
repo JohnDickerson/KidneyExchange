@@ -223,4 +223,56 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 
 	}
+	
+	
+	/**
+	 * Writes the underlying pool to a NetworkX viz-friendly file format
+	 * @param baseFileName
+	 */
+	public void writeToVizFile(String baseFileName) {
+		try {
+			PrintWriter writer = new PrintWriter(baseFileName + ".edges", "UTF-8");
+
+			// Legacy code requires vertices in sorted order by ID
+			List<Vertex> allVertsSorted = new ArrayList<Vertex>(this.vertexSet());
+			Collections.sort(allVertsSorted);
+
+			for(Vertex src : allVertsSorted) {
+				for(Edge e : this.outgoingEdgesOf(src)) {
+
+					Vertex dst = this.getEdgeTarget(e);
+					double weight = this.getEdgeWeight(e);
+					int isDummy = dst.isAltruist() ? 1 : 0;
+					// <src-vert> <sink-vert> <edge-weight> <is-dummy>
+					writer.println(src.getID() + "," + dst.getID() + "," + weight + "," + isDummy);
+				}
+			}
+			writer.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		// Vertex preferences and details files for UNOS runs
+		try {
+			PrintWriter writer = new PrintWriter(baseFileName + ".verts", "UTF-8");
+
+			for(Vertex v : this.vertexSet()) {
+	
+				// <vert> <patient-ABO> <donor-ABO>
+				if(v.isAltruist()) {
+					writer.println(v.getID() + "," + "-" + "," + ((VertexAltruist)v).getBloodTypeDonor() );
+				} else {
+					writer.println(v.getID() + "," + ((VertexPair)v).getBloodTypePatient() + "," + ((VertexPair)v).getBloodTypeDonor() );
+				}
+			}
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
 }

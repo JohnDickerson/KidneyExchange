@@ -31,6 +31,7 @@ public class UNOSLoaderTest {
 		String recipientFilePath = basePath + "20120910_recipient.csv";
 		String edgeFilePath = basePath + "31_edgeweights.csv";
 
+		
 		Pool pool = null;
 		try {
 			pool = loader.loadFromFile(donorFilePath, recipientFilePath, edgeFilePath);
@@ -43,7 +44,7 @@ public class UNOSLoaderTest {
 		assertTrue(184 == pool.getNumPairs());
 		assertTrue(7 == pool.getNumAltruists());
 		
-		//pool.writeToUNOSKPDFile("unos20120910");
+		//pool.writeToVizFile("unos20120910");
 	}
 
 }

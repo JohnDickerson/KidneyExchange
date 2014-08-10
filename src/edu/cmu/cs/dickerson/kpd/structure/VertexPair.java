@@ -6,8 +6,8 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 public class VertexPair extends Vertex {
 	
 	// Blood types for the patient and donor in the pair
-	private final BloodType bloodTypePatient;
-	private final BloodType bloodTypeDonor;
+	private BloodType bloodTypePatient;
+	private BloodType bloodTypeDonor;
 	
 	// Patient's calculated probability of positive crossmatch, scaled [0,1]
 	private final double patientCPRA;
@@ -60,4 +60,14 @@ public class VertexPair extends Vertex {
 	public boolean isCompatible() {
 		return isCompatible;
 	}
+
+	public void setBloodTypePatient(BloodType bloodTypePatient) {
+		this.bloodTypePatient = bloodTypePatient;
+	}
+
+	public void setBloodTypeDonor(BloodType bloodTypeDonor) {
+		this.bloodTypeDonor = bloodTypeDonor;
+	}
+	
+	
 }
