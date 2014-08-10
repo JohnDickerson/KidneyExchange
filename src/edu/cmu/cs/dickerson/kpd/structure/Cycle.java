@@ -140,6 +140,5 @@ public class Cycle {
 		return vertices;
 	}
 	
-	
 } // end of class
 

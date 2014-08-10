@@ -9,12 +9,12 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalInfo;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
-import edu.cmu.cs.dickerson.kpd.solver.exception.SolverRuntimeException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -96,8 +96,8 @@ public class IRICMechanism {
 				e.printStackTrace();
 				throw new SolverException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
-			hospitalInfo.maxReportedInternalMatchSize = Cycle.getConstituentVertices(
-					internalMatch.getMatching(), reportedInternalPool).size();  // recording match SIZE, not UTILITY [for now]
+			hospitalInfo.maxReportedInternalMatchSize = Vertex.countPatientDonorPairs( Cycle.getConstituentVertices(
+					internalMatch.getMatching(), reportedInternalPool) );  // recording match SIZE, not UTILITY [for now], altruists count for nothing
 			hospitalInfo.minRequiredNumPairs = hospitalInfo.maxReportedInternalMatchSize;
 			
 			
@@ -106,8 +106,8 @@ public class IRICMechanism {
 			try {
 				Pool privatePublicPool = entirePool.makeSubPool(hospital.getPublicAndPrivateVertices());
 				maxPrivateInternalMatch = hospital.doInternalMatching(privatePublicPool, this.cycleCap, this.chainCap, false);
-				hospitalInfo.maxPossibleInternalMatchSize = Cycle.getConstituentVertices(
-						maxPrivateInternalMatch.getMatching(), privatePublicPool).size();
+				hospitalInfo.maxPossibleInternalMatchSize =  Vertex.countPatientDonorPairs( 
+						Cycle.getConstituentVertices( maxPrivateInternalMatch.getMatching(), privatePublicPool) );  // don't count altruists
 			} catch(SolverException e) {
 				e.printStackTrace();
 				throw new SolverException("Unrecoverable error solving cycle packing problem on public+private reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
@@ -140,7 +140,9 @@ public class IRICMechanism {
 			throw new SolverException("Unrecoverable error solving cycle packing problem for max s.t. only IR; experiments are bunk.\nOriginal Message: " + e.getMessage());
 		}
 		// Constrain future matchings to include at least as many vertices as were in the all-IR matching
-		int maxMatchingNumPairs = Cycle.getConstituentVertices(allIRMatching.getMatching(), entireReportedPool).size();
+		int maxMatchingNumPairs = Vertex.countPatientDonorPairs(
+				Cycle.getConstituentVertices(allIRMatching.getMatching(), entireReportedPool)
+				);
 		
 
 		// Random permutation of hospitals
@@ -164,7 +166,9 @@ public class IRICMechanism {
 				//}
 			} catch(SolverException e) {
 				e.printStackTrace();
-				throw new SolverException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				IOUtil.dPrintln(infoMap.get(hospital));
+				throw new SolverException("Unrecoverable error solving cycle packing problem on reported pool of " + hospital + 
+						" optimizing for " + (null==solMax ? "MAX" : "MIN") + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
 			assert(solMax != null);
 			assert(solMin != null);

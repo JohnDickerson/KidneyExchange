@@ -61,12 +61,12 @@ public class IRCPLEXSolver extends CPLEXSolver {
 				if(null == distinguishedHospital) {
 					// If there is no distinguished hospital, we are doing a max #vertices matched; weights
 					// for cycles are just the number of vertices (=# edges, for non-chains) in that cycle
-					weights[cycleIdx++] = c.getEdges().size();
+					weights[cycleIdx++] = c.getWeight();   // ASSUMES UNIT WEIGHTS
 				} else {
 					// If there is a distinguished hospital, we are either max or min-ing the #vertices matched
 					// FOR ONLY that hospital; cycle weights are #vertices belong to hospital
-					weights[cycleIdx++] = Cycle.getConstituentVerticesInSubPool(
-							c, pool, hospInfoMap.get(distinguishedHospital).reportedInternalPool).size();
+					weights[cycleIdx++] = Vertex.countPatientDonorPairs( Cycle.getConstituentVerticesInSubPool(
+							c, pool, hospInfoMap.get(distinguishedHospital).reportedInternalPool) );
 				}
 			}
 
@@ -84,7 +84,7 @@ public class IRCPLEXSolver extends CPLEXSolver {
 				cycleIdx = 0;
 				IloLinearNumExpr sum = cplex.linearNumExpr(); 
 				for(Cycle c : cycles) {
-					sum.addTerm(c.getEdges().size(), x[cycleIdx++]);  // weight of cycle is #ALL vertices in that cycle
+					sum.addTerm(c.getWeight(), x[cycleIdx++]);  // assumes unit weights (specifically 0-weight dummy edge to altruist)
 				}
 				cplex.addGe(sum, minTotalVerticesMatched);
 			}
@@ -116,14 +116,14 @@ public class IRCPLEXSolver extends CPLEXSolver {
 					IloLinearNumExpr sum = cplex.linearNumExpr(); 
 					for(Cycle c : cycles) {
 						sum.addTerm(
-								Cycle.getConstituentVerticesInSubPool(c, pool, hInfo.reportedInternalPool).size()
+								Vertex.countPatientDonorPairs( Cycle.getConstituentVerticesInSubPool(c, pool, hInfo.reportedInternalPool) )  // only patient-donor pairs count
 								, x[cycleIdx++]);  // weight of cycle is #vertices belong to hospital
 					}
 					if(hInfo.minRequiredNumPairs > 0) {
 						cplex.addGe(sum, hInfo.minRequiredNumPairs);
 					}
 					if(hInfo.exactRequiredNumPairs > 0) {
-						cplex.addEq(sum, hInfo.exactRequiredNumPairs);
+						cplex.addGe(sum, hInfo.exactRequiredNumPairs); // temp, change back to .addEq after testing
 					}
 				}
 			}

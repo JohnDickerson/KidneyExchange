@@ -1,5 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
+import java.util.Set;
+
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 
 public abstract class Vertex implements Comparable<Vertex> {
@@ -64,5 +66,25 @@ public abstract class Vertex implements Comparable<Vertex> {
 	@Override
 	public String toString() {
 		return getID().toString();
+	}
+	
+	/**
+	 * @return the number of patient-donor pairs in a set of vertices (pairs and altruists)
+	 */
+	public static int countPatientDonorPairs(Set<Vertex> allVerts) {
+		if(null==allVerts) { return 0; }
+		int pdPairCt=0;
+		for(Vertex v : allVerts) {
+			if(!v.isAltruist()) { pdPairCt++; }
+		}
+		return pdPairCt;
+	}
+	
+	/**
+	 * @return the number of altruists in a set of vertices (pairs and altruists)
+	 */
+	public static int countAltruists(Set<Vertex> allVerts) {
+		if(null==allVerts) { return 0; }
+		return allVerts.size() - Vertex.countPatientDonorPairs(allVerts);
 	}
 }

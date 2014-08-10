@@ -40,26 +40,26 @@ public class DriverIRIC {
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
 				//2, 3,
-				//4, 5, 
+				4, 5, 
 				//10, 15, 
-				20,
+				//20,
 		});
 
 		// arrival rate distributions (we record distribution type and mean)
 		List<ArrivalDistribution> arrivalDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(1,5),
-				//new UniformArrivalDistribution(5,15),
+				//new UniformArrivalDistribution(1,5),
+				new UniformArrivalDistribution(5,15),
 				//new UniformArrivalDistribution(15,25),
 				//new UniformArrivalDistribution(30,50),
 		});
 
 		// life expectancy distributions (we record distribution type and mean)
 		List<ArrivalDistribution> lifeExpectancyDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(1,1), // die after one round
-				new UniformArrivalDistribution(1,11),
+				//new UniformArrivalDistribution(1,1), // die after one round
+				//new UniformArrivalDistribution(1,11),
 				new UniformArrivalDistribution(1,21),
-				new UniformArrivalDistribution(1,31),
-				new UniformArrivalDistribution(1,41),
+				//new UniformArrivalDistribution(1,31),
+				//new UniformArrivalDistribution(1,41),
 		});
 
 		// Cycle and chain limits
