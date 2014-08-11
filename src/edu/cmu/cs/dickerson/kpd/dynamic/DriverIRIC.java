@@ -40,7 +40,7 @@ public class DriverIRIC {
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
 				2, 3,
-				4, 5, 
+				4, 5, 6, 7, 8, 9,
 				10,// 15, 
 				//20,
 		});
@@ -49,8 +49,8 @@ public class DriverIRIC {
 		List<ArrivalDistribution> arrivalDistList = Arrays.asList(new ArrivalDistribution[] {
 				new UniformArrivalDistribution(1,5),
 				new UniformArrivalDistribution(5,15),
-				//new UniformArrivalDistribution(15,25),
-				//new UniformArrivalDistribution(30,50),
+				new UniformArrivalDistribution(15,25),
+				new UniformArrivalDistribution(30,50),
 		});
 
 		// life expectancy distributions (we record distribution type and mean)
@@ -64,7 +64,7 @@ public class DriverIRIC {
 
 		// Cycle and chain limits
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				0,
+				//0,
 				4,
 		});
 
@@ -150,7 +150,7 @@ public class DriverIRIC {
 										res = sim.run(simTimePeriods);
 									} catch(SolverException e) {
 										IOUtil.dPrintln("Exception: " + e);
-										System.exit(-1);
+										//System.exit(-1);
 									}
 									if(null==res) { continue; }
 									if(isTruthful) { truthfulRes = res; }
