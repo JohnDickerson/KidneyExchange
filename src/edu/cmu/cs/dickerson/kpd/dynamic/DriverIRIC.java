@@ -50,7 +50,8 @@ public class DriverIRIC {
 				new UniformArrivalDistribution(1,5),
 				new UniformArrivalDistribution(5,15),
 				new UniformArrivalDistribution(15,25),
-				new UniformArrivalDistribution(30,50),
+				new UniformArrivalDistribution(25,35),	
+				//new UniformArrivalDistribution(30,50),
 		});
 
 		// life expectancy distributions (we record distribution type and mean)
@@ -59,7 +60,7 @@ public class DriverIRIC {
 				new UniformArrivalDistribution(1,11),
 				new UniformArrivalDistribution(1,21),
 				new UniformArrivalDistribution(1,31),
-				new UniformArrivalDistribution(1,41),
+				//new UniformArrivalDistribution(1,41),
 		});
 
 		// Cycle and chain limits
