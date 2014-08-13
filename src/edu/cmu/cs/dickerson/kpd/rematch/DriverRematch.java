@@ -12,6 +12,7 @@ import java.util.Set;
 import com.sun.istack.internal.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -55,6 +56,7 @@ public class DriverRematch {
 		int numPairs = 250;
 		int numAlts = 0;
 		int maxNumRematches = 10;
+		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_EDGES;
 		
 		// Number of repetitions for each parameter vector
 		int numReps = 50;
@@ -125,7 +127,7 @@ public class DriverRematch {
 								pool,
 								cycles,
 								new CycleMembership(pool, cycles))
-								).solve(maxNumRematches);
+								).solve(maxNumRematches, rematchType);
 
 						// Get non-prescient match utilities for increasing number of allowed rematches
 						Set<Edge> edgesToTestSet = new HashSet<Edge>(); // incrementally keep track of edges to test
@@ -139,6 +141,7 @@ public class DriverRematch {
 							out.set(Col.NUM_ALTRUISTS, numAlts);
 							out.set(Col.NUM_EDGES, pool.edgeSet().size());  // will break if we start including chains (dummies)
 							out.set(Col.GENERATOR, gen);
+							out.set(Col.REMATCH_TYPE, rematchType);
 							out.set(Col.FAILURE_RATE, failureRate);
 							out.set(Col.NUM_REMATCHES, numRematches);
 							out.set(Col.ORACLE_MATCH_UTIL, oracleMatchUtil);
@@ -159,8 +162,17 @@ public class DriverRematch {
 									cycles, 
 									new CycleMembership(pool, cycles))
 									).solve();
-							double rematchUtil = rematchSolution.getObjectiveValue();
-							out.set(Col.REMATCH_UTIL, rematchUtil);
+							// Now count the number of matches that actually went to transplant
+							// TODO WILL BREAK IF WE HAVE CHAINS (need to do incremental execution of partial chain failure)
+							double numActualTransplants=0;
+							for(Cycle c : rematchSolution.getMatching()) {
+								boolean failed = false;
+								for(Edge e : c.getEdges()) {
+									failed |= edgeFailedMap.get(e);  // even one edge failure -> entire cycle fails completely
+								}
+								if(!failed) { numActualTransplants += c.getWeight(); } // if cycle succeeds, count all verts in it
+							}
+							out.set(Col.REMATCH_UTIL, numActualTransplants);
 							cycles = null;
 
 							// Write the  row of data

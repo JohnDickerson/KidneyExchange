@@ -14,6 +14,7 @@ public class RematchOutput extends Output {
 		NUM_ALTRUISTS,
 		NUM_EDGES,
 		GENERATOR,
+		REMATCH_TYPE,
 		FAILURE_RATE,
 		NUM_REMATCHES,
 		NUM_EDGE_TESTS,
@@ -32,6 +33,7 @@ public class RematchOutput extends Output {
 		header[Col.NUM_ALTRUISTS.getColIdx()] = "Num Altruists";
 		header[Col.NUM_EDGES.getColIdx()] = "Num Edges";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
+		header[Col.REMATCH_TYPE.getColIdx()] = "Rematch Type";
 		header[Col.FAILURE_RATE.getColIdx()] = "Failure Rate (constant)";
 		header[Col.NUM_REMATCHES.getColIdx()] = "Num Rematches";
 		header[Col.NUM_EDGE_TESTS.getColIdx()] = "Num Edge Tests";
