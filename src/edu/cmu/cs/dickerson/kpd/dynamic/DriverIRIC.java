@@ -39,8 +39,9 @@ public class DriverIRIC {
 
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
-				2, 3,
-				4, 5, 6, 7, 8, 9,
+				//2, 3,
+				//4, 
+				5, 6, 7, 8, 9,
 				10,// 15, 
 				//20,
 		});
