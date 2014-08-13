@@ -170,7 +170,7 @@ public class DriverRematch {
 								for(Edge e : c.getEdges()) {
 									failed |= edgeFailedMap.get(e);  // even one edge failure -> entire cycle fails completely
 								}
-								if(!failed) { numActualTransplants += c.getWeight(); } // if cycle succeeds, count all verts in it
+								if(!failed) { numActualTransplants += c.getEdges().size(); } // if cycle succeeds, count all verts in it
 							}
 							out.set(Col.REMATCH_UTIL, numActualTransplants);
 							cycles = null;
