@@ -1,0 +1,45 @@
+package edu.cmu.cs.dickerson.kpd.rematch;
+
+import java.io.IOException;
+
+import edu.cmu.cs.dickerson.kpd.io.Output;
+import edu.cmu.cs.dickerson.kpd.io.OutputCol;
+
+public class RematchOutput extends Output {
+	public enum Col implements OutputCol { 
+		SEED,
+		CYCLE_CAP,
+		CHAIN_CAP,
+		NUM_PAIRS,
+		NUM_ALTRUISTS,
+		GENERATOR,
+		FAILURE_RATE,
+		NUM_REMATCHES,
+		NUM_EDGE_TESTS,
+		REMATCH_UTIL,
+		ORACLE_MATCH_UTIL,
+		;
+		public int getColIdx() { return this.ordinal(); }
+	}
+
+	public static String[] getHeader() {
+		String[] header = new String[Col.values().length];
+		header[Col.SEED.getColIdx()] = "Seed";
+		header[Col.CYCLE_CAP.getColIdx()] = "Cycle Cap";
+		header[Col.CHAIN_CAP.getColIdx()] = "Chain Cap";
+		header[Col.NUM_PAIRS.getColIdx()] = "Num Pairs";
+		header[Col.NUM_ALTRUISTS.getColIdx()] = "Num Altruists";
+		header[Col.GENERATOR.getColIdx()] = "Generator";
+		header[Col.FAILURE_RATE.getColIdx()] = "Failure Rate (constant)";
+		header[Col.NUM_REMATCHES.getColIdx()] = "Num Rematches";
+		header[Col.NUM_EDGE_TESTS.getColIdx()] = "Num Edge Tests";
+		header[Col.REMATCH_UTIL.getColIdx()] = "Rematch Utility";
+		header[Col.ORACLE_MATCH_UTIL.getColIdx()] = "Oracle Match Utility";
+		return header;
+	}
+	
+	public RematchOutput(String path) throws IOException {
+		super(path, getHeader());
+	}
+
+}
