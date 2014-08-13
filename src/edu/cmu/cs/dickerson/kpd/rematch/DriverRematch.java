@@ -9,11 +9,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-
 import com.sun.istack.internal.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
-import edu.cmu.cs.dickerson.kpd.io.IRICOutput;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -63,9 +61,9 @@ public class DriverRematch {
 
 		// Store output
 		String path = "rematch_" + System.currentTimeMillis() + ".csv";
-		IRICOutput out = null;
+		RematchOutput out = null;
 		try {
-			out = new IRICOutput(path);
+			out = new RematchOutput(path);
 		} catch(IOException e) {
 			e.printStackTrace();
 			return;
@@ -139,6 +137,7 @@ public class DriverRematch {
 							out.set(Col.CHAIN_CAP, chainCap);
 							out.set(Col.NUM_PAIRS, numPairs);
 							out.set(Col.NUM_ALTRUISTS, numAlts);
+							out.set(Col.NUM_EDGES, pool.edgeSet().size());  // will break if we start including chains (dummies)
 							out.set(Col.GENERATOR, gen);
 							out.set(Col.FAILURE_RATE, failureRate);
 							out.set(Col.NUM_REMATCHES, numRematches);

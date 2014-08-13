@@ -12,6 +12,7 @@ public class RematchOutput extends Output {
 		CHAIN_CAP,
 		NUM_PAIRS,
 		NUM_ALTRUISTS,
+		NUM_EDGES,
 		GENERATOR,
 		FAILURE_RATE,
 		NUM_REMATCHES,
@@ -29,6 +30,7 @@ public class RematchOutput extends Output {
 		header[Col.CHAIN_CAP.getColIdx()] = "Chain Cap";
 		header[Col.NUM_PAIRS.getColIdx()] = "Num Pairs";
 		header[Col.NUM_ALTRUISTS.getColIdx()] = "Num Altruists";
+		header[Col.NUM_EDGES.getColIdx()] = "Num Edges";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
 		header[Col.FAILURE_RATE.getColIdx()] = "Failure Rate (constant)";
 		header[Col.NUM_REMATCHES.getColIdx()] = "Num Rematches";

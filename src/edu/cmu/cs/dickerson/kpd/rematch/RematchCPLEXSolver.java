@@ -35,7 +35,8 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation, rematches=" + numRematches + ".");
 
 		Map<Integer, Set<Edge>> retMap = new HashMap<Integer, Set<Edge>>();
-
+		retMap.put(0, new HashSet<Edge>());  // at zero rematches, not allowed to test any edges
+		
 		// If no cycles, problem is possibly unbounded; return no edges to test for each time period
 		if(cycles.size() == 0) {
 			for(int rematchCt=0; rematchCt<=numRematches; rematchCt++) {
@@ -45,7 +46,6 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 		}
 		// If we're not allowed to do any rematching (i.e. no testing), return empty set
 		if(numRematches < 1) {
-			retMap.put(0, new HashSet<Edge>());
 			return retMap;
 		}
 
@@ -89,13 +89,13 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 			Set<Integer> lastMatchCycleIdxSet = new HashSet<Integer>();
 			for(int rematchIdx=1; rematchIdx <= numRematches; rematchIdx++) {
 				
-				// Add in the last match as a constraint ( \sum_{cycles in last match} \leq |size of last match| )
+				// Add in the last match as a constraint ( \sum_{cycles in last match} < |size of last match| )
 				if(!lastMatchCycleIdxSet.isEmpty()) {
 					IloLinearNumExpr sum = cplex.linearNumExpr(); 
 					for(Integer cycleColID : lastMatchCycleIdxSet) {
 						sum.addTerm(1.0, x[cycleColID]);
 					}
-					cplex.addLe(sum, lastMatchCycleIdxSet.size());
+					cplex.addLe(sum, lastMatchCycleIdxSet.size()-1);
 				}
 				
 				// Solve, figure out which cycles and edges were included in the final solution
