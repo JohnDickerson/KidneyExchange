@@ -33,14 +33,14 @@ public class DriverIRIC {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				//new SaidmanPoolGenerator(r),
-				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				new SaidmanPoolGenerator(r),
+				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		// list of |H|s we'll iterate over
 		List<Integer> numHospitalsList = Arrays.asList(new Integer[] {
-				//2, 3,
-				//4, 
+				2, 3,
+				4, 
 				5, 6, 7, 8, 9,
 				10,// 15, 
 				//20,
@@ -58,9 +58,9 @@ public class DriverIRIC {
 		// life expectancy distributions (we record distribution type and mean)
 		List<ArrivalDistribution> lifeExpectancyDistList = Arrays.asList(new ArrivalDistribution[] {
 				new UniformArrivalDistribution(1,1), // die after one round
-				new UniformArrivalDistribution(1,11),
-				new UniformArrivalDistribution(1,21),
-				new UniformArrivalDistribution(1,31),
+				//new UniformArrivalDistribution(1,11),
+				//new UniformArrivalDistribution(1,21),
+				//new UniformArrivalDistribution(1,31),
 				//new UniformArrivalDistribution(1,41),
 		});
 
