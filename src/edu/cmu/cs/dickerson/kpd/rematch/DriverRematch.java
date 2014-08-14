@@ -51,7 +51,7 @@ public class DriverRematch {
 		});
 
 		// Invariant parameters
-		int cycleCap = 2;
+		int cycleCap = 3;
 		int chainCap = 0;
 		int numPairs = 250;
 		int numAlts = 0;

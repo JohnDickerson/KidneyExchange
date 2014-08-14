@@ -27,6 +27,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 	public enum RematchConstraintType {
 		PREVENT_EXACT_MATCHING,  // Compute matching M, then add constraint saying exactly M cannot occur again
 		REMOVE_MATCHED_EDGES,    // Compute matching M, then remove all edges in M (implemented as remove all cycles with at least one edge in M)
+		REMOVE_MATCHED_CYCLES,   // Compute matching M, then remove all cycles in M
 	}
 
 	public RematchCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
@@ -123,6 +124,14 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 							}
 							cycleIdx++;
 						}
+					}
+					break;
+				case REMOVE_MATCHED_CYCLES:
+					// Disallow any previously used cycle from being reused 
+					for(Integer cycleColID : lastMatchCycleIdxSet) {
+						IloLinearNumExpr sum = cplex.linearNumExpr(); 
+						sum.addTerm(1.0, x[cycleColID]);
+						cplex.addEq(sum, 0.0);
 					}
 					break;
 				}
