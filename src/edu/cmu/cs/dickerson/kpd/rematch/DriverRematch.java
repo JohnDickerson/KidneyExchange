@@ -55,7 +55,7 @@ public class DriverRematch {
 		int chainCap = 0;
 		int numPairs = 250;
 		int numAlts = 0;
-		int maxNumRematches = 10;
+		int maxNumRematches = 100;
 		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
 		
 		// Number of repetitions for each parameter vector
