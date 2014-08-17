@@ -76,10 +76,9 @@ public class Hospital implements Comparable<Hospital> {
 	 * @return publicly reported set of vertices belonging to hospital
 	 */
 	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo) {
-		switch(truthType) {
-		case Truthful:
+		if(truthType==Truthfulness.Truthful) {
 			return this.getPublicVertexSet(hospitalInfo, null, 0, 0, false, new HashSet<Vertex>());
-		default:
+		} else {
 			throw new UnsupportedOperationException("Must call getPublicVertexSet with pool information for non-truthful hospitals.");
 		}
 	}
@@ -114,6 +113,7 @@ public class Hospital implements Comparable<Hospital> {
 				} else {
 					// fully strategic hospitals report unmatched vertices only right before they die
 					reportedVerts.addAll(this.getPublicAndPrivateVertices());
+					reportedVerts.removeAll(usedVerts);
 					reportedVerts.retainAll(dieNextRoundVertices);
 				}
 				this.everRevealedVertices.addAll(reportedVerts);

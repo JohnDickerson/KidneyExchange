@@ -79,6 +79,7 @@ public class DriverIRIC {
 
 		// What kind of strategizing do we allow?
 		Truthfulness nonTruthfulType = Truthfulness.FullyStrategic;
+		//Truthfulness nonTruthfulType = Truthfulness.SemiTruthful;
 
 		// Store output
 		String path = "iric_" + System.currentTimeMillis() + ".csv";
@@ -130,7 +131,11 @@ public class DriverIRIC {
 									// Reset hospitals and set their truthfulness
 									for(Hospital h : hospitals) {
 										h.reset();
-										h.setTruthType(nonTruthfulType);
+										if(isTruthful) {
+											h.setTruthType(Truthfulness.Truthful);
+										} else {
+											h.setTruthType(nonTruthfulType);
+										}
 									}
 									
 									// Create an altruistic donor input arrival
