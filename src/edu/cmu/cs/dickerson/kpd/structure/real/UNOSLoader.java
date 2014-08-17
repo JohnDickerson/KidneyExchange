@@ -120,8 +120,13 @@ public class UNOSLoader {
 		return altruistIDs;
 	}
 
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "unused" })
 	private void loadEdges(String edgeFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, Set<Integer> altruistIDs) throws LoaderException {
+		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, strIDtoIntID, altruistIDs, false);
+	}
+	
+	@SuppressWarnings("resource")
+	private void loadEdges(String edgeFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, Set<Integer> altruistIDs, boolean forceUnitWeights) throws LoaderException {
 
 		
 		// Read non-dummy edges from UNOS file
@@ -157,7 +162,12 @@ public class UNOSLoader {
 				if(null == to) {
 					throw new LoaderException("Trying to load an edge for nonexistent candidate: " + candidateIDStr);
 				}
-				pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight);
+				
+				if(forceUnitWeights) {
+					pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight==0.0 ? 0.0 : 1.0);
+				} else {
+					pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight);
+				}
 			}
 
 		} catch(IOException e) {
@@ -175,6 +185,10 @@ public class UNOSLoader {
 	}
 
 	public Pool loadFromFile(String donorFilePath, String recipientFilePath, String edgeFilePath) throws LoaderException {
+		return loadFromFile(donorFilePath, recipientFilePath, edgeFilePath, false);
+	}
+	
+	public Pool loadFromFile(String donorFilePath, String recipientFilePath, String edgeFilePath, boolean forceUnitWeights) throws LoaderException {
 
 		IOUtil.dPrintln("Loading UNOS graph (donor file: " + donorFilePath + ")");
 		Pool pool = new Pool(Edge.class);
@@ -189,7 +203,7 @@ public class UNOSLoader {
 		Set<Integer> altruistIDs = loadDonors(donorFilePath, pool, donorToCand, idToVertex, strIDtoIntID, nextID);
 
 		// Load the edges and weights, draw them in the Pool
-		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, strIDtoIntID, altruistIDs);
+		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, strIDtoIntID, altruistIDs, forceUnitWeights);
 
 		IOUtil.dPrintln("Loaded UNOS graph with " + pool.vertexSet().size() + " vertices and "+ pool.edgeSet().size() + " edges.");
 		return pool;

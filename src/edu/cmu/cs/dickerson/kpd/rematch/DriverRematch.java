@@ -1,5 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.rematch;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +27,8 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
+import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
 /**
  * Experiments for SODA-2014 submission / NSF grant
@@ -44,6 +48,14 @@ public class DriverRematch {
 				//new SaidmanPoolGenerator(r),
 				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
+
+		File baseUNOSDir = new File(IOUtil.getBaseUNOSFilePath());
+		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String name) {
+				return file.isDirectory() && !name.toLowerCase().endsWith(".zip");
+			}
+		}));
 
 		// List of constant edge failure rates we want to use
 		List<Double> failureRateList = Arrays.asList(new Double[] {
@@ -79,17 +91,53 @@ public class DriverRematch {
 		// Track, manually increment if needed within loops
 		long seed = System.currentTimeMillis();
 
-		for(PoolGenerator gen : genList) {
+		//for(PoolGenerator gen : genList) {
+
+		for(File matchDir : matchDirList) {
+
+			UNOSLoader loader = new UNOSLoader(',');
+
+			// We assume a lot about filenames here.  Figure out which .csv files matter
+			String matchRunID = "", donorFilePath = "", recipientFilePath = "", edgeFilePath = "";
+			File[] csvFiles = matchDir.listFiles(new FilenameFilter() {  @Override public boolean accept(File file, String name) { return name.endsWith(".csv"); } });
+			if(null == csvFiles || csvFiles.length < 1) { continue; }
+
+			for(File csvFile : Arrays.asList(csvFiles)) {
+				if(csvFile.getName().toUpperCase().contains("DONOR")) {
+					donorFilePath = csvFile.getAbsolutePath();
+					matchRunID = csvFile.getName().substring(0,8);
+				} else if(csvFile.getName().toUpperCase().contains("RECIPIENT")) {
+					recipientFilePath = csvFile.getAbsolutePath();
+				} else if(csvFile.getName().toUpperCase().contains("EDGEWEIGHTS")) {
+					edgeFilePath = csvFile.getAbsolutePath();
+				}
+			}
+
+			// Make sure we're actually looking at a UNOS match run
+			if(donorFilePath.isEmpty() || recipientFilePath.isEmpty() || edgeFilePath.isEmpty() || matchRunID.isEmpty()) {
+				IOUtil.dPrintln("Couldn't figure out this directory!");
+				System.exit(-1);
+			}
+
+			// Load the pool from donor, recipient, edge files -- force unit weights
+			Pool pool = null;
+			try {
+				pool = loader.loadFromFile(donorFilePath, recipientFilePath, edgeFilePath, true);
+			} catch(LoaderException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			}
+
 			for(Double failureRate : failureRateList) {
 
-				logger.info("Gen=" + gen + ", failureRate=" + failureRate);
+				logger.info("failureRate=" + failureRate);
 				for(int repCt=0; repCt < numReps; repCt++) {
 
 					// Maintain the same seed as we increment numRematches
 					seed++;
 
 					// Generate pool with expected failure rate of failureRate
-					Pool pool = gen.generate(numPairs, numAlts);
+					//Pool pool = gen.generate(numPairs, numAlts);  // uncomment if we ever switch back to generator, not real
 					FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, r, failureRate);
 
 					// Keep track of the failure rates generated for each (we'll reset the pool a bunch of times)
@@ -153,10 +201,10 @@ public class DriverRematch {
 							out.set(Col.SEED, seed);
 							out.set(Col.CYCLE_CAP, cycleCap);
 							out.set(Col.CHAIN_CAP, chainCap);
-							out.set(Col.NUM_PAIRS, numPairs);
-							out.set(Col.NUM_ALTRUISTS, numAlts);
-							out.set(Col.NUM_EDGES, pool.edgeSet().size());  // will break if we start including chains (dummies)
-							out.set(Col.GENERATOR, gen);
+							out.set(Col.NUM_PAIRS, pool.getPairs().size());
+							out.set(Col.NUM_ALTRUISTS, pool.getAltruists().size());
+							out.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
+							out.set(Col.GENERATOR, matchRunID);
 							out.set(Col.MAX_AVG_EDGES_PER_VERT, maxAvgEdgesPerVertex);
 							out.set(Col.REMATCH_TYPE, rematchType);
 							out.set(Col.FAILURE_RATE, failureRate);

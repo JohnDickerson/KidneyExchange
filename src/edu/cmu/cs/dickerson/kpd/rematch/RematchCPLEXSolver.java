@@ -99,6 +99,13 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 			Set<Integer> lastMatchCycleIdxSet = new HashSet<Integer>();
 			for(int rematchIdx=1; rematchIdx <= numRematches; rematchIdx++) {
 
+				// If the previous match was empty (and we're not on the first match), cap out
+				// the rematch map with empty edge sets and quit (since no matching will ever be nonempty again)
+				if(rematchIdx>1 && lastMatchCycleIdxSet.size() == 0) {
+					retMap.put(rematchIdx, new HashSet<Edge>());
+					continue;
+				}
+				
 				// Add in preferred rematching constraints
 				switch(rematchType) {
 				case PREVENT_EXACT_MATCHING:

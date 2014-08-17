@@ -72,6 +72,16 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		return newVert;
 	}
 
+	public int getNumNonDummyEdges() {
+		int edgeCt = 0;
+		for(Edge e : this.edgeSet()) {
+			if(this.getEdgeWeight(e) != 0.0) {
+				edgeCt++;
+			}
+		}
+		return edgeCt;
+	}
+	
 	public SortedSet<VertexPair> getPairs() {
 		return pairs;
 	}
