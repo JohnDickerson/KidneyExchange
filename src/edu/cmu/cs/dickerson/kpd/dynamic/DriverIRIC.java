@@ -15,6 +15,7 @@ import edu.cmu.cs.dickerson.kpd.io.IRICOutput.Col;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
+import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital.Truthfulness;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
@@ -33,8 +34,8 @@ public class DriverIRIC {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				new SaidmanPoolGenerator(r),
-				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				//new SaidmanPoolGenerator(r),
+				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		// list of |H|s we'll iterate over
@@ -57,10 +58,10 @@ public class DriverIRIC {
 
 		// life expectancy distributions (we record distribution type and mean)
 		List<ArrivalDistribution> lifeExpectancyDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(1,1), // die after one round
-				//new UniformArrivalDistribution(1,11),
-				//new UniformArrivalDistribution(1,21),
-				//new UniformArrivalDistribution(1,31),
+				//new UniformArrivalDistribution(1,1), // die after one round
+				new UniformArrivalDistribution(1,11),
+				new UniformArrivalDistribution(1,21),
+				new UniformArrivalDistribution(1,31),
 				//new UniformArrivalDistribution(1,41),
 		});
 
@@ -76,6 +77,8 @@ public class DriverIRIC {
 		// Number of repetitions for each parameter vector
 		int numReps = 25; 
 
+		// What kind of strategizing do we allow?
+		Truthfulness nonTruthfulType = Truthfulness.FullyStrategic;
 
 		// Store output
 		String path = "iric_" + System.currentTimeMillis() + ".csv";
@@ -112,7 +115,7 @@ public class DriverIRIC {
 								Set<Hospital> hospitals = new HashSet<Hospital>();
 								for(int idx=0; idx<numHospitals; idx++) {
 									totalExpectedPairsPerPeriod += arrivalDist.expectedDraw();
-									hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, true) );
+									hospitals.add( new Hospital(idx, arrivalDist, lifeExpectancyDist, Truthfulness.Truthful) );
 								}
 								totalExpectedPairsPerPeriod /= hospitals.size();
 
@@ -127,7 +130,7 @@ public class DriverIRIC {
 									// Reset hospitals and set their truthfulness
 									for(Hospital h : hospitals) {
 										h.reset();
-										h.setTruthful(isTruthful);
+										h.setTruthType(nonTruthfulType);
 									}
 									
 									// Create an altruistic donor input arrival
@@ -165,7 +168,7 @@ public class DriverIRIC {
 									out.set(Col.PCT_ALTRUISTS, pctAlts);
 									out.set(Col.GENERATOR, gen.toString());
 									out.set(Col.NUM_HOSPITALS, numHospitals);
-									out.set(Col.FRAC_TRUTHFUL_HOSPITALS, isTruthful ? "1.0" : "0.0");
+									out.set(Col.FRAC_TRUTHFUL_HOSPITALS, isTruthful ? "1.0" : nonTruthfulType==Truthfulness.SemiTruthful ? "0.0" : "-1.0");
 									out.set(Col.NUM_TIME_PERIODS, simTimePeriods);
 									out.set(Col.ARRIVAL_DIST, arrivalDist);
 									out.set(Col.ARRIVAL_MEAN, arrivalDist.expectedDraw());

@@ -23,7 +23,6 @@ public class Hospital implements Comparable<Hospital> {
 	private ArrivalDistribution arrivalDist;
 	private ArrivalDistribution lifeExpectancyDist;
 	private final Integer ID;
-	private boolean isTruthful;
 
 	private Set<Vertex> vertices;   // current set of private vertices (type)
 	private Set<Vertex> everRevealedVertices;  // once a vertex is revealed, it can't be taken back or matched privately
@@ -32,12 +31,15 @@ public class Hospital implements Comparable<Hospital> {
 	private int numCredits;
 	private int numMatched;
 
-	public Hospital(Integer ID, ArrivalDistribution arrivalDist, ArrivalDistribution lifeExpectancyDist, boolean isTruthful) {
+	public enum Truthfulness { Truthful, SemiTruthful, FullyStrategic };
+	private Truthfulness truthType;
+
+	public Hospital(Integer ID, ArrivalDistribution arrivalDist, ArrivalDistribution lifeExpectancyDist, Truthfulness truthType) {
 
 		this.ID = ID;
 		this.arrivalDist = arrivalDist;
 		this.lifeExpectancyDist = lifeExpectancyDist;
-		this.isTruthful = isTruthful;
+		this.truthType = truthType;
 
 		// New hospitals have no credits, no history of matches, no patient-donor pairs, etc
 		this.reset();
@@ -50,9 +52,9 @@ public class Hospital implements Comparable<Hospital> {
 		this.everRevealedVertices = new HashSet<Vertex>();
 		this.vertexInfo = new HashMap<Vertex, HospitalVertexInfo>();
 	}
-	
+
 	public Solution doInternalMatching(Pool reducedPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) throws SolverException {
-		
+
 		CycleGenerator cg = new CycleGenerator(reducedPool);
 		List<Cycle> internalCycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
 		Solution internalMatch =
@@ -63,7 +65,7 @@ public class Hospital implements Comparable<Hospital> {
 		return internalMatch;
 	}
 
-	
+
 	public Map<Vertex, HospitalVertexInfo> getVertexInfo() {
 		return vertexInfo;
 	}
@@ -74,15 +76,16 @@ public class Hospital implements Comparable<Hospital> {
 	 * @return publicly reported set of vertices belonging to hospital
 	 */
 	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo) {
-		if(isTruthful) {
-			return this.getPublicVertexSet(hospitalInfo, null, 0, 0, false);
-		} else {
+		switch(truthType) {
+		case Truthful:
+			return this.getPublicVertexSet(hospitalInfo, null, 0, 0, false, new HashSet<Vertex>());
+		default:
 			throw new UnsupportedOperationException("Must call getPublicVertexSet with pool information for non-truthful hospitals.");
 		}
 	}
 
-	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo, Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities) {
-		if(isTruthful) {
+	public Set<Vertex> getPublicVertexSet(HospitalInfo hospitalInfo, Pool fullPool, int cycleCap, int chainCap, boolean usingFailureProbabilities, Set<Vertex> dieNextRoundVertices) {
+		if(truthType == Truthfulness.Truthful) {
 			// Truthful hospitals truthfully report their full type (set of vertices)
 			hospitalInfo.numMatchedInternally = 0; // no internal matches
 			this.everRevealedVertices.addAll(this.getPublicAndPrivateVertices());
@@ -94,7 +97,7 @@ public class Hospital implements Comparable<Hospital> {
 				currentlyHiddenVerts.removeAll(this.everRevealedVertices);
 				Pool realInternalPool = fullPool.makeSubPool( currentlyHiddenVerts );
 				Solution internalMatch = doInternalMatching(realInternalPool, cycleCap, chainCap, usingFailureProbabilities);
-				
+
 				// Report only those vertices that weren't matched (so AllVertices - InternallyMatchedVertices)
 				Set<Vertex> usedVerts = Cycle.getConstituentVertices(internalMatch.getMatching(), realInternalPool);
 				hospitalInfo.numMatchedInternally = usedVerts.size();
@@ -102,13 +105,20 @@ public class Hospital implements Comparable<Hospital> {
 				// Remove these internally-matched vertices from the pool
 				fullPool.removeAllVertices(usedVerts);
 				this.vertices.removeAll(usedVerts);
-				
+
 				Set<Vertex> reportedVerts = new HashSet<Vertex>();
-				reportedVerts.addAll(this.getPublicAndPrivateVertices());
-				reportedVerts.removeAll(usedVerts);
+				if(truthType == Truthfulness.SemiTruthful) {
+					// semi-truthful hospitals report all unmatched vertices immediately
+					reportedVerts.addAll(this.getPublicAndPrivateVertices());
+					reportedVerts.removeAll(usedVerts);
+				} else {
+					// fully strategic hospitals report unmatched vertices only right before they die
+					reportedVerts.addAll(this.getPublicAndPrivateVertices());
+					reportedVerts.retainAll(dieNextRoundVertices);
+				}
 				this.everRevealedVertices.addAll(reportedVerts);
 				return reportedVerts;
-				
+
 			} catch(SolverException e) {
 				e.printStackTrace();
 				throw new SolverRuntimeException("Unrecoverable error solving internal matching on non-truthful hospital " + this + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
@@ -176,7 +186,7 @@ public class Hospital implements Comparable<Hospital> {
 	public void addPublicAndPrivateVertices(Set<Vertex> newVertices) {
 		this.vertices.addAll(newVertices);
 	}
-	
+
 	public int getNumCredits() {
 		return numCredits;
 	}
@@ -197,17 +207,17 @@ public class Hospital implements Comparable<Hospital> {
 		return ID;
 	}
 
-	public boolean isTruthful() {
-		return isTruthful;
+	public Truthfulness getTruthType() {
+		return truthType;
 	}
 
-	public void setTruthful(boolean isTruthful) {
-		this.isTruthful = isTruthful;
+	public void setTruthType(Truthfulness truthType) {
+		this.truthType = truthType;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "H" + ID + "<" + isTruthful + ", " + arrivalDist + ", |V|=" + vertices.size() + ", Cred=" + numCredits + ">";
+		return "H" + ID + "<" + truthType + ", " + arrivalDist + ", |V|=" + vertices.size() + ", Cred=" + numCredits + ">";
 	}
 
 	@Override

@@ -93,7 +93,8 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				hospital.addPublicAndPrivateVertices(hospVerts);
 			}
 			
-			// Remove any expired vertices
+			// Remove any expired vertices, track ones that are about to die
+			Set<Vertex> dieNextRoundVerts = new HashSet<Vertex>();
 			for(Hospital h : hospitals) {
 				Iterator<Vertex> hvIt = h.getPublicAndPrivateVertices().iterator();
 				while(hvIt.hasNext()) {
@@ -102,12 +103,14 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 					if(vertAge >= h.getVertexInfo().get(v).lifeExpectancy) {
 						pool.removeVertex(v);  // delete the vertex from the full pool
 						hvIt.remove();  // delete vertex from hospital's private list
+					} else if(vertAge+1 == h.getVertexInfo().get(v).lifeExpectancy) {
+						dieNextRoundVerts.add(v);
 					}
 				}
 			}
 			
 			// Evolve pool and run the IRIC Mechanism on it
-			IRSolution sol = tick(pool);
+			IRSolution sol = tick(pool, dieNextRoundVerts);
 			totalExternalNumVertsMatched += sol.getNumMatchedByMechanism();
 			totalInternalNumVertsMatched += sol.getNumMatchedInternally();
 			logger.info("Time period: " + timeIdx + ", Vertices matched: " + sol.getNumMatchedByMechanism());
@@ -142,10 +145,10 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 				
 	}
 
-	public IRSolution tick(Pool pool) throws SolverException {
+	public IRSolution tick(Pool pool, Set<Vertex> dieNextRoundVerts) throws SolverException {
 
 		// Run the mechanism on the pool, get a matching
-		IRSolution sol = mechanism.doMatching(pool, this.r);
+		IRSolution sol = mechanism.doMatching(pool, dieNextRoundVerts, this.r);
 		
 		return sol;
 	}

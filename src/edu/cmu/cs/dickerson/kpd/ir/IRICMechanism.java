@@ -49,11 +49,11 @@ public class IRICMechanism {
 		everRevealedVertices = new HashSet<Vertex>();
 	}
 	
-	public IRSolution doMatching(Pool entirePool) throws SolverException {
-		return doMatching(entirePool, new Random());
+	public IRSolution doMatching(Pool entirePool, Set<Vertex> dieNextRoundVertices) throws SolverException {
+		return doMatching(entirePool, dieNextRoundVertices, new Random());
 	}
 	
-	public IRSolution doMatching(Pool entirePool, Random r) throws SolverException {
+	public IRSolution doMatching(Pool entirePool, Set<Vertex> dieNextRoundVertices, Random r) throws SolverException {
 
 		//
 		// Initial credit balance update based on reported types
@@ -64,7 +64,7 @@ public class IRICMechanism {
 			HospitalInfo hospitalInfo = new HospitalInfo();
 			
 			// Ask the hospital for its reported type
-			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(hospitalInfo, entirePool, cycleCap, chainCap, false);
+			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(hospitalInfo, entirePool, cycleCap, chainCap, false, dieNextRoundVertices);
 			allReportedVertices.addAll(reportedVertices);
 			Pool reportedInternalPool = entirePool.makeSubPool(reportedVertices);
 			hospitalInfo.reportedInternalPool = reportedInternalPool;
