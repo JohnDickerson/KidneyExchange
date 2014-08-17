@@ -22,6 +22,7 @@ import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
@@ -60,7 +61,7 @@ public class DriverRematch {
 		// List of constant edge failure rates we want to use
 		List<Double> failureRateList = Arrays.asList(new Double[] {
 				//0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-				0.5,
+				0.7,
 		});
 
 		// Invariant parameters
@@ -69,7 +70,8 @@ public class DriverRematch {
 		int numPairs = 250;
 		int numAlts = 0;
 		int maxNumRematches = 100;
-		double maxAvgEdgesPerVertex = 3.0;
+		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
+		int hardMaxPerVertex = 5;
 		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
@@ -182,6 +184,12 @@ public class DriverRematch {
 								new CycleMembership(pool, cycles))
 								).solve(maxNumRematches, rematchType, maxAvgEdgesPerVertex);
 
+						// Keep track of how many incoming edges to each vertex have been checked
+						Map<Vertex, Set<Edge>> perVertexEdgeTested = new HashMap<Vertex, Set<Edge>>();
+						for(Vertex v : pool.vertexSet()) {
+							perVertexEdgeTested.put(v, new HashSet<Edge>()); 
+						}
+						
 						// Get non-prescient match utilities for increasing number of allowed rematches
 						Set<Edge> edgesToTestSet = new HashSet<Edge>(); // incrementally keep track of edges to test
 						for(int numRematches=0; numRematches<=maxNumRematches; numRematches++) {
@@ -206,6 +214,7 @@ public class DriverRematch {
 							out.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
 							out.set(Col.GENERATOR, matchRunID);
 							out.set(Col.MAX_AVG_EDGES_PER_VERT, maxAvgEdgesPerVertex);
+							out.set(Col.HARD_MAX_EDGES_PER_VERT, hardMaxPerVertex);
 							out.set(Col.REMATCH_TYPE, rematchType);
 							out.set(Col.FAILURE_RATE, failureRate);
 							out.set(Col.NUM_REMATCHES, numRematches);
@@ -214,7 +223,12 @@ public class DriverRematch {
 							// Update the pool with tested edges
 							out.set(Col.NUM_EDGE_TESTS, edgesToTestSet.size());
 							for(Edge e : edgesToTestSet) {
-								e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0);
+								Vertex dst = pool.getEdgeTarget(e);
+								// If the destination vertex has remaining credits for testing edges, test this edge
+								if(perVertexEdgeTested.get(dst).size() < hardMaxPerVertex) {
+									e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0);
+									perVertexEdgeTested.get(dst).add(e);
+								}
 							}
 
 							// Do a max utility matching on this updated pool

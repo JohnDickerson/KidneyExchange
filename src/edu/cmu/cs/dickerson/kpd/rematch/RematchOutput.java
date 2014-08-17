@@ -15,6 +15,7 @@ public class RematchOutput extends Output {
 		NUM_EDGES,
 		GENERATOR,
 		MAX_AVG_EDGES_PER_VERT,
+		HARD_MAX_EDGES_PER_VERT,
 		REMATCH_TYPE,
 		FAILURE_RATE,
 		NUM_REMATCHES,
@@ -35,6 +36,7 @@ public class RematchOutput extends Output {
 		header[Col.NUM_EDGES.getColIdx()] = "Num Edges";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
 		header[Col.MAX_AVG_EDGES_PER_VERT.getColIdx()] = "Max Avg Edges Per Vert";
+		header[Col.HARD_MAX_EDGES_PER_VERT.getColIdx()] = "Hard Max Edges Per Vert";
 		header[Col.REMATCH_TYPE.getColIdx()] = "Rematch Type";
 		header[Col.FAILURE_RATE.getColIdx()] = "Failure Rate (constant)";
 		header[Col.NUM_REMATCHES.getColIdx()] = "Num Rematches";

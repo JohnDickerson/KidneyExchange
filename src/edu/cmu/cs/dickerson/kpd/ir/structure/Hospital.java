@@ -106,6 +106,7 @@ public class Hospital implements Comparable<Hospital> {
 				Set<Vertex> reportedVerts = new HashSet<Vertex>();
 				reportedVerts.addAll(this.getPublicAndPrivateVertices());
 				reportedVerts.removeAll(usedVerts);
+				this.everRevealedVertices.addAll(reportedVerts);
 				return reportedVerts;
 				
 			} catch(SolverException e) {
