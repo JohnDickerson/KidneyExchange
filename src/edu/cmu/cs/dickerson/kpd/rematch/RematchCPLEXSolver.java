@@ -37,6 +37,10 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 	}
 
 	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType) throws SolverException {
+		return solve(numRematches, rematchType, Double.MAX_VALUE);
+	}
+	
+	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType, double maxAvgEdgesPerVertex) throws SolverException {
 
 		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation, rematches=" + numRematches + ".");
 
@@ -55,7 +59,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 			return retMap;
 		}
 
-
+		int totalEdgesSoFar = 0;
 		try {
 			super.initializeCPLEX();
 
@@ -140,18 +144,26 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 				double[] vals = cplex.getValues(x);
 				int nCols = cplex.getNcols();
 
+				boolean shortCircuitDueToTooManyEdges = false;
+				
 				Set<Edge> edgesInThisMatch = new HashSet<Edge>();
 				lastMatchCycleIdxSet.clear();
 				for(cycleIdx=0; cycleIdx<nCols; cycleIdx++) {
 					if(vals[cycleIdx] > 1e-3) {
-						// This is a matched cycle
+						// This is a matched cycle; if we have extra edge tests, add it to the list, otherwise break
+						totalEdgesSoFar++;
+						if( totalEdgesSoFar / (double) pool.vertexSet().size() > maxAvgEdgesPerVertex) {
+							shortCircuitDueToTooManyEdges = true;
+							break;
+						}
+							
 						lastMatchCycleIdxSet.add(cycleIdx);
 						edgesInThisMatch.addAll( cycles.get(cycleIdx).getEdges() );
 					}
 				}
 				retMap.put(rematchIdx, edgesInThisMatch);
 
-
+				if(shortCircuitDueToTooManyEdges) { break; }
 			} // end of rematch loop
 
 

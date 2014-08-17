@@ -47,7 +47,8 @@ public class DriverRematch {
 
 		// List of constant edge failure rates we want to use
 		List<Double> failureRateList = Arrays.asList(new Double[] {
-				0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+				//0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+				0.5,
 		});
 
 		// Invariant parameters
@@ -56,8 +57,12 @@ public class DriverRematch {
 		int numPairs = 250;
 		int numAlts = 0;
 		int maxNumRematches = 100;
+		double maxAvgEdgesPerVertex = 3.0;
 		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
-		
+
+		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
+		boolean onlyPlotMaxRematch = true;
+
 		// Number of repetitions for each parameter vector
 		int numReps = 50;
 
@@ -119,7 +124,7 @@ public class DriverRematch {
 						for(Map.Entry<Edge, Double> entry : edgeFailureRateMap.entrySet()) {
 							entry.getKey().setFailureProbability(entry.getValue());
 						}
-						
+
 						// Get a set of edges that we should formally test (maps time period -> set of edges to test)
 						cg = new CycleGenerator(pool);
 						cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
@@ -127,11 +132,22 @@ public class DriverRematch {
 								pool,
 								cycles,
 								new CycleMembership(pool, cycles))
-								).solve(maxNumRematches, rematchType);
+								).solve(maxNumRematches, rematchType, maxAvgEdgesPerVertex);
 
 						// Get non-prescient match utilities for increasing number of allowed rematches
 						Set<Edge> edgesToTestSet = new HashSet<Edge>(); // incrementally keep track of edges to test
 						for(int numRematches=0; numRematches<=maxNumRematches; numRematches++) {
+							// If we only want data for the last (highest) #rematches, skip there
+							if(onlyPlotMaxRematch) {
+								numRematches = maxNumRematches;
+								// Add all #rematches' edge sets to the set of edges to test
+								for(Map.Entry<Integer, Set<Edge>> reSet : edgesToTestMap.entrySet()) {
+									edgesToTestSet.addAll( reSet.getValue() );
+								}
+							} else {
+								// Add this #rematches' edge set to the total set of edges to test
+								edgesToTestSet.addAll( edgesToTestMap.get(numRematches) );
+							}
 
 							// Initial bookkeeping
 							out.set(Col.SEED, seed);
@@ -141,14 +157,12 @@ public class DriverRematch {
 							out.set(Col.NUM_ALTRUISTS, numAlts);
 							out.set(Col.NUM_EDGES, pool.edgeSet().size());  // will break if we start including chains (dummies)
 							out.set(Col.GENERATOR, gen);
+							out.set(Col.MAX_AVG_EDGES_PER_VERT, maxAvgEdgesPerVertex);
 							out.set(Col.REMATCH_TYPE, rematchType);
 							out.set(Col.FAILURE_RATE, failureRate);
 							out.set(Col.NUM_REMATCHES, numRematches);
 							out.set(Col.ORACLE_MATCH_UTIL, oracleMatchUtil);
 
-							// Add this #rematches' edge set to the total set of edges to test
-							edgesToTestSet.addAll( edgesToTestMap.get(numRematches) );
-							
 							// Update the pool with tested edges
 							out.set(Col.NUM_EDGE_TESTS, edgesToTestSet.size());
 							for(Edge e : edgesToTestSet) {
