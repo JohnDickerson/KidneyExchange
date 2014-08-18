@@ -71,14 +71,14 @@ public class DriverRematch {
 		int numAlts = 0;
 		int maxNumRematches = 100;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
-		int hardMaxPerVertex = 5;
+		int hardMaxPerVertex = 5;//Integer.MAX_VALUE;//5;
 		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
 		boolean onlyPlotMaxRematch = true;
 
 		// Number of repetitions for each parameter vector
-		int numReps = 50;
+		int numReps = 1000;
 
 		// Store output
 		String path = "rematch_" + System.currentTimeMillis() + ".csv";
