@@ -22,7 +22,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 
-public class IRICMechanism {
+public abstract class ICMechanism {
 
 	// TODO We assume that all edges are unit weight; the objective value is equal to #pairs matched
 
@@ -31,12 +31,14 @@ public class IRICMechanism {
 	private int chainCap = 0;
 	private int meanLifeExpectancy = 1;
 	private Set<Vertex> everRevealedVertices; // keep track of all vertices ever revealed to mechanism
-	
-	public IRICMechanism(Set<Hospital> hospitals) {
+
+	protected boolean enforcingIRConstraints = false;
+
+	public ICMechanism(Set<Hospital> hospitals) {
 		this(hospitals, 3, 0, 1);   // default to 3-cycles and 0-chains
 	}
 
-	public IRICMechanism(Set<Hospital> hospitals, int cycleCap, int chainCap, int meanLifeExpectancy) {
+	public ICMechanism(Set<Hospital> hospitals, int cycleCap, int chainCap, int meanLifeExpectancy) {
 		this.hospitals = hospitals;	
 		this.cycleCap = cycleCap;  // internal and external matching cycle limit
 		this.chainCap = chainCap;  // internal and external matching chain limit
@@ -48,11 +50,19 @@ public class IRICMechanism {
 		for(Hospital hospital : hospitals) { hospital.setNumCredits(0); }   // all hospitals start out with no history
 		everRevealedVertices = new HashSet<Vertex>();
 	}
-	
+
 	public IRSolution doMatching(Pool entirePool, Set<Vertex> dieNextRoundVertices) throws SolverException {
 		return doMatching(entirePool, dieNextRoundVertices, new Random());
 	}
-	
+
+	public boolean isEnforcingIRConstraints() {
+		return enforcingIRConstraints;
+	}
+
+	public void setEnforcingIRConstraints(boolean enforcesIRConstraints) {
+		this.enforcingIRConstraints = enforcingIRConstraints;
+	}
+
 	public IRSolution doMatching(Pool entirePool, Set<Vertex> dieNextRoundVertices, Random r) throws SolverException {
 
 		//
@@ -62,7 +72,7 @@ public class IRICMechanism {
 		for(Hospital hospital : hospitals) {
 
 			HospitalInfo hospitalInfo = new HospitalInfo();
-			
+
 			// Ask the hospital for its reported type
 			Set<Vertex> reportedVertices = hospital.getPublicVertexSet(hospitalInfo, entirePool, cycleCap, chainCap, false, dieNextRoundVertices);
 			allReportedVertices.addAll(reportedVertices);
@@ -70,7 +80,7 @@ public class IRICMechanism {
 			hospitalInfo.reportedInternalPool = reportedInternalPool;
 			hospitalInfo.publicVertexCt = reportedVertices.size();
 			hospitalInfo.privateVertexCt = hospital.getPublicAndPrivateVertices().size();
-			
+
 			// Update hospital's credits based on reported type
 			// c_i += 4*k_i*\sum{v in reported V} \ell_v   -   4*k_i^2*\ell_m
 			int expectedType = hospital.getExpectedArrival();   // "k_i"
@@ -86,21 +96,25 @@ public class IRICMechanism {
 			}
 			creditDelta -= 4*expectedType*expectedType*this.meanLifeExpectancy;
 			hospital.addCredits( creditDelta );
-
 			
-			// Figure out a maximum utility internal match on reported type
-			Solution internalMatch = null;
-			try {
-				internalMatch = hospital.doInternalMatching(reportedInternalPool, this.cycleCap, this.chainCap, false);
-			} catch(SolverException e) {
-				e.printStackTrace();
-				throw new SolverException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+			if(this.isEnforcingIRConstraints()) {
+				// Figure out a maximum utility internal match on reported type
+				Solution internalMatch = null;
+				try {
+					internalMatch = hospital.doInternalMatching(reportedInternalPool, this.cycleCap, this.chainCap, false);
+				} catch(SolverException e) {
+					e.printStackTrace();
+					throw new SolverException("Unrecoverable error solving cycle packing problem on public reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
+				}
+				hospitalInfo.maxReportedInternalMatchSize = Vertex.countPatientDonorPairs( Cycle.getConstituentVertices(
+						internalMatch.getMatching(), reportedInternalPool) );  // recording match SIZE, not UTILITY [for now], altruists count for nothing
+				hospitalInfo.minRequiredNumPairs = hospitalInfo.maxReportedInternalMatchSize;
+			} else {
+				// If we're not enforcing IR constraints, we don't care about reported internal match size
+				hospitalInfo.maxReportedInternalMatchSize = -1;
+				hospitalInfo.minRequiredNumPairs = 0;
 			}
-			hospitalInfo.maxReportedInternalMatchSize = Vertex.countPatientDonorPairs( Cycle.getConstituentVertices(
-					internalMatch.getMatching(), reportedInternalPool) );  // recording match SIZE, not UTILITY [for now], altruists count for nothing
-			hospitalInfo.minRequiredNumPairs = hospitalInfo.maxReportedInternalMatchSize;
-			
-			
+
 			// Figure out a maximum utility internal match on PRIVATE type (need this for experimental records only)
 			Solution maxPrivateInternalMatch = null;
 			try {
@@ -112,7 +126,7 @@ public class IRICMechanism {
 				e.printStackTrace();
 				throw new SolverException("Unrecoverable error solving cycle packing problem on public+private reported pool of " + hospital + "; experiments are bunk.\nOriginal Message: " + e.getMessage());
 			}
-			
+
 			// Initialize remaining details and record
 			hospitalInfo.exactRequiredNumPairs = -1;  // tell solver to ignore equality constraints
 			infoMap.put(hospital, hospitalInfo);
@@ -126,15 +140,15 @@ public class IRICMechanism {
 		List<Cycle> allCycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
 		CycleMembership cycleMembership = new CycleMembership(entireReportedPool, allCycles);
 		IRCPLEXSolver solver = new IRCPLEXSolver(entireReportedPool, allCycles, cycleMembership, hospitals);
-		
-		
+
+
 		// Get maximum matching subject to each hospital getting at least as many matches
 		// as it could've gotten if had only matched its reported pairs alone
 		Solution allIRMatching = null;
 		try {
 			allIRMatching = solver.solve(infoMap, 0, null, true);
 			//if(!MathUtil.isInteger(allIRMatching.getObjectiveValue())) { throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); }
-			
+
 		} catch(SolverException e) {
 			e.printStackTrace();
 			throw new SolverException("Unrecoverable error solving cycle packing problem for max s.t. only IR; experiments are bunk.\nOriginal Message: " + e.getMessage());
@@ -143,7 +157,7 @@ public class IRICMechanism {
 		int maxMatchingNumPairs = Vertex.countPatientDonorPairs(
 				Cycle.getConstituentVertices(allIRMatching.getMatching(), entireReportedPool)
 				);
-		
+
 
 		// Random permutation of hospitals
 		List<Hospital> shuffledHospitals = new ArrayList<Hospital>( this.hospitals );
@@ -160,7 +174,7 @@ public class IRICMechanism {
 			try {
 				solMax = solver.solve(infoMap, maxMatchingNumPairs, hospital, true);
 				solMin = solver.solve(infoMap, maxMatchingNumPairs, hospital, false);
-				
+
 				//if(!MathUtil.isInteger(solMax.getObjectiveValue()) || !MathUtil.isInteger(solMin.getObjectiveValue())) { 
 				//	throw new SolverException("IRICMechanism only works for unit-weight, deterministic graphs."); 
 				//}
@@ -172,7 +186,7 @@ public class IRICMechanism {
 			}
 			assert(solMax != null);
 			assert(solMin != null);
-			
+
 			// Update credit balance of hospital based on current credit balance and match delta
 			int numPairsDiff = (int)Math.rint(solMax.getObjectiveValue()) - (int)Math.rint(solMin.getObjectiveValue());
 			if(hospital.getNumCredits() >= 0) {
@@ -182,7 +196,7 @@ public class IRICMechanism {
 				hospital.addCredits(numPairsDiff);
 				finalSol = solMin;
 			}
-			
+
 			// Update constraints for the next iteration (hospital)
 			HospitalInfo hInfo = infoMap.get(hospital);
 			hInfo.minRequiredNumPairs = -1;  // tell solver to ignore >= constraint
@@ -190,10 +204,10 @@ public class IRICMechanism {
 		}
 
 		assert(finalSol != null);
-		
+
 		// Convert solution to IRSolution with more information
 		IRSolution finalIRSol = new IRSolution(finalSol, entireReportedPool, infoMap);
-		
+
 		return finalIRSol;
 	}
 

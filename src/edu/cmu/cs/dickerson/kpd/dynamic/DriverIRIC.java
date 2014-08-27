@@ -82,8 +82,18 @@ public class DriverIRIC {
 		Truthfulness nonTruthfulType = Truthfulness.FullyStrategic;
 		//Truthfulness nonTruthfulType = Truthfulness.SemiTruthful;
 
+		// Are we doing IR+IC+IREfficient, or IC+Efficient?
+		boolean doIRICIREfficient = true;
+		
 		// Store output
-		String path = "iric_" + System.currentTimeMillis() + ".csv";
+		String path;
+		if(doIRICIREfficient) {
+			path = "iric_";
+		} else {
+			path = "iceff_";
+		}
+		path += System.currentTimeMillis() + ".csv";
+		
 		IRICOutput out = null;
 		try {
 			out = new IRICOutput(path);
@@ -152,7 +162,8 @@ public class DriverIRIC {
 											altArrivalDist, 
 											chainCap,
 											meanLifeExpectancy, 
-											r);
+											r,
+											doIRICIREfficient);
 
 
 									IRICDynamicSimulatorData res = null;

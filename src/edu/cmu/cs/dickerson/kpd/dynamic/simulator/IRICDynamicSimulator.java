@@ -9,7 +9,9 @@ import java.util.Set;
 
 import com.sun.istack.internal.logging.Logger;
 
-import edu.cmu.cs.dickerson.kpd.ir.IRICMechanism;
+import edu.cmu.cs.dickerson.kpd.ir.ICEfficientMechanism;
+import edu.cmu.cs.dickerson.kpd.ir.ICMechanism;
+import edu.cmu.cs.dickerson.kpd.ir.IREfficientmMechanism;
 import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
@@ -26,18 +28,23 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	private static final Logger logger = Logger.getLogger(IRICDynamicSimulator.class);
 
 	private Set<Hospital> hospitals;
-	private IRICMechanism mechanism;
+	private ICMechanism mechanism;
 	private PoolGenerator poolGen;
 	private ArrivalDistribution altArrivalDist;
 	private Random r;
 
-	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution altArrivalDist, int chainCap, int meanLifeExpectancy, Random r) {
+	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution altArrivalDist, int chainCap, int meanLifeExpectancy, Random r, boolean doIRICMechanism) {
 		super();
 		this.hospitals = hospitals;
-		this.mechanism = new IRICMechanism(hospitals, 3, chainCap, meanLifeExpectancy);
 		this.poolGen = poolGen;
 		this.altArrivalDist = altArrivalDist;
 		this.r = r;
+		
+		if(doIRICMechanism) {
+			this.mechanism = new IREfficientmMechanism(hospitals, 3, chainCap, meanLifeExpectancy);
+		} else {
+			this.mechanism = new ICEfficientMechanism(hospitals, 3, chainCap, meanLifeExpectancy);
+		}
 	}
 
 
