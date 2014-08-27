@@ -34,8 +34,8 @@ public class DriverIRIC {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				new SaidmanPoolGenerator(r),
-				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				//new SaidmanPoolGenerator(r),
+				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		// list of |H|s we'll iterate over

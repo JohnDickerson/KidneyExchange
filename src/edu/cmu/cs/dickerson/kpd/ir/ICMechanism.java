@@ -60,7 +60,7 @@ public abstract class ICMechanism {
 	}
 
 	public void setEnforcingIRConstraints(boolean enforcesIRConstraints) {
-		this.enforcingIRConstraints = enforcingIRConstraints;
+		this.enforcingIRConstraints = enforcesIRConstraints;
 	}
 
 	public IRSolution doMatching(Pool entirePool, Set<Vertex> dieNextRoundVertices, Random r) throws SolverException {
