@@ -34,8 +34,8 @@ public class DriverIRIC {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				//new SaidmanPoolGenerator(r),
-				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				new SaidmanPoolGenerator(r),
+				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		// list of |H|s we'll iterate over
@@ -64,7 +64,7 @@ public class DriverIRIC {
 				new UniformArrivalDistribution(1,1), // die after one round
 				new UniformArrivalDistribution(1,11),
 				new UniformArrivalDistribution(1,21),
-				new UniformArrivalDistribution(1,31),
+				//new UniformArrivalDistribution(1,31),
 				//new UniformArrivalDistribution(1,41),
 		});
 
