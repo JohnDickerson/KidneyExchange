@@ -44,8 +44,8 @@ public class DriverIRIC {
 				4, 
 				5, 
 				6, 
-				7, 
-				8, 
+				//7, 
+				//8, 
 				//9, 10,// 15, 
 				//20,
 		});
@@ -81,8 +81,8 @@ public class DriverIRIC {
 		int numReps = 25; 
 
 		// What kind of strategizing do we allow?
-		//Truthfulness nonTruthfulType = Truthfulness.FullyStrategic;
-		Truthfulness nonTruthfulType = Truthfulness.SemiTruthful;
+		Truthfulness nonTruthfulType = Truthfulness.FullyStrategic;
+		//Truthfulness nonTruthfulType = Truthfulness.SemiTruthful;
 
 		// Are we doing IR+IC+IREfficient, or IC+Efficient?
 		boolean doIRICIREfficient = false;
