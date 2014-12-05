@@ -65,7 +65,7 @@ public class HCAGTDriverUNOSGenerator {
 		}
 
 		// Initialize our experimental output to .csv writer
-		String path = "hcagt_unos_nonlex_" + System.currentTimeMillis() + ".csv";
+		String path = "or_static_unos_nonlex_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;
 		try {
 			eOut = new ExperimentalOutput(path);

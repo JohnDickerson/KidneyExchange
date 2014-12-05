@@ -41,14 +41,14 @@ public class HCAGTDriverUNOS {
 		
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(4);//Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(Integer.MAX_VALUE);
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
+		int numRepeats = 10;   // need >1 if we're doing, e.g., bimodal probabilities
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
-		for(double alphaStarVal=0.0; alphaStarVal<=0.0; alphaStarVal += 1.0) {
+		for(double alphaStarVal=0.0; alphaStarVal<=10.0; alphaStarVal += 1.0) {
 			alphaStarValList.add(alphaStarVal);
 		}
 
@@ -63,13 +63,13 @@ public class HCAGTDriverUNOS {
 
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_CORRELATED_APD;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_CORRELATED_APD;//BIMODAL_RANDOM;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
 		}
 
 		// Initialize our experimental output to .csv writer
-		String path = "hcagt_unos_nonlex_" + System.currentTimeMillis() + ".csv";
+		String path = "or_static_unos_nonlex_" + System.currentTimeMillis() + ".csv";
 		ExperimentalOutput eOut = null;
 		try {
 			eOut = new ExperimentalOutput(path);
@@ -81,7 +81,8 @@ public class HCAGTDriverUNOS {
 		// Want to solve for each match run in a master directory consisting of single match directories
 		//String baseUNOSpath = "C:\\amem\\kpd\\files_real_runs\\zips\\";
 		//String baseUNOSpath = "/usr0/home/jpdicker/amem/kpd/files_real_runs/zips/";
-		String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
+		//String baseUNOSpath = "/Users/spook/amem/kpd/files_real_runs/zips/";
+		String baseUNOSpath = IOUtil.getBaseUNOSFilePath();
 		File baseUNOSDir = new File(baseUNOSpath);
 		List<File> matchDirList = Arrays.asList(baseUNOSDir.listFiles(new FilenameFilter() {
 			@Override

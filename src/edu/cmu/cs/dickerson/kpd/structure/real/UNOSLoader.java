@@ -88,7 +88,7 @@ public class UNOSLoader {
 			String[] line;
 			while((line = reader.readNext()) != null) {
 				Boolean isNonDirectedDonor = IOUtil.stringToBool(line[DonorIdx.NDD.idx()]);
-
+				
 
 				String donorID = line[DonorIdx.DONOR_ID.idx()].trim().toUpperCase();
 				BloodType donorBloodType = BloodType.getBloodType(line[DonorIdx.ABO.idx()]);
@@ -107,7 +107,13 @@ public class UNOSLoader {
 					donorToCand.put(donorID, candidateID);
 					// Update vertex blood type for the donor
 					VertexPair vp = (VertexPair) idToVertex.get( strIDtoIntID.get(donorToCand.get(donorID) ));
-					vp.setBloodTypeDonor(donorBloodType);
+					if(null==vp) {
+						// Weird case: Match run on 2014-08-04 lists a donor as both a pair (line 182) and an NDD (line 258),
+						// and the pair version's paired patient ID doesn't exist -- so skip it here
+						IOUtil.dPrintln("Could not find vertex pair for donor ID: " + donorID + "; skipping.");
+					} else {
+						vp.setBloodTypeDonor(donorBloodType);
+					}
 				}
 				
 			}
