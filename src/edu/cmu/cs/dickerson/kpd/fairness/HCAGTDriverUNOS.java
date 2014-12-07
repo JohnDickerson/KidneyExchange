@@ -41,10 +41,10 @@ public class HCAGTDriverUNOS {
 		
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(Integer.MAX_VALUE);
+		List<Integer> chainCapList = Arrays.asList(4);//UNOS uses four Integer.MAX_VALUE);
 
 		// Number of times to run each experiment with the same parameters, except random seed
-		int numRepeats = 10;   // need >1 if we're doing, e.g., bimodal probabilities
+		int numRepeats = 1;   // need >1 if we're doing, e.g., bimodal probabilities
 
 		// We value a highly-sensitized candidate at (1+alpha), whereas a normal candidate is just value 1
 		List<Double> alphaStarValList = new ArrayList<Double>();
@@ -54,7 +54,7 @@ public class HCAGTDriverUNOS {
 
 		// Vary the param1 in edge failure distribution (e.g., constant failure \in \{0,0.1,..,1.0\})
 		List<Double> failParam1List = new ArrayList<Double>();
-		for(double param1=0.0; param1<=0.0; param1 += 0.05) {
+		for(double param1=0.0; param1<1.0; param1 += 0.05) {
 			failParam1List.add(param1);
 		}
 
@@ -63,7 +63,7 @@ public class HCAGTDriverUNOS {
 
 		// Are we using failure probabilities, and if so what kind?
 		boolean usingFailureProbabilities = true;
-		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.BIMODAL_CORRELATED_APD;//BIMODAL_RANDOM;
+		FailureProbabilityUtil.ProbabilityDistribution failDist = FailureProbabilityUtil.ProbabilityDistribution.CONSTANT;//BIMODAL_RANDOM;//BIMODAL_CORRELATED_APD;
 		if(!usingFailureProbabilities) {
 			failDist = FailureProbabilityUtil.ProbabilityDistribution.NONE;
 		}
