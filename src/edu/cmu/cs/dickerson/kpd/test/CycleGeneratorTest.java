@@ -60,6 +60,7 @@ public class CycleGeneratorTest {
 		List<Cycle> chains = cg.generateCyclesAndChains(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
 		
 		for(Cycle chain : chains) {
+			assertTrue(Cycle.isAChain(chain, pool));
 			if(chain.getEdges().size() == 2) {
 				assertTrue(isWeightRoughly(chain, 0.3));
 			} else if(chain.getEdges().size() == 3) {
