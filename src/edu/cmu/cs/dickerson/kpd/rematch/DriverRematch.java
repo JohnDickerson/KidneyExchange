@@ -61,7 +61,7 @@ public class DriverRematch {
 		// List of constant edge failure rates we want to use
 		List<Double> failureRateList = Arrays.asList(new Double[] {
 				//0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-				0.7,
+				0.5,
 		});
 
 		// Invariant parameters
@@ -238,6 +238,7 @@ public class DriverRematch {
 									cycles, 
 									new CycleMembership(pool, cycles))
 									).solve();
+							
 							// Now count the number of matches that actually went to transplant
 							// TODO WILL BREAK IF WE HAVE CHAINS (need to do incremental execution of partial chain failure)
 							double numActualTransplants=0;
