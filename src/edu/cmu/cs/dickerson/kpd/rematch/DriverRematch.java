@@ -32,7 +32,7 @@ import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
 /**
- * Experiments for SODA-2014 submission / NSF grant
+ * Experiments for EC-2015 submission / NSF grant
  * @author John P Dickerson
  *
  */
@@ -64,9 +64,13 @@ public class DriverRematch {
 				0.7,
 		});
 
+		// List of chain caps we want to use
+		List<Integer> chainCapList = Arrays.asList(new Integer[] {
+				0,4,10,
+		});
+		
 		// Invariant parameters
 		int cycleCap = 3;
-		int chainCap = 0;
 		int numPairs = 250;
 		int numAlts = 0;
 		int maxNumRematches = 100;
@@ -131,7 +135,7 @@ public class DriverRematch {
 			}
 
 			for(Double failureRate : failureRateList) {
-
+				for(Integer chainCap : chainCapList) {
 				logger.info("failureRate=" + failureRate);
 				for(int repCt=0; repCt < numReps; repCt++) {
 
@@ -266,6 +270,7 @@ public class DriverRematch {
 						logger.severe("Solver Exception thrown!", e);
 					}
 				} // end numReps
+			} // end chainCapList
 			} // end failureRateList
 		} // end genList
 
