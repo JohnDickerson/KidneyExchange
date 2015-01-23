@@ -67,19 +67,21 @@ public class DriverRematch {
 
 		// List of chain caps we want to use
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				0,4,10,
+				0,4,
+				//10,
 		});
 
 		// List of hard max tests per vertex
 		List<Integer> hardMaxPerVertexList = Arrays.asList(new Integer[] {
-				5, 10, Integer.MAX_VALUE-1,
+				//5, 10, 
+				Integer.MAX_VALUE-1,
 		});
 
 		// Invariant parameters
 		int cycleCap = 3;
 		int numPairs = 250;
 		int numAlts = 0;
-		int maxNumRematches = 50;
+		int maxNumRematches = 10;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
 		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
 
@@ -267,6 +269,10 @@ public class DriverRematch {
 													break;
 												}
 												successCt++;
+											}
+											
+											if(successCt == c.getEdges().size()) {
+												successCt -= 1;    // if nothing failed, don't count dummy edge going back to altruist
 											}
 											numActualTransplants += successCt;
 										} else {
