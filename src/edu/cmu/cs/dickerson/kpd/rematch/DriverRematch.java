@@ -45,6 +45,10 @@ public class DriverRematch {
 
 		Random r = new Random();
 
+		// Track, manually increment if needed within loops
+		//long seed = 1422038233403L;   // Setting seed for Adaptive runs to same as Non-Adaptive runs
+		long seed = System.currentTimeMillis();  // Set seed to something new each time
+
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
 				//new SaidmanPoolGenerator(r),
@@ -81,9 +85,9 @@ public class DriverRematch {
 		int cycleCap = 3;
 		int numPairs = 250;
 		int numAlts = 0;
-		int maxNumRematches = 10;
+		int maxNumRematches = 5;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
-		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
+		RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_FULL;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
 		boolean onlyPlotMaxRematch = false;
@@ -100,9 +104,6 @@ public class DriverRematch {
 			e.printStackTrace();
 			return;
 		}
-
-		// Track, manually increment if needed within loops
-		long seed = System.currentTimeMillis();
 
 		//for(PoolGenerator gen : genList) {
 
@@ -149,7 +150,8 @@ public class DriverRematch {
 
 							// Maintain the same seed as we increment numRematches
 							seed++;
-
+							r.setSeed(seed);
+							
 							// Generate pool with expected failure rate of failureRate
 							//Pool pool = gen.generate(numPairs, numAlts);  // uncomment if we ever switch back to generator, not real
 							FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, r, failureRate);
@@ -177,7 +179,8 @@ public class DriverRematch {
 								Solution oracleSolution = (new CycleFormulationCPLEXSolver(
 										pool, 
 										cycles,
-										new CycleMembership(pool, cycles))
+										new CycleMembership(pool, cycles)
+										)
 										).solve();
 								double oracleMatchUtil = oracleSolution.getObjectiveValue();
 								cycles = null;
@@ -194,7 +197,7 @@ public class DriverRematch {
 										pool,
 										cycles,
 										new CycleMembership(pool, cycles))
-										).solve(maxNumRematches, rematchType, maxAvgEdgesPerVertex);
+										).solve(maxNumRematches, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
 
 								// Keep track of how many incoming edges to each vertex have been checked
 								Map<Vertex, Set<Edge>> perVertexEdgeTested = new HashMap<Vertex, Set<Edge>>();
@@ -214,7 +217,9 @@ public class DriverRematch {
 										}
 									} else {
 										// Add this #rematches' edge set to the total set of edges to test
-										edgesToTestSet.addAll( edgesToTestMap.get(numRematches) );
+										if(edgesToTestMap.containsKey(numRematches) && null!=edgesToTestMap.get(numRematches)) {
+											edgesToTestSet.addAll( edgesToTestMap.get(numRematches) );
+										}
 									}
 
 									// Initial bookkeeping

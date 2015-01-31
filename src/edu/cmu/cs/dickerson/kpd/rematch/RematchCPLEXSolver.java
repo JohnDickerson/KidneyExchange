@@ -18,6 +18,7 @@ import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
+import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 
 public class RematchCPLEXSolver extends CPLEXSolver {
 
@@ -28,6 +29,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 		PREVENT_EXACT_MATCHING,  // Compute matching M, then add constraint saying exactly M cannot occur again
 		REMOVE_MATCHED_EDGES,    // Compute matching M, then remove all edges in M (implemented as remove all cycles with at least one edge in M)
 		REMOVE_MATCHED_CYCLES,   // Compute matching M, then remove all cycles in M
+		ADAPTIVE_FULL,           // Compute matching M, test edges in M, remove 0s and keep 1s (test full cycles/chains)
 	}
 
 	public RematchCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
@@ -36,11 +38,11 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 		this.membership = membership;
 	}
 
-	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType) throws SolverException {
-		return solve(numRematches, rematchType, Double.MAX_VALUE);
+	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType, Map<Edge, Boolean> edgeFailedMap) throws SolverException {
+		return solve(numRematches, rematchType, edgeFailedMap, Double.MAX_VALUE);
 	}
-	
-	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType, double maxAvgEdgesPerVertex) throws SolverException {
+
+	public Map<Integer, Set<Edge>> solve(int numRematches, RematchConstraintType rematchType, Map<Edge, Boolean> edgeFailedMap, double maxAvgEdgesPerVertex) throws SolverException {
 
 		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation, rematches=" + numRematches + ".");
 
@@ -78,7 +80,6 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 			cplex.addMaximize(cplex.scalProd(weights, x));
 
 
-
 			// Subject to: 
 			// \sum_{cycles c containing v} decVar_c <=1   \forall v
 			for(Vertex v : pool.vertexSet()) {
@@ -95,6 +96,8 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 				cplex.addLe(sum, 1.0);
 			}
 
+
+			// Update for last matching (if it exists) 
 			// Incrementally solve, adding each solution as constraint to matrix before resolving
 			Set<Integer> lastMatchCycleIdxSet = new HashSet<Integer>();
 			for(int rematchIdx=1; rematchIdx <= numRematches; rematchIdx++) {
@@ -105,7 +108,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 					retMap.put(rematchIdx, new HashSet<Edge>());
 					continue;
 				}
-				
+
 				// Add in preferred rematching constraints
 				switch(rematchType) {
 				case PREVENT_EXACT_MATCHING:
@@ -145,14 +148,52 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 						cplex.addEq(sum, 0.0);
 					}
 					break;
+				case ADAPTIVE_FULL:
+					// For each cycle/chain in this matching, test all edges
+					// Set existing edges to failure_prob=0, non-existing to failure_prob=1
+					if(!lastMatchCycleIdxSet.isEmpty()) {
+
+						// Test all edges in the last matching, update failure probabilities to determinisim
+						for(Edge e : retMap.get(rematchIdx-1)) {
+							if(!(e.getFailureProbability() == 0.0 || e.getFailureProbability() == 1.0)) {
+								e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0 );
+							}
+						}
+
+						// Update utilities for each of the possibly partially-tested cycles and chains
+						cycleIdx = 0;
+						for(Cycle c : cycles) {
+							if(Cycle.isAChain(c, pool)) {
+								weights[cycleIdx++] = FailureProbabilityUtil.calculateDiscountedChainUtility(c, pool, pool.vertexSet());
+							} else {
+								weights[cycleIdx++] = FailureProbabilityUtil.calculateDiscountedCycleUtility(c, pool, pool.vertexSet());
+							}
+						}
+						
+						// Update CPLEX's objective function
+						cplex.getObjective().setExpr(cplex.scalProd(weights, x));
+						
+						// Constrain out these old cycles or chains from being used in future matches
+						for(Integer cycleColID : lastMatchCycleIdxSet) {
+							IloLinearNumExpr sum = cplex.linearNumExpr(); 
+							sum.addTerm(1.0, x[cycleColID]);
+							cplex.addEq(sum, 0.0);
+						}
+					}
+
+					break;
+				default:
+					throw new SolverException("Have not implemented RematchType " + rematchType + " yet");
 				}
+
+				
 				// Solve, figure out which cycles and edges were included in the final solution
 				super.solveCPLEX();
 				double[] vals = cplex.getValues(x);
 				int nCols = cplex.getNcols();
 
 				boolean shortCircuitDueToTooManyEdges = false;
-				
+
 				Set<Edge> edgesInThisMatch = new HashSet<Edge>();
 				lastMatchCycleIdxSet.clear();
 				for(cycleIdx=0; cycleIdx<nCols; cycleIdx++) {
@@ -163,7 +204,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 							shortCircuitDueToTooManyEdges = true;
 							break;
 						}
-							
+
 						lastMatchCycleIdxSet.add(cycleIdx);
 						edgesInThisMatch.addAll( cycles.get(cycleIdx).getEdges() );
 					}
