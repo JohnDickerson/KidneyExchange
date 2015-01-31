@@ -199,6 +199,9 @@ public class DriverRematch {
 										new CycleMembership(pool, cycles))
 										).solve(maxNumRematches, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
 
+								// Some of the rematchers change edge failure probabilities; reset here
+								FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, r, failureRate);
+
 								// Keep track of how many incoming edges to each vertex have been checked
 								Map<Vertex, Set<Edge>> perVertexEdgeTested = new HashMap<Vertex, Set<Edge>>();
 								for(Vertex v : pool.vertexSet()) {
