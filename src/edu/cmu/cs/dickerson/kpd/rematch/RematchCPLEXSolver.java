@@ -30,6 +30,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 		REMOVE_MATCHED_EDGES,    // Compute matching M, then remove all edges in M (implemented as remove all cycles with at least one edge in M)
 		REMOVE_MATCHED_CYCLES,   // Compute matching M, then remove all cycles in M
 		ADAPTIVE_FULL,           // Compute matching M, test edges in M, remove 0s and keep 1s (test full cycles/chains)
+		ADAPTIVE_DETERMINISTIC,  // Compute matchings without taking failure probability into account, test edges and remove those that failed
 	}
 
 	public RematchCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
@@ -140,14 +141,6 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 						}
 					}
 					break;
-				case REMOVE_MATCHED_CYCLES:
-					// Disallow any previously used cycle from being reused 
-					for(Integer cycleColID : lastMatchCycleIdxSet) {
-						IloLinearNumExpr sum = cplex.linearNumExpr(); 
-						sum.addTerm(1.0, x[cycleColID]);
-						cplex.addEq(sum, 0.0);
-					}
-					break;
 				case ADAPTIVE_FULL:
 					// For each cycle/chain in this matching, test all edges
 					// Set existing edges to failure_prob=0, non-existing to failure_prob=1
@@ -155,9 +148,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 
 						// Test all edges in the last matching, update failure probabilities to determinisim
 						for(Edge e : retMap.get(rematchIdx-1)) {
-							if(!(e.getFailureProbability() == 0.0 || e.getFailureProbability() == 1.0)) {
-								e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0 );
-							}
+							e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0 );
 						}
 
 						// Update utilities for each of the possibly partially-tested cycles and chains
@@ -170,17 +161,22 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 							}
 						}
 						
-						// Update CPLEX's objective function
+						// Update CPLEX's objective function to point to these new weights
 						cplex.getObjective().setExpr(cplex.scalProd(weights, x));
-						
-						// Constrain out these old cycles or chains from being used in future matches
-						for(Integer cycleColID : lastMatchCycleIdxSet) {
-							IloLinearNumExpr sum = cplex.linearNumExpr(); 
-							sum.addTerm(1.0, x[cycleColID]);
-							cplex.addEq(sum, 0.0);
-						}
 					}
-
+					// DO NOT BREAK; want to fall through into REMOVE_MATCHED_CYCLES to constrain out cycles in this matching
+				case REMOVE_MATCHED_CYCLES:
+					// Disallow any previously used cycle from being reused 
+					for(Integer cycleColID : lastMatchCycleIdxSet) {
+						IloLinearNumExpr sum = cplex.linearNumExpr(); 
+						sum.addTerm(1.0, x[cycleColID]);
+						cplex.addEq(sum, 0.0);
+					}
+					break;
+				
+				case ADAPTIVE_DETERMINISTIC:
+					
+					
 					break;
 				default:
 					throw new SolverException("Have not implemented RematchType " + rematchType + " yet");

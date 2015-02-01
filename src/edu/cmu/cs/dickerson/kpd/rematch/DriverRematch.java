@@ -87,7 +87,7 @@ public class DriverRematch {
 		int numAlts = 0;
 		int maxNumRematches = 5;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
-		RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_FULL;
+		RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_DETERMINISTIC;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
 		boolean onlyPlotMaxRematch = false;
@@ -200,7 +200,9 @@ public class DriverRematch {
 										).solve(maxNumRematches, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
 
 								// Some of the rematchers change edge failure probabilities; reset here
-								FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, r, failureRate);
+								for(Map.Entry<Edge, Double> entry : edgeFailureRateMap.entrySet()) {
+									entry.getKey().setFailureProbability(entry.getValue());
+								}
 
 								// Keep track of how many incoming edges to each vertex have been checked
 								Map<Vertex, Set<Edge>> perVertexEdgeTested = new HashMap<Vertex, Set<Edge>>();
