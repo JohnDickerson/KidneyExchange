@@ -73,7 +73,13 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 			double[] weights = new double[x.length];
 			int cycleIdx = 0;
 			for(Cycle c : cycles) {
-				weights[cycleIdx++] = c.getWeight();
+				if(rematchType.equals(RematchConstraintType.ADAPTIVE_DETERMINISTIC)) {
+					// Force deterministic matching for some types of adaptive edge testing
+					// Weight is just size of cycle or size of chain minus 1 (for the altruist)
+					weights[cycleIdx++] = c.getEdges().size() - (Cycle.isAChain(c, pool) ? 1 : 0);   
+				} else {
+					weights[cycleIdx++] = c.getWeight();
+				}
 			}
 
 			// Objective:
@@ -109,7 +115,8 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 					retMap.put(rematchIdx, new HashSet<Edge>());
 					continue;
 				}
-
+				Set<Edge> edgesInLastMatch = retMap.get(rematchIdx-1);
+				
 				// Add in preferred rematching constraints
 				switch(rematchType) {
 				case PREVENT_EXACT_MATCHING:
@@ -123,10 +130,9 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 					}
 					break;
 				case REMOVE_MATCHED_EDGES:
-					cycleIdx = 0;
-					Set<Edge> edgesInLastMatch = retMap.get(rematchIdx-1);
 					// Prevent any cycles that include edges from the last matching (incremental)
 					if(!edgesInLastMatch.isEmpty()) {
+						cycleIdx = 0;
 						for(Cycle c : cycles) {
 							// If any edge in this cycle was in the last match, constrain out the cycle (x_c = 0)
 							for(Edge e : c.getEdges()) {
@@ -147,7 +153,7 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 					if(!lastMatchCycleIdxSet.isEmpty()) {
 
 						// Test all edges in the last matching, update failure probabilities to determinisim
-						for(Edge e : retMap.get(rematchIdx-1)) {
+						for(Edge e : edgesInLastMatch) {
 							e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0 );
 						}
 
@@ -175,7 +181,24 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 					break;
 				
 				case ADAPTIVE_DETERMINISTIC:
-					
+					// For any edge that was in the last matching, tested and failed, remove cycle or chain containing it
+					if(!edgesInLastMatch.isEmpty()) {
+						cycleIdx = 0;
+						for(Cycle c : cycles) {
+							// At least one failure in a cycle = that cycle disappears = same as if the failed edge didn't exist during cycle gen
+							// At least one failure in a chain = that chain could execute until the failure, but we have decvars for the shorter
+							//          chain so constrain out any chain that has even one failure in it
+							for(Edge e : c.getEdges()) {
+								if(edgesInLastMatch.contains(e) && edgeFailedMap.get(e)) {							
+									IloLinearNumExpr sum = cplex.linearNumExpr(); 
+									sum.addTerm(1.0, x[cycleIdx]);
+									cplex.addEq(sum, 0.0);
+									break;
+								}
+							}
+							cycleIdx++;
+						}
+					}
 					
 					break;
 				default:
