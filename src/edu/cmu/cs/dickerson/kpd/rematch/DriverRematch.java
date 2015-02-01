@@ -46,8 +46,8 @@ public class DriverRematch {
 		Random r = new Random();
 
 		// Track, manually increment if needed within loops
-		//long seed = 1422038233403L;   // Setting seed for Adaptive runs to same as Non-Adaptive runs
-		long seed = System.currentTimeMillis();  // Set seed to something new each time
+		long seed = 1422684007877L;   // Setting seed for Non-adaptive runs to same as Adaptive runs
+		//long seed = System.currentTimeMillis();  // Set seed to something new each time
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
