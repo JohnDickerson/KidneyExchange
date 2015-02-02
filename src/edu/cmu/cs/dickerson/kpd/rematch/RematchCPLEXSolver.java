@@ -200,11 +200,11 @@ public class RematchCPLEXSolver extends CPLEXSolver {
 						}
 					}
 					// Also constrain out any cycles we had in the last match
-					for(Integer cycleColID : lastMatchCycleIdxSet) {
+					/*for(Integer cycleColID : lastMatchCycleIdxSet) {
 						IloLinearNumExpr sum = cplex.linearNumExpr(); 
 						sum.addTerm(1.0, x[cycleColID]);
 						cplex.addEq(sum, 0.0);
-					}
+					}*/
 					break;
 				default:
 					throw new SolverException("Have not implemented RematchType " + rematchType + " yet");
