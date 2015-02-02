@@ -28,6 +28,7 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
@@ -51,8 +52,8 @@ public class DriverRematch {
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				//new SaidmanPoolGenerator(r),
-				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				new SaidmanPoolGenerator(r),
+				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		File baseUNOSDir = new File(IOUtil.getBaseUNOSFilePath());
@@ -87,7 +88,7 @@ public class DriverRematch {
 		int numAlts = 0;
 		int maxNumRematches = 5;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
-		RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_DETERMINISTIC;
+		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
 		boolean onlyPlotMaxRematch = false;
@@ -105,9 +106,11 @@ public class DriverRematch {
 			return;
 		}
 
-		//for(PoolGenerator gen : genList) {
-
-		for(File matchDir : matchDirList) {
+		for(PoolGenerator gen : genList) { 
+			for(int generatedCt=0; generatedCt<50; generatedCt++) {
+				Pool pool = gen.generate(numPairs, numPairs/20);  // For Saidman, take 250 vertices and ~5% altruists
+			
+		/*for(File matchDir : matchDirList) {
 
 			UNOSLoader loader = new UNOSLoader(',');
 
@@ -141,7 +144,8 @@ public class DriverRematch {
 				e.printStackTrace();
 				System.exit(-1);
 			}
-
+	*/
+			
 			for(Double failureRate : failureRateList) {
 				for(Integer chainCap : chainCapList) {
 					for(Integer hardMaxPerVertex : hardMaxPerVertexList) {
@@ -234,7 +238,8 @@ public class DriverRematch {
 									out.set(Col.NUM_PAIRS, pool.getPairs().size());
 									out.set(Col.NUM_ALTRUISTS, pool.getAltruists().size());
 									out.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
-									out.set(Col.GENERATOR, matchRunID);
+									//out.set(Col.GENERATOR, matchRunID);
+									out.set(Col.GENERATOR, gen.getClass().getSimpleName());
 									out.set(Col.MAX_AVG_EDGES_PER_VERT, maxAvgEdgesPerVertex);
 									out.set(Col.HARD_MAX_EDGES_PER_VERT, hardMaxPerVertex);
 									out.set(Col.REMATCH_TYPE, rematchType);
@@ -316,6 +321,7 @@ public class DriverRematch {
 					} // end hardMaxPerVertexList
 				} // end chainCapList
 			} // end failureRateList
+		} // end of generated count repetition (not needed for individual UNOS runs)
 		} // end genList
 
 		// Clean up output stream
