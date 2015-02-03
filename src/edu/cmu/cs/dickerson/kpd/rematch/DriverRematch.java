@@ -72,7 +72,7 @@ public class DriverRematch {
 
 		// List of chain caps we want to use
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
-				0,4,
+				0,//4,
 				//10,
 		});
 
@@ -83,12 +83,12 @@ public class DriverRematch {
 		});
 
 		// Invariant parameters
-		int cycleCap = 3;
+		int cycleCap = 2;
 		int numPairs = 250;
 		int numAlts = 0;
 		int maxNumRematches = 5;
 		double maxAvgEdgesPerVertex = Double.MAX_VALUE;
-		RematchConstraintType rematchType = RematchConstraintType.REMOVE_MATCHED_CYCLES;
+		RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_DETERMINISTIC;
 
 		// Flip to true if we only want data for the max number of rematches performed, false performs for #rematches={0..Max}
 		boolean onlyPlotMaxRematch = false;
@@ -108,7 +108,7 @@ public class DriverRematch {
 
 		for(PoolGenerator gen : genList) { 
 			for(int generatedCt=0; generatedCt<50; generatedCt++) {
-				Pool pool = gen.generate(numPairs, numPairs/20);  // For Saidman, take 250 vertices and ~5% altruists
+				Pool pool = gen.generate(numPairs, 0);//numPairs/20);  // For Saidman, take 250 vertices and ~5% altruists
 			
 		/*for(File matchDir : matchDirList) {
 
