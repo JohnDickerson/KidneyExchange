@@ -1,10 +1,10 @@
-package edu.cmu.cs.dickerson.kpd.ir.arrivals;
+package edu.cmu.cs.dickerson.kpd.dynamic.arrivals;
 
 import java.util.Random;
 
-public class UniformArrivalDistribution extends ArrivalDistribution {
+public class UniformIntegerArrivalDistribution extends ArrivalDistribution<Integer> {
 
-	public UniformArrivalDistribution(int min, int max) {
+	public UniformIntegerArrivalDistribution(int min, int max) {
 		super(min, max);
 	}
 	
@@ -14,12 +14,12 @@ public class UniformArrivalDistribution extends ArrivalDistribution {
 	 * @param max Maximum value returned by draw()
 	 * @param random Random number generator to be used, if provided
 	 */
-	public UniformArrivalDistribution(int min, int max, Random random) {
+	public UniformIntegerArrivalDistribution(int min, int max, Random random) {
 		super(min, max, random);
 	}
 
 	@Override
-	public int draw() {
+	public Integer draw() {
 		if(max == min) { 
 			return expectedDraw(); 
 		} else {
@@ -28,7 +28,7 @@ public class UniformArrivalDistribution extends ArrivalDistribution {
 	}
 
 	@Override
-	public int expectedDraw() {
+	public Integer expectedDraw() {
 		return min+(max-min)/2;   // Not worried about int truncation; caller is responsible for not doing a dumb thing here
 	}
 

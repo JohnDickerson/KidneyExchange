@@ -9,10 +9,10 @@ import java.util.Set;
 
 import com.sun.istack.internal.logging.Logger;
 
+import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.ICEfficientMechanism;
 import edu.cmu.cs.dickerson.kpd.ir.ICMechanism;
 import edu.cmu.cs.dickerson.kpd.ir.IREfficientmMechanism;
-import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.solver.IRSolution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.HospitalVertexInfo;
@@ -30,10 +30,10 @@ public class IRICDynamicSimulator extends DynamicSimulator {
 	private Set<Hospital> hospitals;
 	private ICMechanism mechanism;
 	private PoolGenerator poolGen;
-	private ArrivalDistribution altArrivalDist;
+	private ArrivalDistribution<Integer> altArrivalDist;
 	private Random r;
 
-	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution altArrivalDist, int chainCap, int meanLifeExpectancy, Random r, boolean doIRICMechanism) {
+	public IRICDynamicSimulator(Set<Hospital> hospitals, PoolGenerator poolGen, ArrivalDistribution<Integer> altArrivalDist, int chainCap, int meanLifeExpectancy, Random r, boolean doIRICMechanism) {
 		super();
 		this.hospitals = hospitals;
 		this.poolGen = poolGen;

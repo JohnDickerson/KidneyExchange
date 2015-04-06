@@ -1,25 +1,25 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ArrivalDistribution;
+import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.UniformIntegerArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.IRICDynamicSimulator;
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.IRICDynamicSimulatorData;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.io.IRICOutput;
 import edu.cmu.cs.dickerson.kpd.io.IRICOutput.Col;
-import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
-import edu.cmu.cs.dickerson.kpd.ir.arrivals.UniformArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital;
 import edu.cmu.cs.dickerson.kpd.ir.structure.Hospital.Truthfulness;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 /**
  * Credit-based mechanism paper experiments.
@@ -52,22 +52,20 @@ public class DriverIRIC {
 		});
 
 		// arrival rate distributions (we record distribution type and mean)
-		List<ArrivalDistribution> arrivalDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(1,5),
-				new UniformArrivalDistribution(5,15),
-				new UniformArrivalDistribution(15,25),
-				//new UniformArrivalDistribution(25,35),	
-				//new UniformArrivalDistribution(30,50),
-		});
+		List<ArrivalDistribution<Integer>> arrivalDistList = new ArrayList<ArrivalDistribution<Integer>>();
+		arrivalDistList.add(new UniformIntegerArrivalDistribution(1,5));
+		arrivalDistList.add(new UniformIntegerArrivalDistribution(5,15));
+		arrivalDistList.add(new UniformIntegerArrivalDistribution(15,25));
+		//arrivalDistList.add(new UniformArrivalDistribution(25,35));
+		//arrivalDistList.add(new UniformArrivalDistribution(30,50));
 
 		// life expectancy distributions (we record distribution type and mean)
-		List<ArrivalDistribution> lifeExpectancyDistList = Arrays.asList(new ArrivalDistribution[] {
-				new UniformArrivalDistribution(1,1), // die after one round
-				//new UniformArrivalDistribution(1,11),
-				//new UniformArrivalDistribution(1,21),
-				//new UniformArrivalDistribution(1,31),
-				//new UniformArrivalDistribution(1,41),
-		});
+		List<ArrivalDistribution<Integer>> lifeExpectancyDistList = new ArrayList<ArrivalDistribution<Integer>>();
+		lifeExpectancyDistList.add(new UniformIntegerArrivalDistribution(1,1)); // die after one round
+		//lifeExpectancyDistList.add(new UniformArrivalDistribution(1,11));
+		//lifeExpectancyDistList.add(new UniformArrivalDistribution(1,21));
+		//lifeExpectancyDistList.add(new UniformArrivalDistribution(1,31));
+		//lifeExpectancyDistList.add(new UniformArrivalDistribution(1,41));
 
 		// Cycle and chain limits
 		List<Integer> chainCapList = Arrays.asList(new Integer[] {
@@ -87,7 +85,7 @@ public class DriverIRIC {
 
 		// Are we doing IR+IC+IREfficient, or IC+Efficient?
 		boolean doIRICIREfficient = false;
-		
+
 		// Store output
 		String path;
 		if(doIRICIREfficient) {
@@ -96,7 +94,7 @@ public class DriverIRIC {
 			path = "iceff_";
 		}
 		path += System.currentTimeMillis() + ".csv";
-		
+
 		IRICOutput out = null;
 		try {
 			out = new IRICOutput(path);
@@ -112,8 +110,8 @@ public class DriverIRIC {
 		for(int numHospitals : numHospitalsList) {
 			for(int chainCap : chainCapList) {
 				for(PoolGenerator gen : genList) {
-					for(ArrivalDistribution arrivalDist : arrivalDistList) {
-						for(ArrivalDistribution lifeExpectancyDist : lifeExpectancyDistList) {
+					for(ArrivalDistribution<Integer> arrivalDist : arrivalDistList) {
+						for(ArrivalDistribution<Integer> lifeExpectancyDist : lifeExpectancyDistList) {
 
 
 							for(int rep=0; rep<numReps; rep++) {   // must be the most internal loop
@@ -151,12 +149,12 @@ public class DriverIRIC {
 											h.setTruthType(nonTruthfulType);
 										}
 									}
-									
+
 									// Create an altruistic donor input arrival
 									double pctAlts = 0.05;
 									int expectedAltsPerPeriodMin = (int) Math.rint((pctAlts - (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
 									int expectedAltsPerPeriodMax = (int) Math.rint((pctAlts + (pctAlts*0.5)) * totalExpectedPairsPerPeriod);
-									ArrivalDistribution altArrivalDist = new UniformArrivalDistribution(expectedAltsPerPeriodMin, expectedAltsPerPeriodMax, r);
+									ArrivalDistribution<Integer> altArrivalDist = new UniformIntegerArrivalDistribution(expectedAltsPerPeriodMin, expectedAltsPerPeriodMax, r);
 
 
 									// Create dynamic simulator
@@ -179,7 +177,7 @@ public class DriverIRIC {
 									}
 									if(null==res) { continue; }
 									if(isTruthful) { truthfulRes = res; }
-									
+
 									out.set(Col.SEED_MAIN, seedMain);
 									out.set(Col.SEED_ARRIVAL, seedArrival);
 									out.set(Col.SEED_LIFE, seedLife);
@@ -197,7 +195,7 @@ public class DriverIRIC {
 									out.set(Col.NUM_MATCHED, res.getTotalNumVertsMatched());
 									out.set(Col.NUM_INTERNALLY_MATCHED, res.getTotalInternalNumVertsMatched());
 									out.set(Col.NUM_EXTERNALLY_MATCHED, res.getTotalExternalNumVertsMatched());
-									
+
 									// If this is the non-truthful run, figure out when it was dominated by the truthful run
 									if(isTruthful || null == truthfulRes) {
 										out.set(Col.OVERALL_DOMINATED_TIME_PERIOD, -1);
@@ -207,7 +205,7 @@ public class DriverIRIC {
 										int dominatedPeriod = DriverIRIC.getDominatedPeriod(
 												truthfulRes.getNumMatchedSoFar(), res.getNumMatchedSoFar(), 10);
 										out.set(Col.OVERALL_DOMINATED_TIME_PERIOD, dominatedPeriod);
-										
+
 										// Compute the average period of domination on a per-hospital basis, non-dominated = max period
 										int hospDomTimePeriodCt=0;
 										for(Hospital h : hospitals) {
@@ -240,7 +238,7 @@ public class DriverIRIC {
 
 	} // end of main method
 
-	
+
 	/**
 	 * Determines if one list dominates another list started at a certain time period, going on
 	 * for a certain number of time periods.  Returns the first index of domination (or -1).

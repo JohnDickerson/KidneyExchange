@@ -1,14 +1,14 @@
-package edu.cmu.cs.dickerson.kpd.ir.arrivals;
+package edu.cmu.cs.dickerson.kpd.dynamic.arrivals;
 
 import java.util.Random;
 
-public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
+public class TruncatedNormalIntegerArrivalDistribution extends ArrivalDistribution<Integer> {
 
 	// Truncate the normal at +/- this many standard deviations from mean
 	// (Warning: setting this to a small value will result in long draw times)
 	private double stdevTrunc = Math.abs( 2.0 );
 
-	public TruncatedNormalArrivalDistribution(int min, int max) {
+	public TruncatedNormalIntegerArrivalDistribution(int min, int max) {
 		super(min, max);
 	}
 
@@ -19,12 +19,12 @@ public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
 	 * @param max Maximum value returned by draw()
 	 * @param random Random number generator to be used, if provided
 	 */
-	public TruncatedNormalArrivalDistribution(int min, int max, Random random) {
+	public TruncatedNormalIntegerArrivalDistribution(int min, int max, Random random) {
 		super(min, max, random);
 	}
 
 	@Override
-	public int draw() {
+	public Integer draw() {
 
 		if(min==max || // point interval, return single point
 				stdevTrunc <= 0 // point Gaussian distribution, return mean (halfway point between min and max)
@@ -46,7 +46,7 @@ public class TruncatedNormalArrivalDistribution extends ArrivalDistribution {
 	}
 
 	@Override
-	public int expectedDraw() {
+	public Integer expectedDraw() {
 		return min+(max-min)/2;   // Not worried about int truncation; caller is responsible for not doing a dumb thing here
 	}
 

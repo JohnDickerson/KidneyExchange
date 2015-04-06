@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.cs.dickerson.kpd.ir.arrivals.ArrivalDistribution;
+import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverRuntimeException;
@@ -20,8 +20,8 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 public class Hospital implements Comparable<Hospital> {
 
 
-	private ArrivalDistribution arrivalDist;
-	private ArrivalDistribution lifeExpectancyDist;
+	private ArrivalDistribution<Integer> arrivalDist;
+	private ArrivalDistribution<Integer> lifeExpectancyDist;
 	private final Integer ID;
 
 	private Set<Vertex> vertices;   // current set of private vertices (type)
@@ -34,7 +34,7 @@ public class Hospital implements Comparable<Hospital> {
 	public enum Truthfulness { Truthful, SemiTruthful, FullyStrategic };
 	private Truthfulness truthType;
 
-	public Hospital(Integer ID, ArrivalDistribution arrivalDist, ArrivalDistribution lifeExpectancyDist, Truthfulness truthType) {
+	public Hospital(Integer ID, ArrivalDistribution<Integer> arrivalDist, ArrivalDistribution<Integer> lifeExpectancyDist, Truthfulness truthType) {
 
 		this.ID = ID;
 		this.arrivalDist = arrivalDist;
@@ -129,7 +129,7 @@ public class Hospital implements Comparable<Hospital> {
 	/**
 	 * Draws an arrival rate (i.e., number of vertices to enter at this time period)
 	 */
-	public int drawArrival() {
+	public Integer drawArrival() {
 		return this.arrivalDist.draw();
 	}
 
@@ -159,19 +159,19 @@ public class Hospital implements Comparable<Hospital> {
 		return numCredits;
 	}
 
-	public ArrivalDistribution getArrivalDist() {
+	public ArrivalDistribution<Integer> getArrivalDist() {
 		return arrivalDist;
 	}
 
-	public void setArrivalDist(ArrivalDistribution arrivalDist) {
+	public void setArrivalDist(ArrivalDistribution<Integer> arrivalDist) {
 		this.arrivalDist = arrivalDist;
 	}
 
-	public ArrivalDistribution getLifeExpectancyDist() {
+	public ArrivalDistribution<Integer> getLifeExpectancyDist() {
 		return lifeExpectancyDist;
 	}
 
-	public void setLifeExpectancyDist(ArrivalDistribution lifeExpectancyDist) {
+	public void setLifeExpectancyDist(ArrivalDistribution<Integer> lifeExpectancyDist) {
 		this.lifeExpectancyDist = lifeExpectancyDist;
 	}
 
