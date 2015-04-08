@@ -147,7 +147,7 @@ public class DriverCompetitive {
 												gen,
 												matchingStrategy,
 												rDynamic);
-										logger.info("Starting run " + (currentNumRun++) + " / " + totalNumRuns + ".");
+										logger.info("Starting run " + (currentNumRun++) + " / " + totalNumRuns + "; " + (100.0 * (currentNumRun/totalNumRuns)) + "% done.");
 										CompetitiveDynamicSimulatorData runData = sim.run(timeLimit);
 
 										// Record the statistics from this one run
