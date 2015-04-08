@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import sun.util.logging.resources.logging;
+
 import com.sun.istack.internal.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.competitive.MatchingStrategy;
@@ -63,7 +65,7 @@ public class DriverCompetitive {
 
 		// List of lambda parameters (every vertex has lifespan of exponential clock with parameter lambda)
 		List<Double> lambdaList = Arrays.asList(new Double[] {
-				0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0,
+				0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0,
 		});
 
 		// List of time limits for simulation to run
@@ -77,7 +79,7 @@ public class DriverCompetitive {
 		});
 
 		// Number of times to repeat experiment for all the same parameters, but new random seed
-		int numReps = 1;
+		int numReps = 100;
 
 		String path = "competitive_" + System.currentTimeMillis() + ".csv";
 		CompetitiveOutput out = null;
@@ -93,6 +95,17 @@ public class DriverCompetitive {
 		long seedDynamic = System.currentTimeMillis()+69149;	// used in entry times, exit times, and vertex-specific market entry
 		long seedMatching = System.currentTimeMillis()+104711;	// used for randomized matching strategies
 
+		// How many runs will we be doing in total?
+		long totalNumRuns = genList.size() * 
+				gammaList.size() * 
+				alphaList.size() * 
+				mList.size() * 
+				lambdaList.size() * 
+				timeLimitList.size() * 
+				matchingStrategyList.size() *
+				numReps;
+		long currentNumRun = 0;
+				
 		for(PoolGenerator gen : genList) {	
 			for(Double gamma : gammaList) {
 				for(Double alpha : alphaList) {
@@ -105,7 +118,7 @@ public class DriverCompetitive {
 									seedMatching+=1; 
 									
 									for(MatchingStrategy matchingStrategy : matchingStrategyList) {
-										
+						
 										// Reset seeds for all the different random number generators
 										rPool.setSeed(seedPool);
 										rDynamic.setSeed(seedDynamic);
@@ -134,6 +147,7 @@ public class DriverCompetitive {
 												gen,
 												matchingStrategy,
 												rDynamic);
+										logger.info("Starting run " + (currentNumRun++) + " / " + totalNumRuns + ".");
 										CompetitiveDynamicSimulatorData runData = sim.run(timeLimit);
 
 										// Record the statistics from this one run
