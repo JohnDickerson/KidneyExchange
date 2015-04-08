@@ -39,7 +39,7 @@ public class DriverCompetitive {
 		Random rDynamic = new Random();
 		Random rMatching = new Random();
 
-		int cycleCap = 3;
+		int cycleCap = 2;
 		int chainCap = 0;  // doesn't work for chains right now (no altruists ever enter, cycle gen untested & probably breaks)
 
 		// List of generators we want to use
@@ -55,7 +55,7 @@ public class DriverCompetitive {
 
 		// List of alpha splits (single pool vertices enter greedy with prob alpha, otherwise enter patient pool)
 		List<Double> alphaList = Arrays.asList(new Double[] {
-				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
+				0.0, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
 		});
 
 		// List of m parameters (for every one time period, expect m vertices to enter, Poisson process)
@@ -65,7 +65,9 @@ public class DriverCompetitive {
 
 		// List of lambda parameters (every vertex has lifespan of exponential clock with parameter lambda)
 		List<Double> lambdaList = Arrays.asList(new Double[] {
-				0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0,
+				0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 
+				1.0, 
+				1.5, 2.0,
 		});
 
 		// List of time limits for simulation to run
@@ -147,7 +149,7 @@ public class DriverCompetitive {
 												gen,
 												matchingStrategy,
 												rDynamic);
-										logger.info("Starting run " + (currentNumRun++) + " / " + totalNumRuns + "; " + (100.0 * (currentNumRun/totalNumRuns)) + "% done.");
+										logger.info("Starting run " + (currentNumRun++) + " / " + totalNumRuns + "; " + (100.0 * ((double) currentNumRun/totalNumRuns)) + "% done.");
 										CompetitiveDynamicSimulatorData runData = sim.run(timeLimit);
 
 										// Record the statistics from this one run
