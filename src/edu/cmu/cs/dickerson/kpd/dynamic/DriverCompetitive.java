@@ -17,6 +17,7 @@ import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput;
 import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput.Col;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 
 /**
@@ -42,7 +43,7 @@ public class DriverCompetitive {
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
 				new SaidmanPoolGenerator(rPool),
-				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', rPool),	
+				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', rPool),	
 		});
 
 		// List of gamma splits (vertices enter competitive pool with prob gamma, otherwise enter only one pool)
@@ -57,17 +58,17 @@ public class DriverCompetitive {
 
 		// List of m parameters (for every one time period, expect m vertices to enter, Poisson process)
 		List<Double> mList = Arrays.asList(new Double[] {
-				2.0,
+				0.1, 0.2, 0.5, 1.0, 2.0,
 		});
 
 		// List of lambda parameters (every vertex has lifespan of exponential clock with parameter lambda)
 		List<Double> lambdaList = Arrays.asList(new Double[] {
-				2.0,
+				0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0,
 		});
 
 		// List of time limits for simulation to run
 		List<Double> timeLimitList = Arrays.asList(new Double[] {
-				100.0,
+				1000.0,
 		});
 
 		List<MatchingStrategy> matchingStrategyList = Arrays.asList(new MatchingStrategy[] {
@@ -98,13 +99,17 @@ public class DriverCompetitive {
 					for(Double m : mList) {
 						for(Double lambda : lambdaList) {
 							for(Double timeLimit : timeLimitList) {
-								for(MatchingStrategy matchingStrategy : matchingStrategyList) {
-									for(int repIdx=0; repIdx < numReps; repIdx++) {
-
-										// New seeds for all the different random number generators
-										seedPool+=1; rPool.setSeed(seedPool);
-										seedDynamic+=1; rDynamic.setSeed(seedDynamic);
-										seedMatching+=1; rMatching.setSeed(seedMatching);
+								for(int repIdx=0; repIdx < numReps; repIdx++) {
+									seedDynamic+=1; 
+									seedPool+=1;
+									seedMatching+=1; 
+									
+									for(MatchingStrategy matchingStrategy : matchingStrategyList) {
+										
+										// Reset seeds for all the different random number generators
+										rPool.setSeed(seedPool);
+										rDynamic.setSeed(seedDynamic);
+										rMatching.setSeed(seedMatching);
 
 										// Record the parameters for this specific run
 										out.set(Col.SEED_POOL, seedPool);
@@ -119,7 +124,7 @@ public class DriverCompetitive {
 										out.set(Col.LAMBDA, lambda);
 										out.set(Col.TIME_LIMIT, timeLimit);
 										out.set(Col.MATCHING_STRATEGY, matchingStrategy);
-										
+
 										// Run the simulation for these parameters 
 										CompetitiveDynamicSimulator sim = new CompetitiveDynamicSimulator(
 												gamma, 
@@ -130,7 +135,7 @@ public class DriverCompetitive {
 												matchingStrategy,
 												rDynamic);
 										CompetitiveDynamicSimulatorData runData = sim.run(timeLimit);
-										
+
 										// Record the statistics from this one run
 										out.set(Col.TOTAL_SEEN, runData.getTotalVerticesSeen());
 										out.set(Col.TOTAL_MATCHED, runData.getTotalVerticesMatched());
@@ -146,9 +151,9 @@ public class DriverCompetitive {
 											e.printStackTrace();
 											System.exit(-1);
 										}
-										
-									} // end of numReps (this should be innermost loop)
-								} // end of matchingStrategyList
+
+									} // end of matchingStrategyList
+								} // end of numReps (anything above this will have the same entry/exit times for vertices and the same generated vertices)
 							} // end of timeLimitList
 						} // end of lambdaList
 					} // end of mList
