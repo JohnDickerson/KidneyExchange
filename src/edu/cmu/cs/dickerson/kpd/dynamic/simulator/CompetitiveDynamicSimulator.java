@@ -89,12 +89,14 @@ public class CompetitiveDynamicSimulator extends DynamicSimulator {
 	}
 
 
-	public void run(double timeLimit) {
+	public CompetitiveDynamicSimulatorData run(double timeLimit) {
 
 		if(timeLimit <= 0.0) { 
 			throw new IllegalArgumentException("Time limit must be positive.");
 		}
 
+		CompetitiveDynamicSimulatorData data = new CompetitiveDynamicSimulatorData();
+		
 		// Preload all arrival and exit times for vertices, as well as their market entry decisions
 		Deque<Double> entryTimes = new ArrayDeque<Double>();
 		Deque<Double> exitTimes = new ArrayDeque<Double>();
@@ -148,6 +150,7 @@ public class CompetitiveDynamicSimulator extends DynamicSimulator {
 		int o_totalPatientMatched = 0;
 		int o_totalGreedyMatched = 0;
 		int o_totalExpired = 0;
+		int o_totalSeen = 0;
 		
 		// Simulate the entry/departure of vertices in the competitive market
 		currTime = 0.0;
@@ -160,8 +163,9 @@ public class CompetitiveDynamicSimulator extends DynamicSimulator {
 					verticesByExitTime.peek().getLeft() <= nextEntryTime  // this vertex will expire before next vertex enters
 					) {
 
-				// Get the vertex that is going critical now
+				// Get the vertex that is going critical now (and make sure it hasn't been matched already)
 				Vertex critVertex = verticesByExitTime.poll().getRight();
+				if(!pool.vertexSet().contains(critVertex)) { continue; }
 				
 				// Get the set of possible vertices to match with this vertex
 				Pool patientPool = getPatientSubPool(pool, marketVertexMap);
@@ -205,6 +209,7 @@ public class CompetitiveDynamicSimulator extends DynamicSimulator {
 			while(!entryTimes.isEmpty() && entryTimes.peek() == currTime) {
 				entryTimes.pop(); newVertCount++;
 			}
+			o_totalSeen += newVertCount;
 
 			// Add those new vertices to the full pool, and track their exit characteristics/market entries
 			Set<Vertex> newVertices = poolGen.addVerticesToPool(pool, newVertCount, 0);
@@ -240,12 +245,23 @@ public class CompetitiveDynamicSimulator extends DynamicSimulator {
 		}
 		
 		logger.info("Done with run(" + timeLimit + "):" + 
+		"\n * Total entered:     " + o_totalSeen +  
 		"\n * Matched (overall): " + o_totalMatched + 
 		"\n * Matched (greedy):  " + o_totalGreedyMatched + 
 		"\n * Matched (patient): " + o_totalPatientMatched + 
 		"\n * Expired:           " + o_totalExpired);
+		
+		data.setTotalVerticesSeen(o_totalSeen);
+		data.setTotalVerticesMatched(o_totalMatched);
+		data.setTotalVerticesMatchedByGreedy(o_totalGreedyMatched);
+		data.setTotalVerticesMatchedByPatient(o_totalPatientMatched);
+		data.setTotalVerticesExpired(o_totalExpired);
+		
+		return data;
 	}
 
+	
+	
 	/*
 	 * Returns the subpool of the full pool that contains vertices that can be 
 	 * matched in the greedy market (so COMPETITIVE and GREEDY, but not PATIENT)

@@ -1,5 +1,6 @@
 package edu.cmu.cs.dickerson.kpd.dynamic;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -9,6 +10,10 @@ import com.sun.istack.internal.logging.Logger;
 import edu.cmu.cs.dickerson.kpd.competitive.MatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.competitive.UniformRandomMatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.CompetitiveDynamicSimulator;
+import edu.cmu.cs.dickerson.kpd.dynamic.simulator.CompetitiveDynamicSimulatorData;
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput;
+import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput.Col;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 
@@ -33,12 +38,12 @@ public class DriverCompetitive {
 
 		// List of gamma splits (vertices enter competitive pool with prob gamma, otherwise enter only one pool)
 		List<Double> gammaList = Arrays.asList(new Double[] {
-				0.5,
+				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
 		});
 
 		// List of alpha splits (single pool vertices enter greedy with prob alpha, otherwise enter patient pool)
 		List<Double> alphaList = Arrays.asList(new Double[] {
-				0.5,
+				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
 		});
 
 		// List of m parameters (for every one time period, expect m vertices to enter, Poisson process)
@@ -63,6 +68,15 @@ public class DriverCompetitive {
 		// Number of times to repeat experiment for all the same parameters, but new random seed
 		int numReps = 1;
 
+		String path = "competitive_" + System.currentTimeMillis() + ".csv";
+		CompetitiveOutput out = null;
+		try {
+			out = new CompetitiveOutput(path);
+		} catch(IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
 		// Set seeds for repetition of experiments.
 		long seedPool = System.currentTimeMillis();				// used for the pool generators
 		long seedDynamic = System.currentTimeMillis()+69149;	// used in entry times, exit times, and vertex-specific market entry
@@ -82,6 +96,21 @@ public class DriverCompetitive {
 										seedDynamic+=1; rDynamic.setSeed(seedDynamic);
 										seedMatching+=1; rMatching.setSeed(seedMatching);
 
+										// Record the parameters for this specific run
+										out.set(Col.SEED_POOL, seedPool);
+										out.set(Col.SEED_DYNAMIC, seedDynamic);
+										out.set(Col.SEED_MATCHING, seedMatching);
+										out.set(Col.CYCLE_CAP, cycleCap);
+										out.set(Col.CHAIN_CAP, chainCap);
+										out.set(Col.GENERATOR, gen);
+										out.set(Col.GAMMA, gamma);
+										out.set(Col.ALPHA, alpha);
+										out.set(Col.M, m);
+										out.set(Col.LAMBDA, lambda);
+										out.set(Col.TIME_LIMIT, timeLimit);
+										out.set(Col.MATCHING_STRATEGY, matchingStrategy);
+										
+										// Run the simulation for these parameters 
 										CompetitiveDynamicSimulator sim = new CompetitiveDynamicSimulator(
 												gamma, 
 												alpha, 
@@ -90,8 +119,24 @@ public class DriverCompetitive {
 												gen,
 												matchingStrategy,
 												rDynamic);
-										sim.run(timeLimit);
+										CompetitiveDynamicSimulatorData runData = sim.run(timeLimit);
+										
+										// Record the statistics from this one run
+										out.set(Col.TOTAL_SEEN, runData.getTotalVerticesSeen());
+										out.set(Col.TOTAL_MATCHED, runData.getTotalVerticesMatched());
+										out.set(Col.TOTAL_GREEDY_MATCHED, runData.getTotalVerticesMatchedByGreedy());
+										out.set(Col.TOTAL_PATIENT_MATCHED, runData.getTotalVerticesMatchedByPatient());
+										out.set(Col.TOTAL_EXPIRED, runData.getTotalVerticesExpired());
 
+										// Write this record as one row of data
+										try {
+											out.record();
+										} catch(IOException e) {
+											IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+											e.printStackTrace();
+											System.exit(-1);
+										}
+										
 									} // end of numReps (this should be innermost loop)
 								} // end of matchingStrategyList
 							} // end of timeLimitList
