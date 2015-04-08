@@ -8,6 +8,7 @@ import java.util.Random;
 import com.sun.istack.internal.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.competitive.MatchingStrategy;
+import edu.cmu.cs.dickerson.kpd.competitive.MaxWeightMatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.competitive.UniformRandomMatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.CompetitiveDynamicSimulator;
 import edu.cmu.cs.dickerson.kpd.dynamic.simulator.CompetitiveDynamicSimulatorData;
@@ -17,6 +18,14 @@ import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput.Col;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 
+
+/**
+ * Driver for preliminary competitive exchange experiments for <i>AMMA-2015</i>
+ * submission with Sanmay Das, Zhuoshi Li, and Tuomas Sandholm.
+ * 
+ * @author John P. Dickerson
+ *
+ */
 public class DriverCompetitive {
 
 	private static final Logger logger = Logger.getLogger(DriverCompetitive.class);
@@ -28,7 +37,7 @@ public class DriverCompetitive {
 		Random rMatching = new Random();
 
 		int cycleCap = 3;
-		int chainCap = 0;  // doesn't work for chains right now (no altruists ever enter, cycle gen breaks)
+		int chainCap = 0;  // doesn't work for chains right now (no altruists ever enter, cycle gen untested & probably breaks)
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
@@ -63,6 +72,7 @@ public class DriverCompetitive {
 
 		List<MatchingStrategy> matchingStrategyList = Arrays.asList(new MatchingStrategy[] {
 				new UniformRandomMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
+				new MaxWeightMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
 		});
 
 		// Number of times to repeat experiment for all the same parameters, but new random seed
