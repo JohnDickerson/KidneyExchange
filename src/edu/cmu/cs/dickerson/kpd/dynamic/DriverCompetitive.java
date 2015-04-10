@@ -50,34 +50,37 @@ public class DriverCompetitive {
 
 		// List of gamma splits (vertices enter competitive pool with prob gamma, otherwise enter only one pool)
 		List<Double> gammaList = Arrays.asList(new Double[] {
-				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
+				0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0,
 		});
 
 		// List of alpha splits (single pool vertices enter greedy with prob alpha, otherwise enter patient pool)
 		List<Double> alphaList = Arrays.asList(new Double[] {
-				0.0, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
+				0.0, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0,
 		});
 
 		// List of m parameters (for every one time period, expect m vertices to enter, Poisson process)
 		List<Double> mList = Arrays.asList(new Double[] {
-				0.1, 0.2, 0.5, 1.0, 2.0,
+				//0.1, 0.2, 0.5, 1.0, 2.0,
+				100.0,
 		});
 
 		// List of lambda parameters (every vertex has lifespan of exponential clock with parameter lambda)
 		List<Double> lambdaList = Arrays.asList(new Double[] {
-				0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 
+				//0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 
 				1.0, 
-				1.5, 2.0,
+				//1.5, 2.0,
 		});
 
 		// List of time limits for simulation to run
 		List<Double> timeLimitList = Arrays.asList(new Double[] {
-				1000.0,
+				// Zhuoshu is using:	for m=1000, lambda=1.0, time_periods=100
+				//						for m=10,   lambda=1.0, time_periods=5000
+				100.0,
 		});
 
 		List<MatchingStrategy> matchingStrategyList = Arrays.asList(new MatchingStrategy[] {
 				new UniformRandomMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
-				new MaxWeightMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
+				//new MaxWeightMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
 		});
 
 		// Number of times to repeat experiment for all the same parameters, but new random seed
