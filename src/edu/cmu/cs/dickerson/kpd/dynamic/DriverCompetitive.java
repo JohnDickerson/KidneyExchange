@@ -39,18 +39,19 @@ public class DriverCompetitive {
 		Random rDynamic = new Random();
 		Random rMatching = new Random();
 
-		int cycleCap = 2;
+		int cycleCap = 3;
 		int chainCap = 0;  // doesn't work for chains right now (no altruists ever enter, cycle gen untested & probably breaks)
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				new SaidmanPoolGenerator(rPool),
+				//new SaidmanPoolGenerator(rPool),
 				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', rPool),	
 		});
 
 		// List of gamma splits (vertices enter competitive pool with prob gamma, otherwise enter only one pool)
 		List<Double> gammaList = Arrays.asList(new Double[] {
-				0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0,
+				//0.0, 0.1, 0.3, 0.5, 0.7, 
+				0.9, 1.0,
 		});
 
 		// List of alpha splits (single pool vertices enter greedy with prob alpha, otherwise enter patient pool)
@@ -80,7 +81,7 @@ public class DriverCompetitive {
 
 		List<MatchingStrategy> matchingStrategyList = Arrays.asList(new MatchingStrategy[] {
 				new UniformRandomMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
-				//new MaxWeightMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
+				new MaxWeightMatchingStrategy(cycleCap, chainCap, false, false, 0, rMatching),
 		});
 
 		// Number of times to repeat experiment for all the same parameters, but new random seed
