@@ -10,8 +10,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-
-import com.sun.istack.internal.logging.Logger;
+import java.util.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.competitive.MatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ExponentialArrivalDistribution;
@@ -25,7 +24,7 @@ import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 
 public class CompetitiveDynamicSimulator extends DynamicSimulator {
 
-	private static final Logger logger = Logger.getLogger(CompetitiveDynamicSimulator.class);
+	private static final Logger logger = Logger.getLogger(CompetitiveDynamicSimulator.class.getSimpleName());
 
 	private double gamma;  			// gamma fraction of incoming pairs go to both pools, 1-gamma choose only one pool
 	private double alpha;  			// alpha fraction of pairs who choose one pool go to Greedy, 1-alpha go to Patient pool

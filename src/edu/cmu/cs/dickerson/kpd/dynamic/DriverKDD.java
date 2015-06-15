@@ -21,7 +21,7 @@ import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
 public class DriverKDD {
 
 	/**
-	 * Outputs the set of graphs we used for the KDD-2014 submission
+	 * Outputs the set of graphs we used for the AAAI-2015 FutureMatch paper
 	 * @param args (ignored)
 	 */
 	public static void main(String[] args) {

@@ -11,8 +11,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import com.sun.istack.internal.logging.Logger;
+import java.util.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
@@ -29,9 +28,6 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
-import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
 /**
  * Experiments for EC-2015 submission / NSF grant
@@ -40,7 +36,7 @@ import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
  */
 public class DriverRematch {
 
-	private static final Logger logger = Logger.getLogger(DriverRematch.class);
+	private static final Logger logger = Logger.getLogger(DriverRematch.class.getSimpleName());
 
 	public static void main(String[] args) {
 
@@ -315,7 +311,7 @@ public class DriverRematch {
 
 							} catch(SolverException e) {
 								e.printStackTrace();
-								logger.severe("Solver Exception thrown!", e);
+								logger.severe("Solver Exception thrown!" + e);
 							}
 						} // end numReps
 					} // end hardMaxPerVertexList

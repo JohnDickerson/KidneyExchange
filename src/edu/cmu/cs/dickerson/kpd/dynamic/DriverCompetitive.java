@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-
-import sun.util.logging.resources.logging;
-
-import com.sun.istack.internal.logging.Logger;
+import java.util.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.competitive.MatchingStrategy;
 import edu.cmu.cs.dickerson.kpd.competitive.MaxWeightMatchingStrategy;
@@ -18,7 +15,6 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput;
 import edu.cmu.cs.dickerson.kpd.io.CompetitiveOutput.Col;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 
@@ -31,7 +27,7 @@ import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
  */
 public class DriverCompetitive {
 
-	private static final Logger logger = Logger.getLogger(DriverCompetitive.class);
+	private static final Logger logger = Logger.getLogger(DriverCompetitive.class.getSimpleName());
 
 	public static void main(String[] args) {
 

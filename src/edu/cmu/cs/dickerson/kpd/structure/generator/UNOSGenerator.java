@@ -82,8 +82,11 @@ public class UNOSGenerator extends PoolGenerator {
 	
 	@Override
 	public Pool generate(int numPairs, int numAltruists) {
-		// We sample from data, so we don't control #pairs or #altruists
-		return generatePool(numPairs+numAltruists);
+		this.currentVertexID = 0;  // have to reset so this doesn't keep incrementing as we make independent pools
+		this.vertexMap = new HashMap<Vertex, UNOSPair>();
+		Pool pool = new Pool(Edge.class);
+		this.addVerticesToPool(pool, numPairs, numAltruists);
+		return pool;	
 	}
 
 	public Pool generatePool(int size) {
@@ -91,7 +94,7 @@ public class UNOSGenerator extends PoolGenerator {
 		this.vertexMap = new HashMap<Vertex, UNOSPair>();
 		Pool pool = new Pool(Edge.class);
 		this.addVerticesToPool(pool, size);
-		return pool;
+		return pool;	
 	}
 
 	/**

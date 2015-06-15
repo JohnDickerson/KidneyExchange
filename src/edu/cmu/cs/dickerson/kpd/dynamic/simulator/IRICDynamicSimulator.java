@@ -6,8 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import com.sun.istack.internal.logging.Logger;
+import java.util.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.ir.ICEfficientMechanism;
@@ -25,7 +24,7 @@ import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
 
 public class IRICDynamicSimulator extends DynamicSimulator {
 
-	private static final Logger logger = Logger.getLogger(IRICDynamicSimulator.class);
+	private static final Logger logger = Logger.getLogger(IRICDynamicSimulator.class.getSimpleName());
 
 	private Set<Hospital> hospitals;
 	private ICMechanism mechanism;
