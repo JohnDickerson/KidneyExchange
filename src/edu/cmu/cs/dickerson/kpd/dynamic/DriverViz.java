@@ -67,7 +67,7 @@ public class DriverViz {
 			}
 			
 			// Write this out to a NetworkX-friendly set of files
-			pool.writeToVizFile(matchRunID);
+			pool.writeToVizFile("unos"+matchRunID);
 		}
 		return;
 	} // end of main
