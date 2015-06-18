@@ -88,7 +88,7 @@ public class UNOSLoader {
 			String[] line;
 			while((line = reader.readNext()) != null) {
 				Boolean isNonDirectedDonor = IOUtil.stringToBool(line[DonorIdx.NDD.idx()]);
-				
+
 
 				String donorID = line[DonorIdx.DONOR_ID.idx()].trim().toUpperCase();
 				BloodType donorBloodType = BloodType.getBloodType(line[DonorIdx.ABO.idx()]);
@@ -115,7 +115,7 @@ public class UNOSLoader {
 						vp.setBloodTypeDonor(donorBloodType);
 					}
 				}
-				
+
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -130,11 +130,11 @@ public class UNOSLoader {
 	private void loadEdges(String edgeFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, Set<Integer> altruistIDs) throws LoaderException {
 		loadEdges(edgeFilePath, pool, donorToCand, idToVertex, strIDtoIntID, altruistIDs, false);
 	}
-	
+
 	@SuppressWarnings("resource")
 	private void loadEdges(String edgeFilePath, Pool pool, Map<String, String> donorToCand, Map<Integer, Vertex> idToVertex, Map<String, Integer> strIDtoIntID, Set<Integer> altruistIDs, boolean forceUnitWeights) throws LoaderException {
 
-		
+
 		// Read non-dummy edges from UNOS file
 		CSVReader reader = null;
 		try {
@@ -168,11 +168,23 @@ public class UNOSLoader {
 				if(null == to) {
 					throw new LoaderException("Trying to load an edge for nonexistent candidate: " + candidateIDStr);
 				}
-				
-				if(forceUnitWeights) {
-					pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight==0.0 ? 0.0 : 1.0);
+
+				Edge e = pool.addEdge(from, to);
+				if(null == e) { // edge existed in the graph already
+					// For whatever reason, in March 2015 UNOS started listing two edges for dual-donor pairs
+					double previousEdgeWeight = pool.getEdgeWeight(pool.getEdge(from, to));
+					double newEdgeWeight = edgeWeight;
+					if(forceUnitWeights) { newEdgeWeight = newEdgeWeight==0.0 ? 0.0 : 1.0; }
+					if(previousEdgeWeight != newEdgeWeight) {
+						System.out.println("Dual donor pair edge weight mismatch!");
+						for(int idx=0; idx<line.length; idx++) { System.out.print(line[idx] + " "); } System.out.println();
+					}
 				} else {
-					pool.setEdgeWeight(pool.addEdge(from, to), edgeWeight);
+					if(forceUnitWeights) {
+						pool.setEdgeWeight(e, edgeWeight==0.0 ? 0.0 : 1.0);
+					} else {
+						pool.setEdgeWeight(e, edgeWeight);
+					}
 				}
 			}
 
@@ -181,7 +193,7 @@ public class UNOSLoader {
 		} finally { 
 			IOUtil.closeIgnoreExceptions(reader);
 		}
-		
+
 		// Add dummy edges from every candidate-donor pair to every altruist
 		for(VertexAltruist altruist : pool.getAltruists()) {
 			for(VertexPair pair : pool.getPairs()) {
@@ -193,7 +205,7 @@ public class UNOSLoader {
 	public Pool loadFromFile(String donorFilePath, String recipientFilePath, String edgeFilePath) throws LoaderException {
 		return loadFromFile(donorFilePath, recipientFilePath, edgeFilePath, false);
 	}
-	
+
 	public Pool loadFromFile(String donorFilePath, String recipientFilePath, String edgeFilePath, boolean forceUnitWeights) throws LoaderException {
 
 		IOUtil.dPrintln("Loading UNOS graph (donor file: " + donorFilePath + ")");
