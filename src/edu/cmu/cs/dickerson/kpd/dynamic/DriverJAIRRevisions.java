@@ -114,6 +114,7 @@ public class DriverJAIRRevisions {
 		Set<Edge> edgesToRemove = new HashSet<Edge>();
 		for(Vertex kidneyV : kidneyPairedDonors) {
 			boolean willingToGive = (r.nextDouble() < probKidneyToLiver);
+			willingToGive &= !(kidneyV.isAltruist());   // disallow any kidney altruists from given to liver pairs
 			if(willingToGive) { continue; }
 
 			for(Edge e : pool.outgoingEdgesOf(kidneyV)) {
