@@ -41,24 +41,27 @@ public class DriverAAAIPricing {
 		for(int typeIdx=0; typeIdx<numVertsList.size(); typeIdx++) {
 
 			int numVerts = numVertsList.get(typeIdx);
-			int numAlts = (int) Math.ceil(pctAltsList.get(typeIdx) * numVerts);
-			for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
+			for(Double pctAlts : pctAltsList) {
+				int numAlts = (int) Math.ceil(pctAlts * numVerts);
 
-				IOUtil.dPrintln("|V| = " + numVerts + ", rep: " + graphRep + "/" + numGraphReps + "...");
+				for(int graphRep=0; graphRep<numGraphReps; graphRep++) {
 
-				// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
-				String baseOut = "unos_v" + numVerts + "_a" + numAlts + "_i" + graphRep;
+					IOUtil.dPrintln("|V| = " + numVerts + ", %A = " + pctAlts + ", rep: " + graphRep + "/" + numGraphReps + "...");
 
-				// Generates base pool: unit edge weights, no failure probabilities
-				Pool pool = gen.generate(numVerts, numAlts);
+					// Base output filename, leads to files ${baseOut}.input, ${baseOut}-details.input
+					String baseOut = "unos_v" + numVerts + "_a" + numAlts + "_i" + graphRep;
 
-				// Assign failure probabilities to edges (can be ignored by optimizer)
-				FailureProbabilityUtil.setFailureProbability(pool, failureDist, r, constantFailureRate); 
+					// Generates base pool: unit edge weights, no failure probabilities
+					Pool pool = gen.generate(numVerts, numAlts);
 
-				// Write to .input and .input details file for C++ optimizer
-				pool.writeToUNOSKPDFile(baseOut);
+					// Assign failure probabilities to edges (can be ignored by optimizer)
+					FailureProbabilityUtil.setFailureProbability(pool, failureDist, r, constantFailureRate); 
 
-			} // graphRep
+					// Write to .input and .input details file for C++ optimizer
+					pool.writeToUNOSKPDFile(baseOut);
+
+				} // graphRep
+			} // pctAlts in pctAltsList
 		} // typeIdx	
 	}	
 
