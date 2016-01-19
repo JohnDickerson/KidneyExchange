@@ -8,6 +8,7 @@ public abstract class Solver {
 	
 	protected int maxCPUThreads = 0;
 	protected double maxSolveSeconds = 0;
+	protected double relativeMipGap = 0.0;
 	
 	public Solver(Pool pool) {
 		this.pool = pool;
@@ -27,6 +28,14 @@ public abstract class Solver {
 
 	public void setMaxSolveSeconds(double maxSolveSeconds) {
 		this.maxSolveSeconds = maxSolveSeconds;
+	}
+
+	public double getRelativeMipGap() {
+		return relativeMipGap;
+	}
+
+	public void setRelativeMipGap(double relativeMipGap) {
+		this.relativeMipGap = relativeMipGap;
 	}
 
 	public abstract String getID();

@@ -3,6 +3,9 @@ package edu.cmu.cs.dickerson.kpd.solver;
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
+
+import java.util.Date;
+
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
@@ -25,8 +28,6 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 
 	public Solution solve() throws SolverException {
 
-		IOUtil.dPrintln(getClass().getSimpleName(), "Solving cycle formulation IP.");
-
 		try {
 			super.initializeCPLEX();
 
@@ -37,7 +38,9 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 			// xi_ij for each VxV
 			IloNumVar[] x = cplex.boolVarArray(k*n + k*n + k*n*n + n*n);
 			assert getEdgeConflictIdx(n,0) == x.length;
-			
+
+			IOUtil.dPrintln(getClass().getSimpleName(), "Writing down bitwise IP with #decVars=" + x.length + ", MIPgap=" + super.getRelativeMipGap() + " ...");
+
 			// Only the xi decision variables matter in the objective; for any 
 			// other column, set weight to zero.  For xi columns that are not
 			// between the same vertices, set weight to 1.0 (for an incorrect 
@@ -154,6 +157,7 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 			}
 			
 			// Solve the model
+			IOUtil.dPrintln(getClass().getSimpleName(), "Calling CPLEX to solve bitwise IP at " + new Date());
 			Solution sol = super.solveCPLEX();
 			sol.setLegalMatching(sol.getObjectiveValue()==0.0);
 			

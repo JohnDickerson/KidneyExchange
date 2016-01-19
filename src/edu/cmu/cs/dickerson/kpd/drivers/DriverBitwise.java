@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +25,9 @@ public class DriverBitwise {
 
 	public static void main(String args[]) {
 
+		// Solve within fraction of best node vs lower bound
+		final double relativeMipGap = 0.05;
+		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
 		BitwiseOutput eOut = null;
@@ -92,7 +94,7 @@ public class DriverBitwise {
 				}
 			}
 
-			for(int k=pool.vertexSet().size(); k<=pool.vertexSet().size(); k++) {
+			for(int k=10; k<=pool.vertexSet().size(); k++) {
 				for(int threshold=k; threshold<=k; threshold++) {
 					
 					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", k="+k+", t="+threshold+" ...");
@@ -104,13 +106,15 @@ public class DriverBitwise {
 					eOut.set(Col.kBITLENGTH, k);
 					eOut.set(Col.THRESHOLD, threshold);
 					eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
-
+					eOut.set(Col.RELATIVE_MIP_GAP, relativeMipGap);
+					
 					// Solve the model -- can we k-induce this graph by threshold t?
 					try {
 
 						// The value of the solution will be how far from k-inducible this
 						// graph was, e.g., value = 0 is perfect, value = 1 is off by 1, etc.
 						BitwiseThresholdCPLEXSolver s = new BitwiseThresholdCPLEXSolver(pool, k, threshold);
+						s.setRelativeMipGap(relativeMipGap);
 						Solution sol = s.solve();
 						
 						boolean isInducible = sol.isLegalMatching();

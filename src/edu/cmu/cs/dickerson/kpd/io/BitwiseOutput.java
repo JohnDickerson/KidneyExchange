@@ -12,6 +12,7 @@ public class BitwiseOutput extends Output {
 		HIGHLY_SENSITIZED_COUNT,
 		kBITLENGTH,
 		THRESHOLD,
+		RELATIVE_MIP_GAP,
 		kINDUCIBLE,
 		kINDUCIBLE_ERROR,
 		;
@@ -29,6 +30,8 @@ public class BitwiseOutput extends Output {
 		header[Col.THRESHOLD.getColIdx()] = "t";
 		header[Col.kINDUCIBLE.getColIdx()] = "k-inducible?";
 		header[Col.kINDUCIBLE_ERROR.getColIdx()] = "k-induced min error";
+		header[Col.RELATIVE_MIP_GAP.getColIdx()] = "Relative MIP Gap";
+		
 		return header;
 	}
 

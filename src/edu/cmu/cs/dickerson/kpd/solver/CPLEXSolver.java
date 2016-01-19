@@ -15,7 +15,6 @@ public abstract class CPLEXSolver extends Solver {
 		super(pool);
 	}
 
-
 	protected void initializeCPLEX() throws IloException {
 
 		// Either initialize CPLEX or clear out any old data
@@ -30,6 +29,9 @@ public abstract class CPLEXSolver extends Solver {
 		}
 		if(getMaxSolveSeconds() > 0) {
 			cplex.setParam(IloCplex.DoubleParam.TiLim, super.getMaxSolveSeconds());
+		}
+		if(getRelativeMipGap() > 0)   {
+			cplex.setParam(IloCplex.DoubleParam.EpGap, super.getRelativeMipGap());
 		}
 	}
 
