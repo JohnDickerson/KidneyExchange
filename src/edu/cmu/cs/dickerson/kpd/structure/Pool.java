@@ -14,7 +14,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 
-import edu.cmu.cs.dickerson.kpd.dynamic.DriverKDD;
+import edu.cmu.cs.dickerson.kpd.drivers.DriverKDD;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 

@@ -10,11 +10,17 @@ public class Solution {
 	private long solveTime = 0;
 	private double objectiveValue = 0.0;
 	private Set<Cycle> matching;
+	private boolean isLegalMatching;
 	
 	public Solution(long solveTime, double objectiveValue, Set<Cycle> matching) {
+		this(solveTime, objectiveValue, matching, true);
+	}
+	
+	public Solution(long solveTime, double objectiveValue, Set<Cycle> matching, boolean isLegalMatching) {
 		this.solveTime = solveTime;
 		this.objectiveValue = objectiveValue;
 		this.matching = matching;
+		this.isLegalMatching = isLegalMatching;
 	}
 	
 	public Solution() {
@@ -48,6 +54,14 @@ public class Solution {
 
 	public void setObjectiveValue(double objectiveValue) {
 		this.objectiveValue = objectiveValue;
+	}
+
+	public boolean isLegalMatching() {
+		return isLegalMatching;
+	}
+
+	public void setLegalMatching(boolean isLegalMatching) {
+		this.isLegalMatching = isLegalMatching;
 	}
 
 	@Override
