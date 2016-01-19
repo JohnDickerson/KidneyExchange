@@ -13,7 +13,6 @@ import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.io.BitwiseOutput;
 import edu.cmu.cs.dickerson.kpd.io.BitwiseOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.BitwiseThresholdCPLEXSolver;
-import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -28,7 +27,7 @@ public class DriverBitwise {
 	public static void main(String args[]) {
 
 		// Initialize our experimental output to .csv writer
-		String path = "unos_nonlex_" + System.currentTimeMillis() + ".csv";
+		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
 		BitwiseOutput eOut = null;
 		try {
 			eOut = new BitwiseOutput(path);
@@ -95,7 +94,6 @@ public class DriverBitwise {
 
 			for(int k=0; k<=pool.vertexSet().size(); k++) {
 				for(int threshold=0; threshold<=k; threshold++) {
-					eOut.set(Col.START_TIME, new Date());
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
 					eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
@@ -114,7 +112,7 @@ public class DriverBitwise {
 						
 						boolean isInducible = sol.isLegalMatching();
 						assert isInducible == (sol.getObjectiveValue() == 0.0);
-						eOut.set(Col.kINDUCIBLE, isInducible);
+						eOut.set(Col.kINDUCIBLE, isInducible ? 1 : 0);
 						eOut.set(Col.kINDUCIBLE_ERROR, sol.getObjectiveValue());
 						
 					} catch(SolverException e) {

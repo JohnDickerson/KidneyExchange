@@ -1,10 +1,12 @@
 package edu.cmu.cs.dickerson.kpd.solver;
 
 import ilog.concert.IloException;
+import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
@@ -55,9 +57,102 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 
 
 			// Subject to:
-			// 
+			// d_i^rho \geq c_{ij}^rho
+			// p_j^rho \geq c_{ij}^rho
+			for(int v_i=0; v_i<n; v_i++) {
+				for(int v_j=0; v_j<n; v_j++) {
+					if(v_i != v_j) {
+						for(int rho=0; rho<k; rho++) {
+							
+							// d_i^rho - c_{ij}^rho \geq 0
+							IloLinearNumExpr donorSum = cplex.linearNumExpr(); 
+							donorSum.addTerm(1.0, x[getDonorIdx(v_i,rho)]);
+							donorSum.addTerm(-1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							cplex.addGe(donorSum, 0.0);
+							
+							// p_j^rho - c_{ij}^rho \geq 0
+							IloLinearNumExpr patientSum = cplex.linearNumExpr(); 
+							patientSum.addTerm(1.0, x[getPatientIdx(v_j,rho)]);
+							patientSum.addTerm(-1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							cplex.addGe(patientSum, 0.0);
+							
+						}
+					}
+				}
+			}
 			
+			// d_i^rho + p_j^rho \leq 1 + c_{ij}^rho
+			// ---->    d_i^rho + p_j^rho - c_{ij}^rho \leq 1
+			for(int v_i=0; v_i<n; v_i++) {
+				for(int v_j=0; v_j<n; v_j++) {
+					if(v_i != v_j) {
+						for(int rho=0; rho<k; rho++) {
+							IloLinearNumExpr sum = cplex.linearNumExpr(); 
+							sum.addTerm(1.0,  x[getDonorIdx(v_i, rho)]);
+							sum.addTerm(1.0, x[getPatientIdx(v_j, rho)]);
+							sum.addTerm(-1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							cplex.addLe(sum, 1.0);
+						}
+					}
+				}
+			}
 			
+			// Determine which edges exist and which don't (ignoring stuff like self and dummy edges)
+			boolean[][] edgeExists = new boolean[n][n];
+			int numEdgesInExistence = 0;
+			for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
+			for(Edge e : pool.edgeSet()) {
+				// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
+				if(pool.getEdgeTarget(e).isAltruist()) { continue; }
+				// Otherwise, set (v_i, v_j) to True in our existence array
+				edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
+				numEdgesInExistence++;
+			}
+			assert numEdgesInExistence == pool.getNumNonDummyEdges();
+			
+			// Write the thresholding constraints
+			for(int v_i=0; v_i<n; v_i++) {
+				for(int v_j=0; v_j<n; v_j++) {
+					if(v_i != v_j) {
+						// Write constraints based on whether or not an edge is in the edge set
+						if(edgeExists[v_i][v_j]) {
+							// \forall (v_i,v_j) in E,    \sum_rho c_{ij}^rho \leq t + (k-t)xi_{ij} 
+							IloLinearNumExpr sumUpper = cplex.linearNumExpr(); 
+							for(int rho=0; rho<k; rho++) {
+								sumUpper.addTerm(1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							}
+							sumUpper.addTerm(-(k-threshold), x[getEdgeConflictIdx(v_i, v_j)]);
+							cplex.addLe(sumUpper, threshold);
+							
+							// \forall (v_i,v_j) in E,    \sum_rho c_{ij}^rho \geq (t+1)xi_{ij}
+							IloLinearNumExpr sumLower = cplex.linearNumExpr(); 
+							for(int rho=0; rho<k; rho++) {
+								sumLower.addTerm(1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							}
+							sumLower.addTerm(-(threshold+1), x[getEdgeConflictIdx(v_i, v_j)]);
+							cplex.addGe(sumLower, 0.0);
+						} else {
+							// \forall (v_i,v_j) not in E,    \sum_rho c_{ij}^rho \geq t + 1 - kxi_{ij}
+							IloLinearNumExpr sumLower = cplex.linearNumExpr(); 
+							for(int rho=0; rho<k; rho++) {
+								sumLower.addTerm(1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							}
+							sumLower.addTerm(k, x[getEdgeConflictIdx(v_i, v_j)]);
+							cplex.addGe(sumLower, threshold+1);
+							
+							// \forall (v_i,v_j) not in E,    \sum_rho c_{ij}^rho \geq t + 1 - kxi_{ij}
+							IloLinearNumExpr sumUpper = cplex.linearNumExpr(); 
+							for(int rho=0; rho<k; rho++) {
+								sumUpper.addTerm(1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
+							}
+							sumUpper.addTerm(k-threshold, x[getEdgeConflictIdx(v_i, v_j)]);
+							cplex.addLe(sumUpper, k);
+						}
+					}
+				}
+			}
+			
+			// Solve the model
 			Solution sol = super.solveCPLEX();
 			sol.setLegalMatching(sol.getObjectiveValue()==0.0);
 			

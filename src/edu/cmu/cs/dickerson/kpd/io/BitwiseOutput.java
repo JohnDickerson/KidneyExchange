@@ -5,11 +5,10 @@ import java.io.IOException;
 public class BitwiseOutput extends Output {
 
 	public enum Col implements OutputCol { 
-		START_TIME,
+		GENERATOR,
 		NUM_PAIRS,
 		NUM_ALTS,
 		HIGHLY_SENSITIZED_CPRA,
-		GENERATOR,
 		HIGHLY_SENSITIZED_COUNT,
 		kBITLENGTH,
 		THRESHOLD,
@@ -21,7 +20,6 @@ public class BitwiseOutput extends Output {
 
 	public static String[] getHeader() {
 		String[] header = new String[Col.values().length];
-		header[Col.START_TIME.getColIdx()] = "Start Time";
 		header[Col.GENERATOR.getColIdx()] = "Generator";
 		header[Col.NUM_PAIRS.getColIdx()] = "Num Pairs";
 		header[Col.NUM_ALTS.getColIdx()] = "Num Alts";
