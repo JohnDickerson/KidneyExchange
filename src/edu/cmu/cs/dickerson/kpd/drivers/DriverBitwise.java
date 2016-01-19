@@ -92,8 +92,11 @@ public class DriverBitwise {
 				}
 			}
 
-			for(int k=1; k<=pool.vertexSet().size(); k++) {
-				for(int threshold=0; threshold<=k; threshold++) {
+			for(int k=pool.vertexSet().size(); k<=pool.vertexSet().size(); k++) {
+				for(int threshold=k; threshold<=k; threshold++) {
+					
+					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", k="+k+", t="+threshold+" ...");
+					
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
 					eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
