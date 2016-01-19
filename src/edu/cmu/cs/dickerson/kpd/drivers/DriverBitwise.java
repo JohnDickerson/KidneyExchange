@@ -25,7 +25,7 @@ public class DriverBitwise {
 
 	public static void main(String args[]) {
 
-		// Solve within fraction of best node vs lower bound
+		// Solve within fraction of best node vs lower bound (ranges from 0=opt to 1)
 		final double relativeMipGap = 0.05;
 		
 		// Initialize our experimental output to .csv writer
@@ -94,8 +94,10 @@ public class DriverBitwise {
 				}
 			}
 
-			for(int k=10; k<=pool.vertexSet().size(); k++) {
-				for(int threshold=k; threshold<=k; threshold++) {
+			if(pool.vertexSet().size() > 100) { continue; }
+			
+			for(int k=1; k<=pool.vertexSet().size(); k++) {
+				for(int threshold=0; threshold<=k; threshold++) {
 					
 					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", k="+k+", t="+threshold+" ...");
 					

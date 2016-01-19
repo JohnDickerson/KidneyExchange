@@ -144,7 +144,7 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 							sumLower.addTerm(k, x[getEdgeConflictIdx(v_i, v_j)]);
 							cplex.addGe(sumLower, threshold+1);
 							
-							// \forall (v_i,v_j) not in E,    \sum_rho c_{ij}^rho \geq t + 1 - kxi_{ij}
+							// \forall (v_i,v_j) not in E,    \sum_rho c_{ij}^rho <= k - (k-t)xi_{ij}
 							IloLinearNumExpr sumUpper = cplex.linearNumExpr(); 
 							for(int rho=0; rho<k; rho++) {
 								sumUpper.addTerm(1.0, x[getBitConflictIdx(v_i, v_j, rho)]);
