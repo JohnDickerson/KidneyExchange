@@ -36,7 +36,8 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 			// c_ijp for each VxV and k
 			// xi_ij for each VxV
 			IloNumVar[] x = cplex.boolVarArray(k*n + k*n + k*n*n + n*n);
-
+			assert getEdgeConflictIdx(n,0) == x.length;
+			
 			// Only the xi decision variables matter in the objective; for any 
 			// other column, set weight to zero.  For xi columns that are not
 			// between the same vertices, set weight to 1.0 (for an incorrect 

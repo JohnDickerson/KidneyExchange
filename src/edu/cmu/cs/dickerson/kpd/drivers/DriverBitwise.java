@@ -92,7 +92,7 @@ public class DriverBitwise {
 				}
 			}
 
-			for(int k=0; k<=pool.vertexSet().size(); k++) {
+			for(int k=1; k<=pool.vertexSet().size(); k++) {
 				for(int threshold=0; threshold<=k; threshold++) {
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
