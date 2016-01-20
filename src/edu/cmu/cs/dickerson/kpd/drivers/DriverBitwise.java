@@ -28,6 +28,9 @@ public class DriverBitwise {
 		// Solve within fraction of best node vs lower bound (ranges from 0=opt to 1)
 		final double relativeMipGap = 0.05;
 		
+		// Solve the feasibility IP (true) or the minimization of error IP (false)? 
+		final boolean doFeasibilitySolve = true;
+		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
 		BitwiseOutput eOut = null;
@@ -99,10 +102,10 @@ public class DriverBitwise {
 			if(pool.vertexSet().size() > 100) { continue; }
 			
 			//for(int k=1; k<=pool.vertexSet().size(); k++) {
-			for(int k=5; k<=k; k++) {
-				for(int threshold=3; threshold<=threshold; threshold++) {
+			for(int k=25; k<=k; k++) {
+				for(int threshold=0; threshold<=threshold; threshold++) {
 					
-					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", |E|="+pool.getNumNonDummyEdges()+", k="+k+", t="+threshold+" ...");
+					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", |E|="+pool.getNumNonDummyEdges()+", k="+k+", t="+threshold+", feasibility="+doFeasibilitySolve+" ...");
 					
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
@@ -113,7 +116,7 @@ public class DriverBitwise {
 					eOut.set(Col.THRESHOLD, threshold);
 					eOut.set(Col.HIGHLY_SENSITIZED_COUNT, highV.size());
 					eOut.set(Col.RELATIVE_MIP_GAP, relativeMipGap);
-					
+					eOut.set(Col.IS_FEASIBILITY_SOLVE, doFeasibilitySolve ? 1 : 0);
 					// Solve the model -- can we k-induce this graph by threshold t?
 					try {
 
@@ -121,7 +124,7 @@ public class DriverBitwise {
 						// graph was, e.g., value = 0 is perfect, value = 1 is off by 1, etc.
 						BitwiseThresholdCPLEXSolver s = new BitwiseThresholdCPLEXSolver(pool, k, threshold);
 						s.setRelativeMipGap(relativeMipGap);
-						Solution sol = s.solve();
+						Solution sol = s.solve(doFeasibilitySolve);
 						
 						boolean isInducible = sol.isLegalMatching();
 						assert isInducible == (sol.getObjectiveValue() == 0.0);

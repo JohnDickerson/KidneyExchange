@@ -14,6 +14,7 @@ public class BitwiseOutput extends Output {
 		kBITLENGTH,
 		THRESHOLD,
 		RELATIVE_MIP_GAP,
+		IS_FEASIBILITY_SOLVE,
 		kINDUCIBLE,
 		kINDUCIBLE_ERROR,
 		;
@@ -33,7 +34,7 @@ public class BitwiseOutput extends Output {
 		header[Col.kINDUCIBLE.getColIdx()] = "k-inducible?";
 		header[Col.kINDUCIBLE_ERROR.getColIdx()] = "k-induced min error";
 		header[Col.RELATIVE_MIP_GAP.getColIdx()] = "Relative MIP Gap";
-		
+		header[Col.IS_FEASIBILITY_SOLVE.getColIdx()] = "Feasibility only?";
 		return header;
 	}
 
