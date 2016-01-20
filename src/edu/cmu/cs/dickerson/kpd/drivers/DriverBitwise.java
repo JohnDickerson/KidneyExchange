@@ -94,15 +94,19 @@ public class DriverBitwise {
 				}
 			}
 
+			// TODO
+			// Remove once we make the IP faster!
 			if(pool.vertexSet().size() > 100) { continue; }
 			
-			for(int k=1; k<=pool.vertexSet().size(); k++) {
-				for(int threshold=0; threshold<=k; threshold++) {
+			//for(int k=1; k<=pool.vertexSet().size(); k++) {
+			for(int k=5; k<=k; k++) {
+				for(int threshold=3; threshold<=threshold; threshold++) {
 					
-					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", k="+k+", t="+threshold+" ...");
+					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", |E|="+pool.getNumNonDummyEdges()+", k="+k+", t="+threshold+" ...");
 					
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
+					eOut.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
 					eOut.set(Col.HIGHLY_SENSITIZED_CPRA, highlySensitizedThresh);
 					eOut.set(Col.GENERATOR, matchRunID);
 					eOut.set(Col.kBITLENGTH, k);

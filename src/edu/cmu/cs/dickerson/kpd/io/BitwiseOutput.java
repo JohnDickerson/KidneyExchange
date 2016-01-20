@@ -8,6 +8,7 @@ public class BitwiseOutput extends Output {
 		GENERATOR,
 		NUM_PAIRS,
 		NUM_ALTS,
+		NUM_EDGES,
 		HIGHLY_SENSITIZED_CPRA,
 		HIGHLY_SENSITIZED_COUNT,
 		kBITLENGTH,
@@ -24,6 +25,7 @@ public class BitwiseOutput extends Output {
 		header[Col.GENERATOR.getColIdx()] = "Generator";
 		header[Col.NUM_PAIRS.getColIdx()] = "Num Pairs";
 		header[Col.NUM_ALTS.getColIdx()] = "Num Alts";
+		header[Col.NUM_EDGES.getColIdx()] = "Num Edges";
 		header[Col.HIGHLY_SENSITIZED_CPRA.getColIdx()] = "Highly-sensitized threshold";
 		header[Col.HIGHLY_SENSITIZED_COUNT.getColIdx()] = "Highly-senitized count";
 		header[Col.kBITLENGTH.getColIdx()] = "k";
