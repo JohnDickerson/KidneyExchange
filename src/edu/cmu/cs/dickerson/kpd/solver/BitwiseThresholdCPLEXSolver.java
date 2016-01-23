@@ -51,6 +51,21 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 
 			IOUtil.dPrintln(getClass().getSimpleName(), "Writing down " + (isFeasibilityIP ? "feasibility" : "minimization") + " bitwise IP with #decVars=" + x.length + ", MIPgap=" + super.getRelativeMipGap() + " ...");
 
+
+			// Determine which edges exist and which don't (ignoring stuff like self and dummy edges)
+			boolean[][] edgeExists = new boolean[n][n];
+			int numEdgesInExistence = 0;
+			for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
+			for(Edge e : pool.edgeSet()) {
+				// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
+				if(pool.getEdgeTarget(e).isAltruist()) { continue; }
+				// Otherwise, set (v_i, v_j) to True in our existence array
+				edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
+				numEdgesInExistence++;
+			}
+			assert numEdgesInExistence == pool.getNumNonDummyEdges();
+
+
 			// Only the xi decision variables matter in the objective; for any 
 			// other column, set weight to zero.  For xi columns that are not
 			// between the same vertices, set weight to 1.0 (for an incorrect 
@@ -70,7 +85,24 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 				// Maximize \sum_{possible edges (i,j)} xi_{ij}
 				cplex.addMinimize(cplex.scalProd(weights, x));
 			} else {
-				// No objective for feasibility
+				// Unnecessary objective is to minimize the number of violated existing edges
+				double[] weights = new double[x.length];
+				for(int idx=0; idx<weights.length; idx++) { weights[idx] = 0.0; }
+				for(int v_i=0; v_i<n; v_i++) {
+					for(int v_j=0; v_j<n; v_j++) {
+						if(v_i != v_j) {
+							if(edgeExists[v_i][v_j]) {						
+								for(int rho=0; rho<k; rho++) {
+									weights[getBitConflictIdx(v_i, v_j, rho)] = -1.0;
+								}
+							}
+						}
+					}
+				}
+
+				// Objective:
+				// Maximize \sum_{edges in E (i,j) \sum_rho c_ij^rho
+				cplex.addMinimize(cplex.scalProd(weights, x));
 			}
 
 
@@ -114,19 +146,6 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 					}
 				}
 			}
-
-			// Determine which edges exist and which don't (ignoring stuff like self and dummy edges)
-			boolean[][] edgeExists = new boolean[n][n];
-			int numEdgesInExistence = 0;
-			for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
-			for(Edge e : pool.edgeSet()) {
-				// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
-				if(pool.getEdgeTarget(e).isAltruist()) { continue; }
-				// Otherwise, set (v_i, v_j) to True in our existence array
-				edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
-				numEdgesInExistence++;
-			}
-			assert numEdgesInExistence == pool.getNumNonDummyEdges();
 
 			// Write the thresholding constraints
 			for(int v_i=0; v_i<n; v_i++) {
@@ -177,6 +196,9 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 					}
 				}
 			}
+
+			// Add some valid inequalities
+
 
 			// Solve the model
 			IOUtil.dPrintln(getClass().getSimpleName(), "Calling CPLEX to solve bitwise IP at " + new Date());
