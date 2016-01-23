@@ -397,7 +397,6 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	 */
 	public boolean[][] getDenseAdjacencyMatrix() {
 		int n=this.vertexSet().size();
-		int numEdgesInExistence = 0;
 		boolean[][] edgeExists = new boolean[n][n];
 		for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
 		for(Edge e : this.edgeSet()) {
@@ -405,9 +404,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			if(this.getEdgeTarget(e).isAltruist()) { continue; }
 			// Otherwise, set (v_i, v_j) to True in our existence array
 			edgeExists[this.getEdgeSource(e).getID()][this.getEdgeTarget(e).getID()] = true;
-			numEdgesInExistence++;
 		}
-		assert numEdgesInExistence == this.getNumNonDummyEdges();
 		return edgeExists;
 	}
 }
