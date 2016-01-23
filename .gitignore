@@ -1,6 +1,8 @@
 # Kidney Exchange #
 *.csv
 *.input
+*.cnf
+*.tgz
 
 # Java and Eclipse #
 *.jar

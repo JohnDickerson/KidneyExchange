@@ -36,6 +36,9 @@ public class DriverBitwise {
 		// Solve the feasibility IP (true) or the minimization of error IP (false)? 
 		final boolean doFeasibilitySolve = true;
 		
+		// Are we trying to solve this IP, or just dumping the SAT formulation in CNF to some files?
+		final boolean doSATSolveDump = true;
+		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
 		BitwiseOutput eOut = null;
@@ -107,11 +110,18 @@ public class DriverBitwise {
 			if(pool.vertexSet().size() > 100) { continue; }
 			
 			// Dump adjacency matrix for Alex
-			//writeUNOSGraphToFile(pool, "unos"+matchRunID+".graph");
+			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
 			//if((new Random()).nextInt() != 0)   continue;
 			
 			//for(int k=1; k<=pool.vertexSet().size(); k++) {
 			int k=5; {
+			
+
+				if(doSATSolveDump) {
+					pool.writeUNOSGraphToBitwiseCNF(k, "unos"+matchRunID+".cnf");
+					continue;  // don't do IP solve
+				}
+				
 				//for(int threshold=0; threshold<k; threshold++) {
 					int threshold=0; {
 						
@@ -174,38 +184,15 @@ public class DriverBitwise {
 	}
 	
 	
+	
+	
 	/**
-	 * Dumps UNOS graph to a dense adjacency matrix for Alex
+	 * Dumps UNOS graph to CNF for a SAT solver
 	 * @param pool
 	 * @param path
 	 */
-	public static void writeUNOSGraphToFile(Pool pool, String path) {
-		int n=pool.vertexSet().size();
-		boolean[][] edgeExists = new boolean[n][n];
-		for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
-		for(Edge e : pool.edgeSet()) {
-			// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
-			if(pool.getEdgeTarget(e).isAltruist()) { continue; }
-			// Otherwise, set (v_i, v_j) to True in our existence array
-			edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
-		}
+	public static void writeUNOSGraphToCNF(Pool pool, String path) {
 		
-		try {
-			PrintWriter writer = new PrintWriter(path, "UTF-8");
-			for(int v_i=0; v_i<n; v_i++) { 
-				StringBuilder sb = new StringBuilder();
-				for(int v_j=0; v_j<n; v_j++) {
-					sb.append(edgeExists[v_i][v_j] ? "1," : "0,");
-				}
-				writer.println(sb.toString());
-			}
-			
-			writer.close();
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-		}
-		return;
+		
 	}
 }

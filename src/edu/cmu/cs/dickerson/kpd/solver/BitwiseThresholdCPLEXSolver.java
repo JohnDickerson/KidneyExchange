@@ -9,7 +9,6 @@ import java.util.Date;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
-import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 
 public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
@@ -53,18 +52,7 @@ public class BitwiseThresholdCPLEXSolver  extends CPLEXSolver {
 
 
 			// Determine which edges exist and which don't (ignoring stuff like self and dummy edges)
-			boolean[][] edgeExists = new boolean[n][n];
-			int numEdgesInExistence = 0;
-			for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
-			for(Edge e : pool.edgeSet()) {
-				// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
-				if(pool.getEdgeTarget(e).isAltruist()) { continue; }
-				// Otherwise, set (v_i, v_j) to True in our existence array
-				edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
-				numEdgesInExistence++;
-			}
-			assert numEdgesInExistence == pool.getNumNonDummyEdges();
-
+			boolean[][] edgeExists = pool.getDenseAdjacencyMatrix();
 
 			// Only the xi decision variables matter in the objective; for any 
 			// other column, set weight to zero.  For xi columns that are not

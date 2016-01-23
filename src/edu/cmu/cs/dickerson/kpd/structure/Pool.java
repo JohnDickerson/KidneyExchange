@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -284,5 +285,129 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	
+	/**
+	 * Dumps UNOS graph to a dense adjacency matrix for Alex, comma-delimited, n rows
+	 * each with n 1s or 0s for edge exists or not
+	 * @param pool
+	 * @param path
+	 */
+	public void writeUNOSGraphToDenseAdjacencyMatrix(String path) {
+		int n=this.vertexSet().size();
+		boolean[][] edgeExists = this.getDenseAdjacencyMatrix();
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			for(int v_i=0; v_i<n; v_i++) { 
+				StringBuilder sb = new StringBuilder();
+				for(int v_j=0; v_j<n; v_j++) {
+					sb.append(edgeExists[v_i][v_j] ? "1," : "0,");
+				}
+				writer.println(sb.toString());
+			}
+			
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		return;
+	}
+	
+	/**
+	 * Writes the UNOS graph to a k-implementable CNF SAT file at path
+	 * @param k
+	 * @param path
+	 */
+	public void writeUNOSGraphToBitwiseCNF(final int k, String path) {
+		int n=this.vertexSet().size();
+		boolean[][] edgeExists = this.getDenseAdjacencyMatrix();
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			writer.println("c " + path);
+			writer.println("c " + new Date());
+			int numVariables = 
+					n*k +      // p_i^\rho    \forall v_i \in V, \rho \in [k]
+					n*k +      // d_i^\rho    \forall v_i \in V, \rho \in [k]
+					n*n*k;     // z_{ij}^\rho  \forall (v_i, v_j) \not\in E, \rho in [k]  (overestimate)
+			int numClauses = 0;
+			StringBuilder sb = new StringBuilder();
+			for(int v_i=0; v_i<n; v_i++) { 
+				for(int v_j=0; v_j<n; v_j++) {
+					if(v_i != v_j) {
+						if(edgeExists[v_i][v_j]) {
+							// \bigwedge\limits_{\rho \in [k]} (\neg d_i^\rho \lor \neg p_j^\rho)   & \forall (v_i, v_j) \in E
+							for(int rho=0; rho<k; rho++) {
+								sb.append("-" + getCNFDonorIdx(n, k, v_i, rho) + " -" + getCNFPatientIdx(n, k, v_j, rho) + " 0\n");
+								numClauses++;
+							}
+						} else {
+							// (z^1_{ij} \lor z^2_{ij} \lor \ldots \lor z^k_{ij}) \land   ....
+							StringBuilder conflictSB = new StringBuilder();
+							for(int rho=0; rho<k; rho++) {
+								conflictSB.append(getCNFConflictForceIdx(n, k, v_i, v_j, rho) + " ");
+							}
+							conflictSB.append("0\n");
+							sb.append(conflictSB.toString());
+							numClauses++;
+							
+							// ... \bigwedge\limits_{\rho \in [k]}\left[ 
+							//            (\neg z^\rho_{ij} \lor d_i^\rho) \land (\neg z^\rho_{ij} \lor p_j^\rho) 
+							//        \right]  & \forall (v_i, v_j) \not\in E
+							for(int rho=0; rho<k; rho++) {
+								sb.append("-" + getCNFConflictForceIdx(n, k, v_i, v_j, rho) + " " + getCNFDonorIdx(n, k, v_i, rho) + " 0\n");
+								numClauses++;
+								sb.append("-" + getCNFConflictForceIdx(n, k, v_i, v_j, rho) + " " + getCNFPatientIdx(n, k, v_j, rho) + " 0\n");
+								numClauses++;
+							}
+						}
+						
+					}
+				}
+			}
+			writer.println("p cnf " + numVariables + " " + numClauses);
+			writer.println(sb.toString());
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		return;
+	}
+	
+	private int getCNFDonorIdx(final int n, final int k, final int v_i, final int rho) {
+		return 1 + v_i*k + rho;
+	}
+	
+	private int getCNFPatientIdx(final int n, final int k, final int v_j, final int rho) {
+		return 1 + k*n + k*v_j + rho;
+	}
+	
+	private int getCNFConflictForceIdx(final int n, final int k, final int v_i, final int v_j, final int rho) {
+		return 1 + k*n + k*n + k*n*v_i + k*v_j + rho;
+	}
+	
+	
+	/**
+	 * Returns the |V| x |V| adjacency matrix, dense, for this pool
+	 * @return
+	 */
+	public boolean[][] getDenseAdjacencyMatrix() {
+		int n=this.vertexSet().size();
+		int numEdgesInExistence = 0;
+		boolean[][] edgeExists = new boolean[n][n];
+		for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
+		for(Edge e : this.edgeSet()) {
+			// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
+			if(this.getEdgeTarget(e).isAltruist()) { continue; }
+			// Otherwise, set (v_i, v_j) to True in our existence array
+			edgeExists[this.getEdgeSource(e).getID()][this.getEdgeTarget(e).getID()] = true;
+			numEdgesInExistence++;
+		}
+		assert numEdgesInExistence == this.getNumNonDummyEdges();
+		return edgeExists;
 	}
 }
