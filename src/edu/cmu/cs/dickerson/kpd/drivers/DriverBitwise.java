@@ -1,11 +1,15 @@
 package edu.cmu.cs.dickerson.kpd.drivers;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
@@ -14,6 +18,7 @@ import edu.cmu.cs.dickerson.kpd.io.BitwiseOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.BitwiseThresholdCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
+import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
@@ -101,10 +106,15 @@ public class DriverBitwise {
 			// Remove once we make the IP faster!
 			if(pool.vertexSet().size() > 100) { continue; }
 			
+			// Dump adjacency matrix for Alex
+			//writeUNOSGraphToFile(pool, "unos"+matchRunID+".graph");
+			//if((new Random()).nextInt() != 0)   continue;
+			
 			//for(int k=1; k<=pool.vertexSet().size(); k++) {
-			for(int k=25; k<=k; k++) {
-				for(int threshold=0; threshold<=threshold; threshold++) {
-					
+			int k=5; {
+				//for(int threshold=0; threshold<k; threshold++) {
+					int threshold=0; {
+						
 					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", |E|="+pool.getNumNonDummyEdges()+", k="+k+", t="+threshold+", feasibility="+doFeasibilitySolve+" ...");
 					
 					eOut.set(Col.NUM_PAIRS, numPairs);
@@ -133,6 +143,8 @@ public class DriverBitwise {
 						
 					} catch(SolverException e) {
 						e.printStackTrace();
+						eOut.set(Col.kINDUCIBLE, 0);
+						eOut.set(Col.kINDUCIBLE_ERROR, -1);
 					}
 
 					// Write the experimental row of data
@@ -158,6 +170,42 @@ public class DriverBitwise {
 
 		IOUtil.dPrintln("All done with UNOS runs!");
 
+		return;
+	}
+	
+	
+	/**
+	 * Dumps UNOS graph to a dense adjacency matrix for Alex
+	 * @param pool
+	 * @param path
+	 */
+	public static void writeUNOSGraphToFile(Pool pool, String path) {
+		int n=pool.vertexSet().size();
+		boolean[][] edgeExists = new boolean[n][n];
+		for(int v_i=0; v_i<n; v_i++) { for(int v_j=0; v_j<n; v_j++) { edgeExists[v_i][v_j] = false; }}
+		for(Edge e : pool.edgeSet()) {
+			// Don't include the dummy edges going back to altruists (since they're a byproduct of the cycle formulation)
+			if(pool.getEdgeTarget(e).isAltruist()) { continue; }
+			// Otherwise, set (v_i, v_j) to True in our existence array
+			edgeExists[pool.getEdgeSource(e).getID()][pool.getEdgeTarget(e).getID()] = true;
+		}
+		
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			for(int v_i=0; v_i<n; v_i++) { 
+				StringBuilder sb = new StringBuilder();
+				for(int v_j=0; v_j<n; v_j++) {
+					sb.append(edgeExists[v_i][v_j] ? "1," : "0,");
+				}
+				writer.println(sb.toString());
+			}
+			
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
 		return;
 	}
 }
