@@ -107,18 +107,18 @@ public class DriverBitwise {
 
 			// TODO
 			// Remove once we make the IP faster!
-			if(pool.vertexSet().size() > 180) { continue; }
+			if(pool.vertexSet().size() > 150) { continue; }
 			
 			// Dump adjacency matrix for Alex
 			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
 			//if((new Random()).nextInt() != 0)   continue;
 			
-			//for(int k=1; k<=pool.vertexSet().size(); k++) {
-			int k=25; {
+			for(int k=1; k<=25; k++) {//pool.vertexSet().size(); k++) {
+			//int k=25; {
 			
 
 				if(doSATSolveDump) {
-					pool.writeUNOSGraphToBitwiseCNF(k, "unos"+matchRunID+"_"+k+".cnf");
+					pool.writeUNOSGraphToBitwiseCNF(k, "unos"+matchRunID+"_v"+(numPairs+numAlts)+"_e"+pool.getNumNonDummyEdges()+"_k"+String.format("%04d",k)+".cnf");
 					continue;  // don't do IP solve
 				}
 				
