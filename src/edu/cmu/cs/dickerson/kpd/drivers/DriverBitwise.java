@@ -113,7 +113,7 @@ public class DriverBitwise {
 			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
 			//if((new Random()).nextInt() != 0)   continue;
 			
-			for(int k=1; k<=25; k++) {//pool.vertexSet().size(); k++) {
+			for(int k=26; k<=40; k++) {//pool.vertexSet().size(); k++) {
 			//int k=25; {
 			
 
