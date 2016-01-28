@@ -23,7 +23,7 @@ public class DriverBitwiseAdhoc {
 	public static void main(String args[]) {
 
 		// How many base vertex sets should be draw?
-		int numberOfBaseGraphs = 25;
+		int numberOfBaseGraphs = 50;
 
 		// Iterate from 0 mismatches to a threshold maximum of ...?
 		int maxThreshold = 5;
@@ -32,7 +32,7 @@ public class DriverBitwiseAdhoc {
 		long seed = System.currentTimeMillis();
 
 		// How big should the base graphs be?
-		List<Integer> numVertsList = Arrays.asList(new Integer[] {50, 100, 150, 200, 250, 300});
+		List<Integer> numVertsList = Arrays.asList(new Integer[] {50, 100, 150, 200, 250});
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
@@ -57,8 +57,8 @@ public class DriverBitwiseAdhoc {
 		int totalRunNums = numberOfBaseGraphs*numVertsList.size()*cycleCapList.size()*chainCapList.size()*(maxThreshold+1);
 		int currRunNum = 0;
 		
-		for(int baseGraphNum=0; baseGraphNum<numberOfBaseGraphs; baseGraphNum++) {
-			for(int numVerts : numVertsList) {
+		for(int numVerts : numVertsList) {
+			for(int baseGraphNum=0; baseGraphNum<numberOfBaseGraphs; baseGraphNum++) {
 				for(int cycleCap : cycleCapList) {
 					for(int chainCap : chainCapList) {
 
@@ -117,8 +117,8 @@ public class DriverBitwiseAdhoc {
 						}  // threshold
 					} // chainCap
 				} // cycleCap
-			} // numVerts
-		} // baseGraphNum
+			} // baseGraphNum
+		} // numVerts
 
 		// Flush and kill the CSV writer
 		if(null != eOut) {
