@@ -26,7 +26,7 @@ public class DriverBitwiseAdhoc {
 		int numberOfBaseGraphs = 25;
 
 		// Iterate from 0 mismatches to a threshold maximum of ...?
-		int maxThreshold = 10;
+		int maxThreshold = 5;
 
 		// Random base seed; we'll hold this constant for increasing threshold on the same base vertex set
 		long seed = System.currentTimeMillis();
@@ -53,7 +53,10 @@ public class DriverBitwiseAdhoc {
 			return;
 		}
 
-
+		// For debug output, calculate how many runs we're actually going to do
+		int totalRunNums = numberOfBaseGraphs*numVertsList.size()*cycleCapList.size()*chainCapList.size()*(maxThreshold+1);
+		int currRunNum = 0;
+		
 		for(int baseGraphNum=0; baseGraphNum<numberOfBaseGraphs; baseGraphNum++) {
 			for(int numVerts : numVertsList) {
 				for(int cycleCap : cycleCapList) {
@@ -63,6 +66,8 @@ public class DriverBitwiseAdhoc {
 						seed += 1;
 						for(int threshold=0; threshold<=maxThreshold; threshold++) {
 
+							currRunNum++;
+							IOUtil.dPrintln("RUN="+currRunNum+"/"+totalRunNums+", Graph "+(baseGraphNum+1)+"/"+numberOfBaseGraphs+", |V|="+numVerts+", cycle_cap="+cycleCap+", chain_cap="+chainCap+", threshold="+threshold);
 							// We want the same base graph for each of the thresholds; reset the seed
 							gen.setRandom(new Random(seed));
 
@@ -80,8 +85,10 @@ public class DriverBitwiseAdhoc {
 							// For each vertex, get list of cycles that contain this vertex
 							CycleMembership membership = new CycleMembership(pool, cycles);
 
-							eOut.set(Col.SEED, seed);
 							eOut.set(Col.GENERATOR, gen.toString());
+							eOut.set(Col.SEED, seed);
+							eOut.set(Col.CYCLE_CAP, cycleCap);
+							eOut.set(Col.CHAIN_CAP, chainCap);
 							eOut.set(Col.NUM_PAIRS, pool.getNumPairs());
 							eOut.set(Col.NUM_ALTS, pool.getNumAltruists());
 							eOut.set(Col.NUM_VERTS, pool.vertexSet().size());
