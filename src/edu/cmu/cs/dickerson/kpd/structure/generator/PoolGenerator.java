@@ -23,6 +23,15 @@ public abstract class PoolGenerator {
 	public String toString() {
 		return this.getClass().getSimpleName();
 	}
+
+	public Random getRandom() {
+		return random;
+	}
+
+	public void setRandom(Random random) {
+		this.random = random;
+	}
+	
 	
 	// TODO write to a file, specifically in our UNOS KPD format
 	// TODO include compatible pairs

@@ -45,14 +45,17 @@ public class UNOSGenerator extends PoolGenerator {
 	private Map<String, UNOSRecipient> recipients;
 	// Current unused vertex ID for optimization graphs
 	private int currentVertexID;
-
-	protected UNOSGenerator(Map<String, UNOSDonor> donors, Map<String, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen) {
+	// How many overlaps allowed between donor and patient before no edge is drawn?
+	private int threshold;
+	
+	protected UNOSGenerator(Map<String, UNOSDonor> donors, Map<String, UNOSRecipient> recipients, List<UNOSPair> pairs, Random randGen, int threshold) {
 		super(randGen);
 		this.donors = donors;
 		this.recipients = recipients;
 		this.pairs = pairs;
 		this.vertexMap = new HashMap<Vertex, UNOSPair>();
 		this.currentVertexID = 0;
+		this.threshold = threshold;
 	}
 
 	public void printStatistics() {
@@ -89,6 +92,7 @@ public class UNOSGenerator extends PoolGenerator {
 		return pool;	
 	}
 
+	
 	public Pool generatePool(int size) {
 		this.currentVertexID = 0;  // have to reset so this doesn't keep incrementing as we make independent pools
 		this.vertexMap = new HashMap<Vertex, UNOSPair>();
@@ -134,11 +138,11 @@ public class UNOSGenerator extends PoolGenerator {
 				if(v.equals(sampleVert)) { continue; }
 				
 				// Only draw cardinality 1 edges from this vertex to compatible non-altruists
-				if(UNOSPair.canDrawDirectedEdge(samplePair, v.getUnderlyingPair())) {
+				if(UNOSPair.canDrawDirectedEdge(samplePair, v.getUnderlyingPair(), this.threshold)) {
 					Edge e = pool.addEdge(sampleVert, v);
 					pool.setEdgeWeight(e, 1.0);
 				}
-				if(UNOSPair.canDrawDirectedEdge(v.getUnderlyingPair(), samplePair)) {
+				if(UNOSPair.canDrawDirectedEdge(v.getUnderlyingPair(), samplePair, this.threshold)) {
 					Edge e = pool.addEdge(v, sampleVert);
 					if(samplePair.isAltruist()) {
 						pool.setEdgeWeight(e, 0.0);
@@ -169,10 +173,14 @@ public class UNOSGenerator extends PoolGenerator {
 	}
 
 	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim) {
-		return UNOSGenerator.makeAndInitialize(baseUNOSpath, delim, new Random());
+		return UNOSGenerator.makeAndInitialize(baseUNOSpath, delim, new Random(), 0);
 	}
 
 	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim, Random randGen) {
+		return UNOSGenerator.makeAndInitialize(baseUNOSpath, delim, randGen, 0);
+	}
+
+	public static UNOSGenerator makeAndInitialize(String baseUNOSpath, char delim, Random randGen, int threshold) {
 
 		Map<String, UNOSDonor> donors = new HashMap<String, UNOSDonor>();
 		Map<String, UNOSRecipient> recipients = new HashMap<String, UNOSRecipient>();
@@ -314,7 +322,7 @@ public class UNOSGenerator extends PoolGenerator {
 		}
 
 		IOUtil.dPrintln("Loaded " + pairSet.size() + " UNOS pairs.");
-		return new UNOSGenerator(donors, recipients, new ArrayList<UNOSPair>(pairSet), randGen);
+		return new UNOSGenerator(donors, recipients, new ArrayList<UNOSPair>(pairSet), randGen, threshold);
 	}
 
 	public Map<Vertex, UNOSPair> getVertexMap() {
@@ -329,4 +337,13 @@ public class UNOSGenerator extends PoolGenerator {
 		return recipients;
 	}
 
+	public int getThreshold() {
+		return threshold;
+	}
+
+	public void setThreshold(int threshold) {
+		this.threshold = threshold;
+	}
+
+	
 }

@@ -79,9 +79,9 @@ public final class IOUtil {
 	public static boolean stringToBool(String raw) {
 
 		String s = raw.trim().toUpperCase();
-		if(s.equals("Y") || s.equals("YES") || s.equals("T") || s.equals("TRUE")) {
+		if(s.equals("Y") || s.equals("YES") || s.equals("T") || s.equals("TRUE") || s.equals("1")) {
 			return true;
-		} else if(s.equals("N") || s.equals("NO") || s.equals("F") || s.equals("FALSE")) {
+		} else if(s.equals("N") || s.equals("NO") || s.equals("F") || s.equals("FALSE") || s.equals("0")) {
 			return false;
 		} else {
 			throw new IllegalArgumentException("Could not convert " + s + " to a boolean value.");

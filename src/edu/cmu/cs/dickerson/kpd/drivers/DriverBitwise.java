@@ -1,15 +1,11 @@
 package edu.cmu.cs.dickerson.kpd.drivers;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
@@ -18,7 +14,6 @@ import edu.cmu.cs.dickerson.kpd.io.BitwiseOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.BitwiseThresholdCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
-import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
@@ -37,7 +32,7 @@ public class DriverBitwise {
 		final boolean doFeasibilitySolve = true;
 		
 		// Are we trying to solve this IP, or just dumping the SAT formulation in CNF to some files?
-		final boolean doSATSolveDump = true;
+		final boolean doSATSolveDump = false;
 		
 		// Initialize our experimental output to .csv writer
 		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
@@ -113,7 +108,7 @@ public class DriverBitwise {
 			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
 			//if((new Random()).nextInt() != 0)   continue;
 			
-			for(int k=26; k<=40; k++) {//pool.vertexSet().size(); k++) {
+			for(int k=20; k<=40; k++) {//pool.vertexSet().size(); k++) {
 			//int k=25; {
 			
 

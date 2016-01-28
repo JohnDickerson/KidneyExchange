@@ -44,6 +44,11 @@ public class UNOSPair {
 		return new UNOSPair(donors, r, false);
 	}
 	
+	
+	public static boolean canDrawDirectedEdge(UNOSPair src, UNOSPair dst) {
+		return UNOSPair.canDrawDirectedEdge(src, dst, 0);
+	}
+	
 	/**
 	 * If the recipient at dst is compatible with at least one of the donors 
 	 * at src, returns true.  If the dst vertex is an altruist and the src
@@ -51,9 +56,10 @@ public class UNOSPair {
 	 * returns false
 	 * @param src
 	 * @param dst
+	 * @param threshold allowance of overlap between donor, patient vector -- default should be 0 (no overlap)
 	 * @return
 	 */
-	public static boolean canDrawDirectedEdge(UNOSPair src, UNOSPair dst) {
+	public static boolean canDrawDirectedEdge(UNOSPair src, UNOSPair dst, int threshold) {
 		
 		// We assume donors cannot donate to their paired recipients
 		if(dst.equals(src)) { return false; }
@@ -67,7 +73,7 @@ public class UNOSPair {
 		// If at least one donor at src can give to the recipient at dst, 
 		// then return edge
 		for(UNOSDonor d : src.getDonors()) {
-			if(d.canDonateTo(dst.getRecipient())) {
+			if(d.canDonateTo(dst.getRecipient(), threshold)) {
 				return true;
 			}
 		}
