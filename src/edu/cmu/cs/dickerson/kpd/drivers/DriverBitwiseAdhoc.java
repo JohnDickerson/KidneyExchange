@@ -36,7 +36,7 @@ public class DriverBitwiseAdhoc {
 
 		// Possibly use different max cycle and chain sizes
 		List<Integer> cycleCapList = Arrays.asList(3);
-		List<Integer> chainCapList = Arrays.asList(0, 4);//UNOS uses four
+		List<Integer> chainCapList = Arrays.asList(0);//UNOS uses four
 
 		// Generate draws from all UNOS match runs currently on the machine
 		String basePath = IOUtil.getBaseUNOSFilePath();
@@ -73,7 +73,7 @@ public class DriverBitwiseAdhoc {
 
 							// Generate a new pool with a specific threshold on the edges
 							gen.setThreshold(threshold);
-							Pool pool = gen.generatePool(numVerts);
+							Pool pool = gen.generate(numVerts, 0);
 
 							CycleGenerator cg = new CycleGenerator(pool);
 							List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);

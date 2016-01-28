@@ -129,7 +129,7 @@ public class UNOSDonor implements Comparable<UNOSDonor> {
 		
 		// Patient will accept a shipped organ from the donor
 		if(this.donKiShip) {
-			if(r.shipCenters.contains(this.homeCtr)) { mismatches += 0; }
+			if(r.shipCenters.contains(this.homeCtr)) { mismatches = 0; }  // set to zero again -- this is a legal match
 		} else {
 			if(r.shipCenters.contains(this.homeCtr)) { mismatches += 1; }   // if donor allows shipping, would be good
 		}
