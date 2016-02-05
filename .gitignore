@@ -3,6 +3,8 @@
 *.input
 *.cnf
 *.tgz
+*.dzn
+*.graph
 
 # Java and Eclipse #
 *.jar

@@ -291,7 +291,6 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	/**
 	 * Dumps UNOS graph to a dense adjacency matrix for Alex, comma-delimited, n rows
 	 * each with n 1s or 0s for edge exists or not
-	 * @param pool
 	 * @param path
 	 */
 	public void writeUNOSGraphToDenseAdjacencyMatrix(String path) {
@@ -315,6 +314,50 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return;
 	}
+	
+	/**
+	 * Dumps UNOS graph to a DZN input file for Minizinc's CP solver (for bitwise project)
+	 * @param path output filepath for DZN file
+	 * @param k number of bits per patient, donor vector
+	 * @param t threshold
+	 */
+	public void writeUNOSGraphToDZN(String path, int k, int t) {
+		int n=this.vertexSet().size();
+		boolean[][] edgeExists = this.getDenseAdjacencyMatrix();
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			writer.println("v = " + this.vertexSet().size() + ";");
+			writer.println("k = " + k + ";");
+			writer.println("t = " + t + ";");
+			for(int v_i=0; v_i<n; v_i++) { 
+				StringBuilder sb = new StringBuilder();
+				if(v_i==0) {
+					sb.append("e = [| ");
+				} else {
+					sb.append("     | ");
+				}
+				for(int v_j=0; v_j<n; v_j++) {
+					sb.append(edgeExists[v_i][v_j] ? "1" : "0");
+					if(v_j != n-1) {
+						sb.append(", ");
+					}
+				}
+				if(v_i==n-1) {
+					sb.append(" |];");
+				}
+				writer.println(sb.toString());
+			}
+			
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		return;
+	}
+	
+	
 	
 	/**
 	 * Writes the UNOS graph to a k-implementable CNF SAT file at path

@@ -104,9 +104,10 @@ public class DriverBitwise {
 			// Remove once we make the IP faster!
 			if(pool.vertexSet().size() > 150) { continue; }
 			
-			// Dump adjacency matrix for Alex
+			// Dump adjacency matrix to CP file
 			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
-			//if((new Random()).nextInt() != 0)   continue;
+			//pool.writeUNOSGraphToDZN("unos"+matchRunID+".dzn", 10, 0);
+			//if(1+1==2) continue;
 			
 			for(int k=20; k<=40; k++) {//pool.vertexSet().size(); k++) {
 			//int k=25; {
