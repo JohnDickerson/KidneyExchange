@@ -23,7 +23,7 @@ public class DriverBitwiseAdhoc {
 	public static void main(String args[]) {
 
 		// How many base vertex sets should be draw?
-		int numberOfBaseGraphs = 50;
+		int numberOfBaseGraphs = 10;
 
 		// Iterate from 0 mismatches to a threshold maximum of ...?
 		int maxThreshold = 5;
@@ -75,6 +75,8 @@ public class DriverBitwiseAdhoc {
 							gen.setThreshold(threshold);
 							Pool pool = gen.generate(numVerts, 0);
 
+							//if(2==2) { pool.writeUNOSGraphToDZN("unos_gen_"+baseGraphNum+".dzn", 10, 0); continue; }
+							
 							CycleGenerator cg = new CycleGenerator(pool);
 							List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, false);
 
