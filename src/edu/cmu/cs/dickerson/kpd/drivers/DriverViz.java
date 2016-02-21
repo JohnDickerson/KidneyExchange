@@ -66,6 +66,9 @@ public class DriverViz {
 				System.exit(-1);
 			}
 			
+			// Write this as an input file to our solver
+			//pool.writeToUNOSKPDFile("unos_"+matchRunID);
+			
 			// Write this out to a NetworkX-friendly set of files
 			pool.writeToVizFile("unos"+matchRunID);
 		}

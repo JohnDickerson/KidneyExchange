@@ -33,11 +33,11 @@ public class DriverAAAIPricing {
 		IOUtil.dPrintln("UNOS generator operating on #donors: " + gen.getDonors().size() + " and #recipients: " + gen.getRecipients().size());
 
 		// Iterate over tuples of (#pairs, %alts)
-		List<Integer> numVertsList = Arrays.asList(new Integer[] {50, 100, 150, 200, 250, 300, 500, 1000});
-		List<Double> pctAltsList = Arrays.asList(new Double[] {0.0, 0.01, 0.02, 0.05, 0.25});
+		List<Integer> numVertsList = Arrays.asList(new Integer[] {50, 100, 150, 200, 250, 300, 500, 700, 1000});
+		List<Double> pctAltsList = Arrays.asList(new Double[] {0.0, 0.01, 0.02, 0.05, 0.10, 0.25});
 
 		// Number of base graphs to generate; just doing 62 for now (for one 64-core Steamroller node)
-		int numGraphReps = 50; 
+		int numGraphReps = 64; 
 		for(int typeIdx=0; typeIdx<numVertsList.size(); typeIdx++) {
 
 			int numVerts = numVertsList.get(typeIdx);
