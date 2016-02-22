@@ -100,6 +100,7 @@ public class DriverKDD {
 	public static Set<Vertex> getMarginalizedVertices(Pool pool) {
 		Set<Vertex> marginalized = new HashSet<Vertex>();
 		for(VertexPair pair : pool.getPairs()) {
+			if(null==pair.getUnderlyingPair()) { continue; }
 			UNOSRecipient r = pair.getUnderlyingPair().getRecipient();
 			if(r.highlySensitized || r.age < 18) {
 				marginalized.add(pair);

@@ -25,7 +25,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
-	
+
 	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
 		pairs = new TreeSet<VertexPair>();
@@ -47,7 +47,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		else {	pairs.remove(v); }
 		return super.removeVertex(v);
 	}
-	
+
 	@Override
 	public boolean removeAllVertices(Collection<? extends Vertex> vertices) {
 		boolean changed = false;
@@ -56,7 +56,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return changed;
 	}
-	
+
 	public boolean addPair(VertexPair pair) {
 		boolean newVert = super.addVertex(pair);
 		if(newVert) {
@@ -82,7 +82,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return edgeCt;
 	}
-	
+
 	public SortedSet<VertexPair> getPairs() {
 		return pairs;
 	}
@@ -103,7 +103,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	public String toString() {
 		return "< (" + getNumPairs() + ", " + getNumAltruists() + "), " + super.edgeSet().size() + " >";
 	}
-	
+
 	public Set<VertexPair> getPairsOfType(BloodType btPatient, BloodType btDonor) {
 
 		Set<VertexPair> vSet = new HashSet<VertexPair>();
@@ -117,10 +117,10 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	}
 
 	public Pool makeSubPool(Set<Vertex> subsetV) {
-		
+
 		// TODO Look into subgraph-ing in JGraphT library; not sure about backing sets, so playing it safe now
 		//DirectedWeightedSubgraph<Vertex, Edge> subGraph = new DirectedWeightedSubgraph<Vertex, Edge>(this, subsetV, null);
-		
+
 		// Add all legal vertices to new pool
 		Pool subPool = new Pool(Edge.class);
 		for(Vertex v : subsetV) {
@@ -128,7 +128,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				subPool.addVertex(v);
 			}
 		}
-		
+
 		// Add all legal edges to new pool 
 		for(Vertex src : subPool.vertexSet()) {
 			for(Vertex sink : subPool.vertexSet()) {
@@ -137,10 +137,14 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				}
 			}
 		}
-		
+
 		return subPool;
 	}
-	
+
+	public void writeToUNOSKPDFile(String baseFileName) {
+		writeToUNOSKPDFile(baseFileName, true);
+	}
+
 	/**
 	 * Outputs this graph to files that can be read by the current UNOS solver
 	 * This should *NOT* be used in UNOS production, since we gloss over a couple of
@@ -148,7 +152,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	 * generated data.  Can be used for general studies, though.
 	 * @param baseFileName
 	 */
-	public void writeToUNOSKPDFile(String baseFileName) {
+	public void writeToUNOSKPDFile(String baseFileName, boolean includePrefsFile) {
 
 		// Main graph file
 		try {
@@ -183,59 +187,61 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 
 		// Vertex preferences and details files for UNOS runs
-		try {
-			PrintWriter writerPrefs = new PrintWriter(baseFileName + "-vertex-prefs.input", "UTF-8");
+		if(includePrefsFile) {
+			try {
+				PrintWriter writerPrefs = new PrintWriter(baseFileName + "-vertex-prefs.input", "UTF-8");
 
-			// These are used for our simulator, to track ABO and sensitized patients
-			PrintWriter writerDetails = new PrintWriter(baseFileName + "-vertex-details.input", "UTF-8");
-			writerDetails.println("ID ABO-Patient ABO-Donor Wife-Patient? PRA In-Degree Out-degree Is-altruist? Marginalized?");
-			Set<Vertex> marginalizedVerts = DriverKDD.getMarginalizedVertices(this);
-			//Set<Vertex> marginalizedVerts = new HashSet<Vertex>();
-			
-			for(Vertex v : this.vertexSet()) {
-				// <donor_id> <max_pairs_cycle> <max_pairs_chain> <home-ctr-ID>
+				// These are used for our simulator, to track ABO and sensitized patients
+				PrintWriter writerDetails = new PrintWriter(baseFileName + "-vertex-details.input", "UTF-8");
+				writerDetails.println("ID ABO-Patient ABO-Donor Wife-Patient? PRA In-Degree Out-degree Is-altruist? Marginalized?");
+				Set<Vertex> marginalizedVerts = DriverKDD.getMarginalizedVertices(this);
+				//Set<Vertex> marginalizedVerts = new HashSet<Vertex>();
 
-				int maxPairsChain = Integer.MAX_VALUE-1;
-				int maxPairsCycle = 3;
-				if(null != v.getUnderlyingPair()) {
-					for(UNOSDonor d : v.getUnderlyingPair().getDonors()) {
-						maxPairsCycle = Math.min(maxPairsCycle, d.maxPairsCycle);
-						maxPairsChain = Math.min(maxPairsChain, d.maxPairsChain);
+				for(Vertex v : this.vertexSet()) {
+					// <donor_id> <max_pairs_cycle> <max_pairs_chain> <home-ctr-ID>
+
+					int maxPairsChain = Integer.MAX_VALUE-1;
+					int maxPairsCycle = 3;
+					if(null != v.getUnderlyingPair()) {
+						for(UNOSDonor d : v.getUnderlyingPair().getDonors()) {
+							maxPairsCycle = Math.min(maxPairsCycle, d.maxPairsCycle);
+							maxPairsChain = Math.min(maxPairsChain, d.maxPairsChain);
+						}
 					}
-				}
-				int homeCtrID = 0;  // ignore this for now
-				writerPrefs.println(v.getID() + " " + maxPairsCycle + " " + maxPairsChain + " " + homeCtrID);
+					int homeCtrID = 0;  // ignore this for now
+					writerPrefs.println(v.getID() + " " + maxPairsCycle + " " + maxPairsChain + " " + homeCtrID);
 
-				// TODO fix when we deal with more than one donor correctly
-				String donorBlood = "O";
-				if(v.getUnderlyingPair().getDonors().size() > 0) {
-					donorBlood = v.getUnderlyingPair().getDonors().iterator().next().abo.toString();
+					// TODO fix when we deal with more than one donor correctly
+					String donorBlood = "O";
+					if(v.getUnderlyingPair().getDonors().size() > 0) {
+						donorBlood = v.getUnderlyingPair().getDonors().iterator().next().abo.toString();
+					}
+
+					writerDetails.println(v.getID() + " " +
+							(v.isAltruist() ? "Unk" : v.getUnderlyingPair().getRecipient().abo) + " " + 
+							donorBlood + " " +
+							"0" + " " +
+							(v.isAltruist() ? "0" : v.getUnderlyingPair().getRecipient().cpra) + " " +
+							this.inDegreeOf(v) + " " +
+							this.outDegreeOf(v) + " " +
+							(v.isAltruist() ? "1" : "0") + " " +
+							(marginalizedVerts.contains(v) ? "1" : "0") + " " 
+							);
 				}
-				
-				writerDetails.println(v.getID() + " " +
-						(v.isAltruist() ? "Unk" : v.getUnderlyingPair().getRecipient().abo) + " " + 
-						donorBlood + " " +
-						"0" + " " +
-						(v.isAltruist() ? "0" : v.getUnderlyingPair().getRecipient().cpra) + " " +
-						this.inDegreeOf(v) + " " +
-						this.outDegreeOf(v) + " " +
-						(v.isAltruist() ? "1" : "0") + " " +
-						(marginalizedVerts.contains(v) ? "1" : "0") + " " 
-						);
+				//Legacy code signals EOF with -1 -1 -1
+				writerPrefs.println("-1 -1 -1");
+				writerPrefs.close();
+				writerDetails.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
 			}
-			//Legacy code signals EOF with -1 -1 -1
-			writerPrefs.println("-1 -1 -1");
-			writerPrefs.close();
-			writerDetails.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
 		}
 
 	}
-	
-	
+
+
 	/**
 	 * Writes the underlying pool to a NetworkX viz-friendly file format
 	 * @param baseFileName
@@ -271,7 +277,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			PrintWriter writer = new PrintWriter(baseFileName + ".verts", "UTF-8");
 
 			for(Vertex v : this.vertexSet()) {
-	
+
 				// <vert> <patient-ABO> <donor-ABO>
 				if(v.isAltruist()) {
 					writer.println(v.getID() + "," + "-" + "," + ((VertexAltruist)v).getBloodTypeDonor() );
@@ -286,8 +292,8 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 	/**
 	 * Dumps UNOS graph to a dense adjacency matrix for Alex, comma-delimited, n rows
 	 * each with n 1s or 0s for edge exists or not
@@ -305,7 +311,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				}
 				writer.println(sb.toString());
 			}
-			
+
 			writer.close();
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
@@ -314,7 +320,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return;
 	}
-	
+
 	/**
 	 * Dumps UNOS graph to a DZN input file for Minizinc's CP solver (for bitwise project)
 	 * @param path output filepath for DZN file
@@ -347,7 +353,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				}
 				writer.println(sb.toString());
 			}
-			
+
 			writer.close();
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
@@ -356,9 +362,9 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Writes the UNOS graph to a k-implementable CNF SAT file at path
 	 * @param k
@@ -395,7 +401,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 							conflictSB.append("0\n");
 							sb.append(conflictSB.toString());
 							numClauses++;
-							
+
 							// ... \bigwedge\limits_{\rho \in [k]}\left[ 
 							//            (\neg z^\rho_{ij} \lor d_i^\rho) \land (\neg z^\rho_{ij} \lor p_j^\rho) 
 							//        \right]  & \forall (v_i, v_j) \not\in E
@@ -406,7 +412,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 								numClauses++;
 							}
 						}
-						
+
 					}
 				}
 			}
@@ -420,20 +426,20 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		}
 		return;
 	}
-	
+
 	private int getCNFDonorIdx(final int n, final int k, final int v_i, final int rho) {
 		return 1 + v_i*k + rho;
 	}
-	
+
 	private int getCNFPatientIdx(final int n, final int k, final int v_j, final int rho) {
 		return 1 + k*n + k*v_j + rho;
 	}
-	
+
 	private int getCNFConflictForceIdx(final int n, final int k, final int v_i, final int v_j, final int rho) {
 		return 1 + k*n + k*n + k*n*v_i + k*v_j + rho;
 	}
-	
-	
+
+
 	/**
 	 * Returns the |V| x |V| adjacency matrix, dense, for this pool
 	 * @return
