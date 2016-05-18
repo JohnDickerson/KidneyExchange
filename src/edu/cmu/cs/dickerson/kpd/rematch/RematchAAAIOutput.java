@@ -5,7 +5,7 @@ import java.io.IOException;
 import edu.cmu.cs.dickerson.kpd.io.Output;
 import edu.cmu.cs.dickerson.kpd.io.OutputCol;
 
-public class RematchOutput extends Output {
+public class RematchAAAIOutput extends Output {
 	public enum Col implements OutputCol { 
 		SEED,
 		CYCLE_CAP,
@@ -46,7 +46,7 @@ public class RematchOutput extends Output {
 		return header;
 	}
 	
-	public RematchOutput(String path) throws IOException {
+	public RematchAAAIOutput(String path) throws IOException {
 		super(path, getHeader());
 	}
 
