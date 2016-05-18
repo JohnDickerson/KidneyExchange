@@ -5,24 +5,22 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
-import edu.cmu.cs.dickerson.kpd.rematch.RematchECOutput.Col;
+import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStrat;
+import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStratAAAI;
+import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStratEC2015;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
-import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
@@ -115,17 +113,20 @@ public class DriverRematch {
 
 		// Number of repetitions for each parameter vector
 		this.numReps = 100;
+		
+		// Shared constants over all the rematch run types
+		RematchStrat.init(cycleCap, numPairs, numAlts, maxNumRematchesEC2015, maxAvgEdgesPerVertex, rematchType, onlyPlotMaxRematch);
 	}
 
 	public void run() {
 
 		// Store output for the EC runs and for the cost-based AAAI runs
-		RematchECOutput outEC = null;
-		RematchAAAIOutput outAAAI = null;
+		RematchOutput outEC = null;
+		RematchOutput outAAAI = null;
 		try {
 			long currTime = System.currentTimeMillis();
-			outEC = new RematchECOutput("rematch_" + currTime + "_ec.csv");
-			outAAAI = new RematchAAAIOutput("rematch_" + currTime + "_aaai.csv");
+			outEC = new RematchOutput("rematch_" + currTime + "_ec.csv");
+			outAAAI = new RematchOutput("rematch_" + currTime + "_aaai.csv");
 		} catch(IOException e) {
 			e.printStackTrace();
 			return;
@@ -218,11 +219,16 @@ public class DriverRematch {
 									cycles = null; cg = null;
 
 									// Reset the pool's edges to their failure probabilities, not failure statuses
-									resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
+									RematchUtil.resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
 
-									// Call the EC-15 solver for this specific pool and record in the EC-15 file
-									doRematchEC2015(outEC, pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil);
-
+									// Run the EC-15 experiments 
+									RematchStrat rematchStratEC = new RematchStratEC2015(outEC, pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil, seed);
+									rematchStratEC.runRematch();
+									
+									// Now call the AAAI solver for this same pool + edge results, record in AAAI file
+									RematchStrat rematchStratAAAI = new RematchStratAAAI(outAAAI, pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil, seed);
+									rematchStratAAAI.runRematch();
+									
 									
 								} catch(SolverException e) {
 									e.printStackTrace();
@@ -254,190 +260,6 @@ public class DriverRematch {
 		logger.info("Successfully cleaned up; exiting ...");
 		return;
 	}
-
-
-	/**
-	 * If we previously"tested" an edge and, via that result and set its failure
-	 * probability to 0.0 (=failed) or 1.0 (=succeeded), this method returns that
-	 * failure probability to its originally-generated value in [0.0, 1.0]
-	 * @param edgeFailureRateMap map of Edge -> original failure rate
-	 */
-	private void resetPoolEdgeTestsToUnknown(Map<Edge, Double> edgeFailureRateMap) {
-		// Reset the pool's edges to their failure probabilities, not failure statuses
-		for(Map.Entry<Edge, Double> entry : edgeFailureRateMap.entrySet()) {
-			entry.getKey().setFailureProbability(entry.getValue());
-		}
-	}
-
-	
-	/**
-	 * Given a recommended matching, simulates that matching on the omniscient
-	 * pool where we know all the edge tests and returns the successful utility
-	 * gained from that matching
-	 * 
-	 * @param sol recommended matching
-	 * @param pool underlying pool of vertices and edges
-	 * @param edgeFailedMap mapping of edges -> whether they exist or not
-	 * @return number of successful transplants
-	 */
-	private double calculateNumTransplants(
-			Solution sol,
-			Pool pool,
-			Map<Edge, Boolean> edgeFailedMap
-			) {
-		
-		double numActualTransplants=0;
-		for(Cycle c : sol.getMatching()) {
-
-			if(Cycle.isAChain(c, pool)) {
-				// Chains succeed incrementally (starting from altruist up to first edge failure)
-				ListIterator<Edge> reverseEdgeIt = c.getEdges().listIterator(c.getEdges().size());
-				int successCt = 0;
-				while(reverseEdgeIt.hasPrevious()) {
-					Edge e = reverseEdgeIt.previous();
-					if(successCt == 0 && !pool.getEdgeSource(e).isAltruist()) {
-						System.err.println("Chain generated in a different way than expected; chain check isn't going to perform correctly.");
-						System.exit(-1);
-					}
-					if(edgeFailedMap.get(e)) {
-						break;
-					}
-					successCt++;
-				}
-
-				if(successCt == c.getEdges().size()) {
-					successCt -= 1;    // if nothing failed, don't count dummy edge going back to altruist
-				}
-				numActualTransplants += successCt;
-			} else {
-				// Cycles fail or succeed in entirety
-				boolean failed = false;
-				for(Edge e : c.getEdges()) {
-					failed |= edgeFailedMap.get(e);  // even one edge failure -> entire cycle fails completely
-				}
-				if(!failed) { numActualTransplants += c.getEdges().size(); } // if cycle succeeds, count all verts in it
-
-			}  // end of isAChain conditional
-		}
-		return numActualTransplants;
-	}
-	
-
-	/**
-	 * Runs the experiments for the EC-15 paper
-	 * 
-	 * @param out
-	 * @param pool
-	 * @param chainCap
-	 * @param edgeFailedMap
-	 * @param edgeFailureRateMap
-	 * @param generatorName
-	 * @param hardMaxPerVertex
-	 * @param failureRate
-	 * @param oracleMatchUtil
-	 * @throws SolverException
-	 */
-	private void doRematchEC2015(
-			RematchECOutput out,
-			Pool pool, 
-			int chainCap,
-			Map<Edge, Boolean> edgeFailedMap,       // Omniscience, which edges fail/don't fail in reality
-			Map<Edge, Double> edgeFailureRateMap,   // Generated failure rates for each edge
-			String generatorName,
-			int hardMaxPerVertex,
-			double failureRate,
-			double oracleMatchUtil
-			) throws SolverException {
-
-		// Get a set of edges that we should formally test (maps time period -> set of edges to test)
-		CycleGenerator cg = new CycleGenerator(pool);
-		List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
-		Map<Integer, Set<Edge>> edgesToTestMap = (new RematchCPLEXSolver(
-				pool,
-				cycles,
-				new CycleMembership(pool, cycles))
-				).solve(maxNumRematchesEC2015, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
-
-		// Some of the rematchers change edge failure probabilities; reset here
-		resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
-
-		// Keep track of how many incoming edges to each vertex have been checked
-		Map<Vertex, Set<Edge>> perVertexEdgeTested = new HashMap<Vertex, Set<Edge>>();
-		for(Vertex v : pool.vertexSet()) {
-			perVertexEdgeTested.put(v, new HashSet<Edge>()); 
-		}
-
-		// Get non-prescient match utilities for increasing number of allowed rematches
-		Set<Edge> edgesToTestSet = new HashSet<Edge>(); // incrementally keep track of edges to test
-		for(int numRematches=0; numRematches<=maxNumRematchesEC2015; numRematches++) {
-			// If we only want data for the last (highest) #rematches, skip there
-			if(onlyPlotMaxRematch) {
-				numRematches = maxNumRematchesEC2015;
-				// Add all #rematches' edge sets to the set of edges to test
-				for(Map.Entry<Integer, Set<Edge>> reSet : edgesToTestMap.entrySet()) {
-					edgesToTestSet.addAll( reSet.getValue() );
-				}
-			} else {
-				// Add this #rematches' edge set to the total set of edges to test
-				if(edgesToTestMap.containsKey(numRematches) && null!=edgesToTestMap.get(numRematches)) {
-					edgesToTestSet.addAll( edgesToTestMap.get(numRematches) );
-				}
-			}
-
-			// Initial bookkeeping
-			out.set(Col.SEED, seed);
-			out.set(Col.CYCLE_CAP, cycleCap);
-			out.set(Col.CHAIN_CAP, chainCap);
-			out.set(Col.NUM_PAIRS, pool.getPairs().size());
-			out.set(Col.NUM_ALTRUISTS, pool.getAltruists().size());
-			out.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
-			out.set(Col.GENERATOR, generatorName);
-			out.set(Col.MAX_AVG_EDGES_PER_VERT, maxAvgEdgesPerVertex);
-			out.set(Col.HARD_MAX_EDGES_PER_VERT, hardMaxPerVertex);
-			out.set(Col.REMATCH_TYPE, rematchType);
-			out.set(Col.FAILURE_RATE, failureRate);
-			out.set(Col.NUM_REMATCHES, numRematches);
-			out.set(Col.ORACLE_MATCH_UTIL, oracleMatchUtil);
-
-			// Update the pool with tested edges
-			out.set(Col.NUM_EDGE_TESTS, edgesToTestSet.size());
-			for(Edge e : edgesToTestSet) {
-				Vertex dst = pool.getEdgeTarget(e);
-				// If the destination vertex has remaining credits for testing edges, test this edge
-				if(perVertexEdgeTested.get(dst).size() < hardMaxPerVertex) {
-					e.setFailureProbability( edgeFailedMap.get(e) ? 1.0 : 0.0);
-					perVertexEdgeTested.get(dst).add(e);
-				}
-			}
-
-			// Do a max utility matching on this updated pool
-			cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
-			Solution rematchSolution = (new CycleFormulationCPLEXSolver(
-					pool, 
-					cycles, 
-					new CycleMembership(pool, cycles))
-					).solve();
-
-			// Now count the number of matches that actually went to transplant
-			double numActualTransplants = calculateNumTransplants(rematchSolution, pool, edgeFailedMap);
-			out.set(Col.REMATCH_UTIL, numActualTransplants);
-
-
-			cycles = null;
-
-			// Write the  row of data
-			try {
-				out.record();
-			} catch(IOException e) {
-				IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
-				e.printStackTrace();
-				System.exit(-1);
-			}
-		} // end numRematchesList
-
-	} // end of doRematchEC2015 method
-
-
 
 	public static void main(String[] args) {
 		(new DriverRematch()).run();
