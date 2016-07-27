@@ -1,6 +1,8 @@
 package edu.cmu.cs.dickerson.kpd.rematch.strats;
 
+import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
+import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 
 public abstract class RematchStrat {
@@ -12,18 +14,16 @@ public abstract class RematchStrat {
 	protected static int cycleCap = 2;
 	protected static int numPairs = 0;
 	protected static int numAlts = 0;
-	protected static int maxNumRematchesEC2015 = 0;
 	protected static double maxAvgEdgesPerVertex = 0;
 	protected static RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_DETERMINISTIC;
 	protected static boolean onlyPlotMaxRematch = false;
 	
 	public static void init(int cycleCap, int numPairs, int numAlts,
-			int maxNumRematchesEC2015, double maxAvgEdgesPerVertex,
+			double maxAvgEdgesPerVertex,
 			RematchConstraintType rematchType, boolean onlyPlotMaxRematch) {
 		RematchStrat.cycleCap = cycleCap;
 		RematchStrat.numPairs = numPairs;
 		RematchStrat.numAlts = numAlts;
-		RematchStrat.maxNumRematchesEC2015 = maxNumRematchesEC2015;
 		RematchStrat.maxAvgEdgesPerVertex = maxAvgEdgesPerVertex;
 		RematchStrat.rematchType = rematchType;
 		RematchStrat.onlyPlotMaxRematch = onlyPlotMaxRematch;
@@ -39,8 +39,11 @@ public abstract class RematchStrat {
 	
 	/**
 	 * Runs whatever the rematch strategy is, using the init()'d parameters
+	 * @return total number of edges that were tested
 	 * @throws SolverException
 	 */
-	public abstract void runRematch() throws SolverException;
+	public abstract int runRematch(RematchOutput out,
+			int maxNumRematches,
+			RematchCPLEXSolver solver) throws SolverException;
 
 }

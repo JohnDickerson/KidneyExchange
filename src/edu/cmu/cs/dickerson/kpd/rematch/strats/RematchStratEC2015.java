@@ -10,8 +10,8 @@ import java.util.Set;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput;
-import edu.cmu.cs.dickerson.kpd.rematch.RematchUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput.Col;
+import edu.cmu.cs.dickerson.kpd.rematch.RematchUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
@@ -25,7 +25,6 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 public class RematchStratEC2015 extends RematchStrat {
 
 
-	protected final RematchOutput out;
 	protected final Pool pool; 
 	protected final int chainCap;
 	protected final Map<Edge, Boolean> edgeFailedMap;
@@ -36,8 +35,7 @@ public class RematchStratEC2015 extends RematchStrat {
 	protected final double oracleMatchUtil;
 	protected final long seed;
 	
-	public RematchStratEC2015(RematchOutput out, 
-			Pool pool, 
+	public RematchStratEC2015(Pool pool, 
 			int chainCap,
 			Map<Edge, Boolean> edgeFailedMap,
 			Map<Edge, Double> edgeFailureRateMap, 
@@ -47,7 +45,6 @@ public class RematchStratEC2015 extends RematchStrat {
 			double oracleMatchUtil,
 			long seed) {
 		
-		this.out = out;
 		this.pool = pool;
 		this.chainCap = chainCap;
 		this.edgeFailedMap = edgeFailedMap;
@@ -62,16 +59,15 @@ public class RematchStratEC2015 extends RematchStrat {
 	/**
 	 * Runs the experiments for the EC-15 paper
 	 */
-	public void runRematch() throws SolverException {
+	public int runRematch(RematchOutput out,
+			int maxNumRematches,
+			RematchCPLEXSolver solver
+			) throws SolverException {
 
 		// Get a set of edges that we should formally test (maps time period -> set of edges to test)
 		CycleGenerator cg = new CycleGenerator(pool);
 		List<Cycle> cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
-		Map<Integer, Set<Edge>> edgesToTestMap = (new RematchCPLEXSolver(
-				pool,
-				cycles,
-				new CycleMembership(pool, cycles))
-				).solve(maxNumRematchesEC2015, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
+		Map<Integer, Set<Edge>> edgesToTestMap = solver.solve(maxNumRematches, rematchType, edgeFailedMap, maxAvgEdgesPerVertex);
 
 		// Some of the rematchers change edge failure probabilities; reset here
 		RematchUtil.resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
@@ -84,10 +80,10 @@ public class RematchStratEC2015 extends RematchStrat {
 
 		// Get non-prescient match utilities for increasing number of allowed rematches
 		Set<Edge> edgesToTestSet = new HashSet<Edge>(); // incrementally keep track of edges to test
-		for(int numRematches=0; numRematches<=maxNumRematchesEC2015; numRematches++) {
+		for(int numRematches=0; numRematches<=maxNumRematches; numRematches++) {
 			// If we only want data for the last (highest) #rematches, skip there
 			if(onlyPlotMaxRematch) {
-				numRematches = maxNumRematchesEC2015;
+				numRematches = maxNumRematches;
 				// Add all #rematches' edge sets to the set of edges to test
 				for(Map.Entry<Integer, Set<Edge>> reSet : edgesToTestMap.entrySet()) {
 					edgesToTestSet.addAll( reSet.getValue() );
@@ -149,5 +145,8 @@ public class RematchStratEC2015 extends RematchStrat {
 			}
 		} // end numRematchesList
 
+		// Return the number of edges we tested, union'd over the entire set of rematches
+		return edgesToTestSet.size();
+		
 	} // end of doRematchEC2015 method
 }

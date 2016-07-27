@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
 import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStrat;
-import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStratAAAI;
 import edu.cmu.cs.dickerson.kpd.rematch.strats.RematchStratEC2015;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
@@ -115,7 +114,7 @@ public class DriverRematch {
 		this.numReps = 100;
 		
 		// Shared constants over all the rematch run types
-		RematchStrat.init(cycleCap, numPairs, numAlts, maxNumRematchesEC2015, maxAvgEdgesPerVertex, rematchType, onlyPlotMaxRematch);
+		RematchStrat.init(cycleCap, numPairs, numAlts, maxAvgEdgesPerVertex, rematchType, onlyPlotMaxRematch);
 	}
 
 	public void run() {
@@ -220,15 +219,34 @@ public class DriverRematch {
 
 									// Reset the pool's edges to their failure probabilities, not failure statuses
 									RematchUtil.resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
-
+									cg = new CycleGenerator(pool);
+									cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
+									
 									// Run the EC-15 experiments 
-									RematchStrat rematchStratEC = new RematchStratEC2015(outEC, pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil, seed);
-									rematchStratEC.runRematch();
+									RematchStrat rematchStrat = new RematchStratEC2015(pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil, seed);
+									RematchCPLEXSolver solverEC = new RematchBatchCPLEXSolver(
+											pool,
+											cycles,
+											new CycleMembership(pool, cycles));
+									int numEdgesTestedByEC = rematchStrat.runRematch(outEC, this.maxNumRematchesEC2015, solverEC);
+									cycles = null; cg = null;
+
 									
-									// Now call the AAAI solver for this same pool + edge results, record in AAAI file
-									RematchStrat rematchStratAAAI = new RematchStratAAAI(outAAAI, pool, chainCap, edgeFailedMap, edgeFailureRateMap, generatorName, hardMaxPerVertex, failureRate, oracleMatchUtil, seed);
-									rematchStratAAAI.runRematch();
+									// Reset the pool's edges to their failure probabilities, not failure statuses	
+									RematchUtil.resetPoolEdgeTestsToUnknown(edgeFailureRateMap);
+									cg = new CycleGenerator(pool);
+									cycles = cg.generateCyclesAndChains(cycleCap, chainCap, true);
 									
+									// Now call the AAAI solver for this same pool + edge results, record in AAAI file							
+									RematchCPLEXSolver solverAAAI = new RematchSequentialCPLEXSolver(
+											pool,
+											cycles,
+											new CycleMembership(pool, cycles));
+									int numEdgesTestedByAAAI = rematchStrat.runRematch(outAAAI, numEdgesTestedByEC, solverAAAI);
+									cycles = null; cg = null;
+
+									
+									logger.info("EC tested " + numEdgesTestedByEC + "; AAAI tested " + numEdgesTestedByAAAI + " edges");
 									
 								} catch(SolverException e) {
 									e.printStackTrace();
