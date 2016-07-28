@@ -63,7 +63,7 @@ public class DriverRematch {
 
 		// Invariant parameters
 		this.cycleCap = 2;
-		this.numPairs = 250;
+		this.numPairs = 10;
 		this.numAlts = 0;
 		this.maxNumRematchesEC2015 = 5;
 		this.maxAvgEdgesPerVertex = Double.MAX_VALUE;

@@ -74,13 +74,17 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	}
 
 	public int getNumNonDummyEdges() {
-		int edgeCt = 0;
+		return getNonDummyEdgeSet().size();
+	}
+	
+	public Set<Edge> getNonDummyEdgeSet() {
+		Set<Edge> nonDummyEdges = new HashSet<Edge>();
 		for(Edge e : this.edgeSet()) {
 			if(this.getEdgeWeight(e) != 0.0) {
-				edgeCt++;
+				nonDummyEdges.add(e);
 			}
 		}
-		return edgeCt;
+		return nonDummyEdges;
 	}
 
 	public SortedSet<VertexPair> getPairs() {
