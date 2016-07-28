@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
-import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
