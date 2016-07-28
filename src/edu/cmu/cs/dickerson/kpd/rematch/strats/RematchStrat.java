@@ -15,7 +15,6 @@ public abstract class RematchStrat {
 	protected static int numPairs = 0;
 	protected static int numAlts = 0;
 	protected static double maxAvgEdgesPerVertex = 0;
-	protected static RematchConstraintType rematchType = RematchConstraintType.ADAPTIVE_DETERMINISTIC;
 	protected static boolean onlyPlotMaxRematch = false;
 	
 	public static void init(int cycleCap, int numPairs, int numAlts,
@@ -25,7 +24,6 @@ public abstract class RematchStrat {
 		RematchStrat.numPairs = numPairs;
 		RematchStrat.numAlts = numAlts;
 		RematchStrat.maxAvgEdgesPerVertex = maxAvgEdgesPerVertex;
-		RematchStrat.rematchType = rematchType;
 		RematchStrat.onlyPlotMaxRematch = onlyPlotMaxRematch;
 		RematchStrat.initialized = true;
 	}
@@ -44,6 +42,7 @@ public abstract class RematchStrat {
 	 */
 	public abstract int runRematch(RematchOutput out,
 			int maxNumRematches,
-			RematchCPLEXSolver solver) throws SolverException;
+			RematchCPLEXSolver solver,
+			RematchConstraintType rematchType) throws SolverException;
 
 }

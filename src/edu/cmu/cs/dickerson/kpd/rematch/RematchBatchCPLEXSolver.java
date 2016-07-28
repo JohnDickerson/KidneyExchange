@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
@@ -23,7 +24,6 @@ public class RematchBatchCPLEXSolver extends RematchCPLEXSolver {
 
 	private CycleMembership membership;
 	protected List<Cycle> cycles;
-
 	public RematchBatchCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
 		super(pool);
 		this.cycles = cycles;
@@ -197,6 +197,8 @@ public class RematchBatchCPLEXSolver extends RematchCPLEXSolver {
 						cplex.addEq(sum, 0.0);
 					}*/
 					break;
+				case FULLY_SEQUENTIAL:
+					throw new SolverException("RematchType " + rematchType + " can only be used in RematchSequential-based solvers.");
 				default:
 					throw new SolverException("Have not implemented RematchType " + rematchType + " yet");
 				}

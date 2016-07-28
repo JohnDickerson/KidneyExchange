@@ -10,7 +10,8 @@ import edu.cmu.cs.dickerson.kpd.structure.Pool;
 public abstract class CPLEXSolver extends Solver {
 
 	protected static IloCplex cplex = null;
-
+	protected boolean doDebugPrint = true;
+	
 	public CPLEXSolver(Pool pool) {
 		super(pool);
 	}
@@ -46,7 +47,10 @@ public abstract class CPLEXSolver extends Solver {
 
 		if(solvedOK) {
 
-			IOUtil.dPrintln(getID(), "Found an answer! Obj: " + cplex.getObjValue() + ", CPLEX status: " + cplex.getStatus() + ", Time: " + ((double) solveTime / 1000000000.0));
+			if(doDebugPrint) {
+				IOUtil.dPrintln(getID(), "Found an answer! Obj: " + cplex.getObjValue() + ", CPLEX status: " + cplex.getStatus() + ", Time: " + ((double) solveTime / 1000000000.0));
+			}
+			
 			Solution sol = new Solution();
 
 			// The objective value is the Dodgson score for a*

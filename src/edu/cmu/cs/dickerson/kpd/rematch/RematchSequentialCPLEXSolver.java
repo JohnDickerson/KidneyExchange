@@ -60,7 +60,9 @@ public class RematchSequentialCPLEXSolver extends RematchCPLEXSolver {
 		// Begin by building the base model (objective w/ no edge tests, constraints, etc)
 		try {
 			super.initializeCPLEX();
-
+			cplex.setOut(null);  // for this solver, we solve models waaay too much so no output
+			super.doDebugPrint = false;
+			
 			// One decision variable per cycle
 			x = cplex.boolVarArray(cycles.size());
 
@@ -109,7 +111,9 @@ public class RematchSequentialCPLEXSolver extends RematchCPLEXSolver {
 			// some other stopping condition is hit; keep track of which edges
 			// we test at which round in the retMap {round# -> {which edge was tested}}
 			int numEdgesTested = 0;
-			while(!edgeUnknownExistsSet.isEmpty() || numEdgesTested < numRematches) {
+			while(!edgeUnknownExistsSet.isEmpty() && numEdgesTested < numRematches) {
+				
+				IOUtil.dPrintln("Edge selection " + numEdgesTested + "/" + numRematches + "...");
 				
 				// Get the next best edge to test (myopic lookahead)
 				final Edge nextEdge = getBestEdge(edgeExistsSet, edgeNoExistsSet);
@@ -144,15 +148,22 @@ public class RematchSequentialCPLEXSolver extends RematchCPLEXSolver {
 
 	private Edge getBestEdge(Set<Edge> edgeExistsSet, Set<Edge> edgeNoExistsSet) throws SolverException, IloException {
 
+		// Debug print variables, compute once
+		Set<Edge> candidateEdges = this.pool.getNonDummyEdgeSet();
+		int numEdgesToTest = candidateEdges.size() - edgeExistsSet.size() - edgeNoExistsSet.size();
+		int numEdgesTested = 0;
+		int numRoundsRunSoFar = edgeExistsSet.size() + edgeNoExistsSet.size();
+		
+		
 		double bestObj = Double.NEGATIVE_INFINITY;
 		Edge bestEdge = null;
-		for(Edge currEdge : this.pool.getNonDummyEdgeSet()) {
+		for(Edge currEdge : candidateEdges) {
 
 			// Skip edges that we have already tested (and that either exist or don't)
 			if(edgeNoExistsSet.contains(currEdge) || edgeExistsSet.contains(currEdge)) {
 				continue;
 			}
-
+			numEdgesTested++;
 			double edgeFailureProb = currEdge.getFailureProbability();
 
 			// See what our expected utility would be with this edge existing
@@ -171,10 +182,10 @@ public class RematchSequentialCPLEXSolver extends RematchCPLEXSolver {
 			// the incumbent, store this edge and its objective
 			double expectedObj = (1.0-edgeFailureProb)*existsObj + edgeFailureProb*notExistsObj;
 			if(expectedObj > bestObj) {
+				IOUtil.dPrintln("--- Round " + numRoundsRunSoFar + ", incumbent improved (" + numEdgesTested + "/" + numEdgesToTest + ") -- " + bestObj + " --> " + expectedObj);
 				bestObj = expectedObj;
 				bestEdge = currEdge;
 			}
-
 		}
 
 		if(null==bestEdge) {
@@ -228,6 +239,6 @@ public class RematchSequentialCPLEXSolver extends RematchCPLEXSolver {
 
 	@Override
 	public String getID() {
-		return "Cycle Formulation CPLEX Solver -- Rematch Sequential for Thesis";
+		return "RematchSequentialCPLEXSolver";
 	}
 }

@@ -63,7 +63,7 @@ public class DriverRematch {
 
 		// Invariant parameters
 		this.cycleCap = 2;
-		this.numPairs = 10;
+		this.numPairs = 25;
 		this.numAlts = 0;
 		this.maxNumRematchesEC2015 = 5;
 		this.maxAvgEdgesPerVertex = Double.MAX_VALUE;
@@ -91,8 +91,8 @@ public class DriverRematch {
 
 		// List of constant edge failure rates we want to use
 		this.failureRateList = Arrays.asList(new Double[] {
-				0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-				//0.5,
+				//0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+				0.5,
 		});
 
 		// List of chain caps we want to use
@@ -228,7 +228,7 @@ public class DriverRematch {
 											pool,
 											cycles,
 											new CycleMembership(pool, cycles));
-									int numEdgesTestedByEC = rematchStrat.runRematch(outEC, this.maxNumRematchesEC2015, solverEC);
+									int numEdgesTestedByEC = rematchStrat.runRematch(outEC, this.maxNumRematchesEC2015, solverEC, RematchConstraintType.ADAPTIVE_DETERMINISTIC);
 									cycles = null; cg = null;
 
 									
@@ -242,7 +242,7 @@ public class DriverRematch {
 											pool,
 											cycles,
 											new CycleMembership(pool, cycles));
-									int numEdgesTestedByAAAI = rematchStrat.runRematch(outAAAI, numEdgesTestedByEC, solverAAAI);
+									int numEdgesTestedByAAAI = rematchStrat.runRematch(outAAAI, numEdgesTestedByEC, solverAAAI, RematchConstraintType.FULLY_SEQUENTIAL);
 									cycles = null; cg = null;
 
 									

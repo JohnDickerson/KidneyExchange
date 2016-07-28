@@ -20,6 +20,7 @@ public abstract class RematchCPLEXSolver extends CPLEXSolver {
 		REMOVE_MATCHED_CYCLES,   // Compute matching M, then remove all cycles in M
 		ADAPTIVE_FULL,           // Compute matching M, test edges in M, remove 0s and keep 1s (test full cycles/chains)
 		ADAPTIVE_DETERMINISTIC,  // Compute matchings without taking failure probability into account, test edges and remove those that failed
+		FULLY_SEQUENTIAL,        // Test exactly one edge at a time (not part of EC paper)
 	}
 
 	public abstract Map<Integer, Set<Edge>> solve(int numRematches, 

@@ -10,6 +10,7 @@ import java.util.Set;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput;
+import edu.cmu.cs.dickerson.kpd.rematch.RematchCPLEXSolver.RematchConstraintType;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchOutput.Col;
 import edu.cmu.cs.dickerson.kpd.rematch.RematchUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
@@ -61,7 +62,8 @@ public class RematchStratEC2015 extends RematchStrat {
 	 */
 	public int runRematch(RematchOutput out,
 			int maxNumRematches,
-			RematchCPLEXSolver solver
+			RematchCPLEXSolver solver,
+			RematchConstraintType rematchType
 			) throws SolverException {
 
 		// Get a set of edges that we should formally test (maps time period -> set of edges to test)
