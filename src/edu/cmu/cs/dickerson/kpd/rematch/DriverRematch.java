@@ -24,7 +24,7 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.UNOSGenerator;
 
 /**
  * Experiments for EC-2015 paper / NSF grant
@@ -62,8 +62,8 @@ public class DriverRematch {
 	public DriverRematch() { 
 
 		// Invariant parameters
-		this.cycleCap = 2;
-		this.numPairs = 25;
+		this.cycleCap = 3;
+		this.numPairs = 100;
 		this.numAlts = 0;
 		this.maxNumRematchesEC2015 = 5;
 		this.maxAvgEdgesPerVertex = Double.MAX_VALUE;
@@ -78,8 +78,8 @@ public class DriverRematch {
 
 		// List of generators we want to use
 		this.genList = Arrays.asList(new PoolGenerator[] {
-				new SaidmanPoolGenerator(r),
-				//UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
+				//new SaidmanPoolGenerator(r),
+				UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r),	
 		});
 
 		this.matchDirList = Arrays.asList((new File(IOUtil.getBaseUNOSFilePath())).listFiles(new FilenameFilter() {
@@ -91,8 +91,8 @@ public class DriverRematch {
 
 		// List of constant edge failure rates we want to use
 		this.failureRateList = Arrays.asList(new Double[] {
-				//0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-				0.5,
+				0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+				//0.5,
 		});
 
 		// List of chain caps we want to use

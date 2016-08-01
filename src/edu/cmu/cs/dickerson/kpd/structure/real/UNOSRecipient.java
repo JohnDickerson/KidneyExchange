@@ -99,7 +99,11 @@ public class UNOSRecipient implements Comparable<UNOSRecipient> {
 			r.maxDonorBPDiastolic = Double.MAX_VALUE;
 		}
 
-		r.maxDonorBMI = Double.valueOf(line[headers.get("MAX_DONOR_BMI")]);
+		try {
+			r.maxDonorBMI = Double.valueOf(line[headers.get("MAX_DONOR_BMI")]);
+		} catch(NumberFormatException e) {
+			r.maxDonorBMI = Double.MAX_VALUE;   // no max BMI = "**" string or similar
+		}
 		r.acceptCMVPos = IOUtil.stringToBool(line[headers.get("ACCEPT_CMV_POS")]);
 		r.acceptEBVPos = IOUtil.stringToBool(line[headers.get("ACCEPT_EBV_POS")]);
 
