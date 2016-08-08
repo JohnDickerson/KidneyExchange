@@ -97,7 +97,8 @@ public class DriverRematch {
 
 		// List of chain caps we want to use
 		this.chainCapList = Arrays.asList(new Integer[] {
-				0,//4,
+				//0,
+				4,
 				//10,
 		});
 
