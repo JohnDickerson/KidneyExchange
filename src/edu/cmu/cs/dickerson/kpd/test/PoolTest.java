@@ -92,6 +92,14 @@ public class PoolTest {
 	}
 	
 	@Test
+	public void testKTClusterRecursion() {
+		int k=5;
+		int t=3; 
+		Pool p = new Pool(Edge.class);
+		System.out.println( p.getKTClusters(2, 1).size() );
+	}
+	
+	@Test
 	public void test() {
 		
 		if(!HAVE_ACCESS_TO_UNOS_DATA) { 

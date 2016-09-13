@@ -4,9 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +24,8 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private static final long serialVersionUID = 1L;
+
+	private static final boolean INDEX_DEBUG = true; //check IDs of SAT atoms
 
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
@@ -76,7 +80,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	public int getNumNonDummyEdges() {
 		return getNonDummyEdgeSet().size();
 	}
-	
+
 	public Set<Edge> getNonDummyEdgeSet() {
 		Set<Edge> nonDummyEdges = new HashSet<Edge>();
 		for(Edge e : this.edgeSet()) {
@@ -431,6 +435,215 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		return;
 	}
 
+
+	/**
+	 * Helper method for (t-parameterized) writeUNOSGraphToBitwiseCNF
+	 * returns lists of t-element subsets of {0...k-1}
+	 * R_k(t)
+	 * @param k
+	 * @param t
+	 */
+	public ArrayList<ArrayList<Integer>> getKTClusters(int k, int t){
+		ArrayList<ArrayList<Integer>> clusters = new ArrayList<ArrayList<Integer>>();
+		if(t==0) {
+			
+		} else if(t==1){ //return singleton lists
+			for(int i=0;i<k;i++){
+				ArrayList<Integer> cluster = new ArrayList<Integer>();
+				cluster.add(new Integer(i));
+				clusters.add(cluster);
+			} 
+		} else if(t==k){ //return the complete list
+			ArrayList<Integer> cluster = new ArrayList<Integer>();
+			for(int i=0;i<k;i++){
+				cluster.add(new Integer(i));
+			}
+			clusters.add(cluster);
+		} else{ //recurse
+			clusters.addAll(getKTClusters(k-1,t-1));
+			for(ArrayList<Integer> cluster: clusters){
+				cluster.add(new Integer(k-1));
+			}
+			clusters.addAll(getKTClusters(k-1,t));
+		}
+		return clusters;
+	}
+
+	/**
+	 * Helper method for (t-parameterized) writeUNOSGraphToBitwiseCNF
+	 * returns the complement of a t-cluster
+	 * @param k
+	 * @param cluster
+	 * @return complement
+	 */
+	private ArrayList<Integer> clusterComplement(int k, ArrayList<Integer> cluster){
+		ArrayList<Integer> complement = new ArrayList<Integer>();
+		for(int i=0;i<k;i++){
+			if(!cluster.contains(new Integer(i))){
+				complement.add(new Integer(i));
+			}
+		}
+		return complement;
+	}
+
+	/**
+	 * Writes the UNOS graph to a t-thresholded k-implementable CNF SAT file at path
+	 * (at most t overlapping 1-bits are allowed)
+	 * @param t
+	 * @param k
+	 * @param path
+	 */
+	public void writeUNOSGraphToBitwiseCNF(final int k, int t, String path) {
+		HashMap<Integer, int[]> indexTracker;
+		if(INDEX_DEBUG){
+			//debugger to make sure IDs don't collide
+			indexTracker = new HashMap<Integer, int[]>();
+		}
+		int z,d,p;
+		int n=this.vertexSet().size();
+		boolean[][] edgeExists = this.getDenseAdjacencyMatrix();
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			writer.println("c " + path);
+			writer.println("c " + new Date());
+			int numVariables = 
+					n*k +      // p_i^\rho    \forall v_i \in V, \rho \in [k]
+					n*k +      // d_i^\rho    \forall v_i \in V, \rho \in [k]
+					n*n*k;     // z_{ij}^\rho  \forall (v_i, v_j) \not\in E, \rho in [k]  (overestimate)
+			int numClauses = 0;
+			StringBuilder sb = new StringBuilder();
+			ArrayList<ArrayList<Integer>> edgeClusters = getKTClusters(k,t);//clusters for edges
+			ArrayList<ArrayList<Integer>> nonEdgeClusters = getKTClusters(k,k-t);//clusters for non-edges
+			for(int v_i=0; v_i<n; v_i++) { 
+				for(int v_j=0; v_j<n; v_j++) {
+					if(v_i != v_j) {
+						if(edgeExists[v_i][v_j]) {
+							for(ArrayList<Integer> cluster: edgeClusters){
+								//constraints for each t-cluster for each edge that exists
+								String bigDisjunct = ""; // \bigvee_{q \in r}(\neg d_i^q \vee \neg p_j^q)
+								for(int q: cluster){
+									d = getCNFDonorIdx(n, k, v_i, q);
+									p = getCNFPatientIdx(n, k, v_j, q);
+									bigDisjunct = bigDisjunct + "-" + d + " -" + p + " ";
+									if(INDEX_DEBUG){
+										if(!indexTracker.containsKey(d)){
+											indexTracker.put(d,new int[]{n, k, v_i, q});
+										} else if(!Arrays.equals(indexTracker.get(d),new int[]{n, k, v_i, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(d)) + " and " + Arrays.toString(new int[]{n, k, v_i, q}) + " both are indexed to " + d);
+										}
+										if(!indexTracker.containsKey(p)){
+											indexTracker.put(p,new int[]{n, k, v_j, q});
+										} else if(!Arrays.equals(indexTracker.get(p),new int[]{n, k, v_j, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(p)) + " and " + Arrays.toString(new int[]{n, k, v_j, q}) + " both are indexed to " + p);
+										}
+									}
+								}
+								for(int q: clusterComplement(k, cluster)){// \bigwedge_{q \notin r}(\neg d_i^q \vee \neg p_j^q)
+									d = getCNFDonorIdx(n, k, v_i, q);
+									p = getCNFPatientIdx(n, k, v_j, q);
+									sb.append(bigDisjunct + "-" + d + " -" + p + " 0\n");
+									numClauses++;
+									if(INDEX_DEBUG){
+										if(!indexTracker.containsKey(d)){
+											indexTracker.put(d,new int[]{n, k, v_i, q});
+										} else if(!Arrays.equals(indexTracker.get(d),new int[]{n, k, v_i, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(d)) + " and " + Arrays.toString(new int[]{n, k, v_i, q}) + " both are indexed to " + d);
+										}
+										if(!indexTracker.containsKey(p)){
+											indexTracker.put(p,new int[]{n, k, v_j, q});
+										} else if(!Arrays.equals(indexTracker.get(p),new int[]{n, k, v_j, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(p)) + " and " + Arrays.toString(new int[]{n, k, v_j, q}) + " both are indexed to " + p);
+										}
+									}
+								}
+							}
+						} else {
+							for(ArrayList<Integer> cluster: nonEdgeClusters){
+								StringBuilder conflictSB = new StringBuilder();
+								int clusterIndex = nonEdgeClusters.indexOf(cluster);
+								for(int h=0; h<=cluster.size(); h++){ //need cluster size +1 Zs
+									z = getCNFConflictForceIdx(n, k, v_i, v_j, clusterIndex, h, t);
+									conflictSB.append(z + " ");
+									if(INDEX_DEBUG){
+										if(!indexTracker.containsKey(z)){
+											indexTracker.put(z,new int[]{n, k, v_i, v_j, clusterIndex, h, t});
+										} else if(!Arrays.equals(indexTracker.get(z),new int[]{n, k, v_i, v_j, clusterIndex, h, t})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(z)) + " and " + Arrays.toString(new int[]{n, k, v_i, v_j, clusterIndex, h, t}) + " both are indexed to " + z);
+										}
+									}
+								}
+								conflictSB.append("0\n");
+								sb.append(conflictSB.toString());
+								numClauses++;
+								for(int h=0; h<cluster.size(); h++){ //\bigvee_{q\in{r}}(d_{i}^q \wedge p_{j}^q)
+									z = getCNFConflictForceIdx(n, k, v_i, v_j, clusterIndex, h, t);
+									d = getCNFDonorIdx(n, k, v_i, cluster.get(h));
+									sb.append("-" + z + " " + d + " 0\n");
+									numClauses++;
+									p = getCNFPatientIdx(n, k, v_j, cluster.get(h));
+									sb.append("-" + z + " " + p + " 0\n");
+									numClauses++;
+									if(INDEX_DEBUG){
+										if(!indexTracker.containsKey(d)){
+											indexTracker.put(d,new int[]{n, k, v_i, cluster.get(h)});
+										} else if(!Arrays.equals(indexTracker.get(d),new int[]{n, k, v_i, cluster.get(h)})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(d)) + " and " + Arrays.toString(new int[]{n, k, v_i, cluster.get(h)}) + " both are indexed to " + d);
+										}
+										if(!indexTracker.containsKey(p)){
+											indexTracker.put(p,new int[]{n, k, v_j, cluster.get(h)});
+										} else if(!Arrays.equals(indexTracker.get(p),new int[]{n, k, v_j, cluster.get(h)})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(p)) + " and " + Arrays.toString(new int[]{n, k, v_j, cluster.get(h)}) + " both are indexed to " + p);
+										}
+										if(!indexTracker.containsKey(z)){
+											indexTracker.put(z,new int[]{n, k, v_i, v_j, clusterIndex, h, t});
+										} else if(!Arrays.equals(indexTracker.get(z),new int[]{n, k, v_i, v_j, clusterIndex, h, t})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(z)) + " and " + Arrays.toString(new int[]{n, k, v_i, v_j, clusterIndex, h, t}) + " both are indexed to " + z);
+										}
+									}
+								}
+								for(int q: clusterComplement(k,cluster)){ //\biwedge_{q\notin{r}}(d_{i}^q \wedge p_{j}^q)
+									z = getCNFConflictForceIdx(n, k, v_i, v_j, clusterIndex, cluster.size(), t);
+									d = getCNFDonorIdx(n, k, v_i, q);
+									sb.append("-" + z + " " + d + " 0\n");
+									numClauses++;
+									p = getCNFPatientIdx(n, k, v_j, q);
+									sb.append("-" + z + " " + p + " 0\n");
+									numClauses++;
+									if(INDEX_DEBUG){
+										if(!indexTracker.containsKey(d)){
+											indexTracker.put(d,new int[]{n, k, v_i, q});
+										} else if(!Arrays.equals(indexTracker.get(d),new int[]{n, k, v_i, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(d)) + " and " + Arrays.toString(new int[]{n, k, v_i, q}) + " both are indexed to " + d);
+										}
+										if(!indexTracker.containsKey(p)){
+											indexTracker.put(p,new int[]{n, k, v_j, q});
+										} else if(!Arrays.equals(indexTracker.get(p),new int[]{n, k, v_j, q})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(p)) + " and " + Arrays.toString(new int[]{n, k, v_j, q}) + " both are indexed to " + p);
+										}
+										if(!indexTracker.containsKey(z)){
+											indexTracker.put(z,new int[]{n, k, v_i, v_j, clusterIndex, cluster.size(), t});
+										} else if(!Arrays.equals(indexTracker.get(z),new int[]{n, k, v_i, v_j, clusterIndex, cluster.size(), t})){
+											throw new RuntimeException("Index Collision: " + Arrays.toString(indexTracker.get(z)) + " and " + Arrays.toString(new int[]{n, k, v_i, v_j, clusterIndex, cluster.size(), t}) + " both are indexed to " + z);
+										}
+									}
+								}
+							}
+						}
+
+					}
+				}
+			}
+			writer.println("p cnf " + numVariables + " " + numClauses);
+			writer.println(sb.toString());
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		return;
+	}
+
 	private int getCNFDonorIdx(final int n, final int k, final int v_i, final int rho) {
 		return 1 + v_i*k + rho;
 	}
@@ -441,6 +654,13 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private int getCNFConflictForceIdx(final int n, final int k, final int v_i, final int v_j, final int rho) {
 		return 1 + k*n + k*n + k*n*v_i + k*v_j + rho;
+	}
+
+	/* parameter s is the index within the list of t-clusters 
+	 * parameter rho is index within the t-cluster
+	 */
+	private int getCNFConflictForceIdx(final int n, final int k, final int v_i, final int v_j, final int s, final int rho, final int t) {
+		return 1 + k*n + k*n + (k-t)*v_i*(n*n) + (k-t)*v_j*n + (k-t)*s + rho;
 	}
 
 

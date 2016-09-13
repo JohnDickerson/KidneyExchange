@@ -27,13 +27,13 @@ public class DriverBitwise {
 
 		// Solve within fraction of best node vs lower bound (ranges from 0=opt to 1)
 		final double relativeMipGap = 0.05;
-		
+
 		// Solve the feasibility IP (true) or the minimization of error IP (false)? 
 		final boolean doFeasibilitySolve = true;
-		
+
 		// Are we trying to solve this IP, or just dumping the SAT formulation in CNF to some files?
-		final boolean doSATSolveDump = false;
-		
+		final boolean doSATSolveDump = true;
+
 		// Initialize our experimental output to .csv writer
 		String path = "unos_bitwise_" + System.currentTimeMillis() + ".csv";
 		BitwiseOutput eOut = null;
@@ -43,6 +43,9 @@ public class DriverBitwise {
 			e.printStackTrace();
 			return;
 		}
+
+		final int minThreshold = 1;   // set this to 0 for original experiments
+		final int maxThreshold = minThreshold;   
 
 		// Want to solve for each match run in a master directory consisting of single match directories
 		File baseUNOSDir = new File(IOUtil.getBaseUNOSFilePath());
@@ -103,26 +106,25 @@ public class DriverBitwise {
 			// TODO
 			// Remove once we make the IP faster!
 			if(pool.vertexSet().size() > 150) { continue; }
-			
+
 			// Dump adjacency matrix to CP file
 			//pool.writeUNOSGraphToDenseAdjacencyMatrix("unos"+matchRunID+".graph");
 			//pool.writeUNOSGraphToDZN("unos"+matchRunID+".dzn", 10, 0);
 			//if(1+1==2) continue;
-			
-			for(int k=20; k<=40; k++) {//pool.vertexSet().size(); k++) {
-			//int k=25; {
-			
 
-				if(doSATSolveDump) {
-					pool.writeUNOSGraphToBitwiseCNF(k, "unos"+matchRunID+"_v"+(numPairs+numAlts)+"_e"+pool.getNumNonDummyEdges()+"_k"+String.format("%04d",k)+".cnf");
-					continue;  // don't do IP solve
-				}
-				
-				//for(int threshold=0; threshold<k; threshold++) {
-					int threshold=0; {
-						
+			for(int k=2; k<=40; k++) {//pool.vertexSet().size(); k++) {
+				//int k=25; {
+
+				for(int threshold=minThreshold; threshold<=maxThreshold; threshold++) {
+					if(doSATSolveDump) {
+						//pool.writeUNOSGraphToBitwiseCNF(k, "unos"+matchRunID+"_v"+(numPairs+numAlts)+"_e"+pool.getNumNonDummyEdges()+"_k"+String.format("%04d",k)+".cnf");
+						pool.writeUNOSGraphToBitwiseCNF(k, threshold, "unos"+matchRunID+"_v"+(numPairs+numAlts)+"_e"+pool.getNumNonDummyEdges()+"_k"+String.format("%04d",k)+".cnf");
+						System.exit(-1);
+						continue;  // don't do IP solve
+					}
+
 					IOUtil.dPrintln("Solving for n="+(numPairs+numAlts)+", |E|="+pool.getNumNonDummyEdges()+", k="+k+", t="+threshold+", feasibility="+doFeasibilitySolve+" ...");
-					
+
 					eOut.set(Col.NUM_PAIRS, numPairs);
 					eOut.set(Col.NUM_ALTS, numAlts);
 					eOut.set(Col.NUM_EDGES, pool.getNumNonDummyEdges());
@@ -141,12 +143,12 @@ public class DriverBitwise {
 						BitwiseThresholdCPLEXSolver s = new BitwiseThresholdCPLEXSolver(pool, k, threshold);
 						s.setRelativeMipGap(relativeMipGap);
 						Solution sol = s.solve(doFeasibilitySolve);
-						
+
 						boolean isInducible = sol.isLegalMatching();
 						assert isInducible == (sol.getObjectiveValue() == 0.0);
 						eOut.set(Col.kINDUCIBLE, isInducible ? 1 : 0);
 						eOut.set(Col.kINDUCIBLE_ERROR, sol.getObjectiveValue());
-						
+
 					} catch(SolverException e) {
 						e.printStackTrace();
 						eOut.set(Col.kINDUCIBLE, 0);
@@ -178,17 +180,17 @@ public class DriverBitwise {
 
 		return;
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Dumps UNOS graph to CNF for a SAT solver
 	 * @param pool
 	 * @param path
 	 */
 	public static void writeUNOSGraphToCNF(Pool pool, String path) {
-		
-		
+
+
 	}
 }
