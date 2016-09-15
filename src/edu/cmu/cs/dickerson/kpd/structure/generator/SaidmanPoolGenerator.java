@@ -199,7 +199,8 @@ public class SaidmanPoolGenerator extends PoolGenerator {
 
 			VertexPair v = generatePair(currentVertexID++);
 			if(v.isCompatible()) {
-				compatiblePairs.add(v);
+				compatiblePairs.add(v);  // we don't do anything with these
+				currentVertexID--;       // throw away compatible pair; reuse the ID
 			} else {
 				incompatiblePairs.add(v);
 			}

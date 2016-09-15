@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
@@ -17,6 +18,8 @@ import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
+import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSLoader;
 import edu.cmu.cs.dickerson.kpd.structure.real.exception.LoaderException;
 
@@ -24,6 +27,14 @@ public class DriverBitwise {
 
 
 	public static void main(String args[]) {
+
+		// Meir -- for your debugging pleasure!
+		final boolean isMeir = true;
+		if(isMeir) {
+			writeSaidmanGraphsToCNF();
+			return;
+		}
+
 
 		// Solve within fraction of best node vs lower bound (ranges from 0=opt to 1)
 		final double relativeMipGap = 0.05;
@@ -185,12 +196,44 @@ public class DriverBitwise {
 
 
 	/**
-	 * Dumps UNOS graph to CNF for a SAT solver
-	 * @param pool
-	 * @param path
+	 * For Meir!
 	 */
-	public static void writeUNOSGraphToCNF(Pool pool, String path) {
+	public static void writeSaidmanGraphsToCNF() {
 
+		final int minThreshold = 1;             // minimum value of t
+		final int maxThreshold = minThreshold;  // maximum value of t
+		final int minK = 1;                     // minimum value of k
+		final int maxK = 40;                    // maximum value of k
+		final int numGraphs = 1;                // how many different graphs should we generate?
+		final int numPairs = 100;               // how many patient-donor pairs should be generated (per graph)?
+		final int numAlts = 0;                  // how many altruist donors should be generated (per graph)?
 
+		// This generates random graphs; if you want to generate the same set of graphs
+		// over and over again, pass in a Random object with the same seed (like I'm 
+		// doing now, with seed = 12345L)
+		PoolGenerator gen = new SaidmanPoolGenerator(new Random(12345L));
+
+		// These for loops will: generate n graphs, and for each generated graph, for
+		// each k \in [minK, maxK], for each t \in [minT, maxT], output a CNF SAT file
+		for(int n=0; n<numGraphs; n++) {
+
+			// Randomly generate a directed graph with numPairs pairs and numAlts altruists
+			Pool pool = gen.generate(numPairs, numAlts);
+
+			for(int k=minK; k<=maxK; k++) {
+				for(int threshold=minThreshold; threshold<=maxThreshold; threshold++) {
+					
+					// Dump the CNF formula to a .cnf file; feel free to change this
+					String outFilename = "saidman_"+n+"_v"+(numPairs+numAlts)+"_e"+pool.getNumNonDummyEdges()+"_k"+String.format("%04d",k)+"_t"+String.format("%04d",threshold)+".cnf";
+					IOUtil.dPrintln("n="+n+"\tk="+k+"\tt="+threshold+"\t\tout="+outFilename);
+					
+					// Trigger a stack overflow ;)
+					pool.writeUNOSGraphToBitwiseCNF(k, threshold, outFilename);
+				}
+			}
+		}
+		
+		IOUtil.dPrintln("All done with Meir's Saidman runs!");
+		return;
 	}
 }
