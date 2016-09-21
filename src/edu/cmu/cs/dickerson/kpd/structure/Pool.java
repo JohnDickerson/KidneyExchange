@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,11 +30,13 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
+	private Object object_ref;
 
 	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
 		pairs = new TreeSet<VertexPair>();
 		altruists = new TreeSet<VertexAltruist>();
+		object_ref = new Object();
 	}
 
 	@Override
@@ -137,7 +140,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			}
 		}
 
-		// Add all legal edges to new pool 
+		// Add all legal edges to new pool
 		for(Vertex src : subPool.vertexSet()) {
 			for(Vertex sink : subPool.vertexSet()) {
 				if(this.containsEdge(src, sink)) {
@@ -172,7 +175,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 
 			// <num-vertices> <num-edges>
 			writer.println(this.vertexSet().size() + " " + this.edgeSet().size());
-			// <src-vert> <sink-vert> <edge-weight> <is-dummy> <failure-prob> 
+			// <src-vert> <sink-vert> <edge-weight> <is-dummy> <failure-prob>
 
 			for(Vertex src : allVertsSorted) {
 				for(Edge e : this.outgoingEdgesOf(src)) {
@@ -226,14 +229,14 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 					}
 
 					writerDetails.println(v.getID() + " " +
-							(v.isAltruist() ? "Unk" : v.getUnderlyingPair().getRecipient().abo) + " " + 
+							(v.isAltruist() ? "Unk" : v.getUnderlyingPair().getRecipient().abo) + " " +
 							donorBlood + " " +
 							"0" + " " +
 							(v.isAltruist() ? "0" : v.getUnderlyingPair().getRecipient().cpra) + " " +
 							this.inDegreeOf(v) + " " +
 							this.outDegreeOf(v) + " " +
 							(v.isAltruist() ? "1" : "0") + " " +
-							(marginalizedVerts.contains(v) ? "1" : "0") + " " 
+							(marginalizedVerts.contains(v) ? "1" : "0") + " "
 							);
 				}
 				//Legacy code signals EOF with -1 -1 -1
@@ -312,7 +315,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		boolean[][] edgeExists = this.getDenseAdjacencyMatrix();
 		try {
 			PrintWriter writer = new PrintWriter(path, "UTF-8");
-			for(int v_i=0; v_i<n; v_i++) { 
+			for(int v_i=0; v_i<n; v_i++) {
 				StringBuilder sb = new StringBuilder();
 				for(int v_j=0; v_j<n; v_j++) {
 					sb.append(edgeExists[v_i][v_j] ? "1," : "0,");
@@ -343,7 +346,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			writer.println("v = " + this.vertexSet().size() + ";");
 			writer.println("k = " + k + ";");
 			writer.println("t = " + t + ";");
-			for(int v_i=0; v_i<n; v_i++) { 
+			for(int v_i=0; v_i<n; v_i++) {
 				StringBuilder sb = new StringBuilder();
 				if(v_i==0) {
 					sb.append("e = [| ");
@@ -385,13 +388,13 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			PrintWriter writer = new PrintWriter(path, "UTF-8");
 			writer.println("c " + path);
 			writer.println("c " + new Date());
-			int numVariables = 
+			int numVariables =
 					n*k +      // p_i^\rho    \forall v_i \in V, \rho \in [k]
 					n*k +      // d_i^\rho    \forall v_i \in V, \rho \in [k]
 					n*n*k;     // z_{ij}^\rho  \forall (v_i, v_j) \not\in E, \rho in [k]  (overestimate)
 			int numClauses = 0;
 			StringBuilder sb = new StringBuilder();
-			for(int v_i=0; v_i<n; v_i++) { 
+			for(int v_i=0; v_i<n; v_i++) {
 				for(int v_j=0; v_j<n; v_j++) {
 					if(v_i != v_j) {
 						if(edgeExists[v_i][v_j]) {
@@ -410,8 +413,8 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 							sb.append(conflictSB.toString());
 							numClauses++;
 
-							// ... \bigwedge\limits_{\rho \in [k]}\left[ 
-							//            (\neg z^\rho_{ij} \lor d_i^\rho) \land (\neg z^\rho_{ij} \lor p_j^\rho) 
+							// ... \bigwedge\limits_{\rho \in [k]}\left[
+							//            (\neg z^\rho_{ij} \lor d_i^\rho) \land (\neg z^\rho_{ij} \lor p_j^\rho)
 							//        \right]  & \forall (v_i, v_j) \not\in E
 							for(int rho=0; rho<k; rho++) {
 								sb.append("-" + getCNFConflictForceIdx(n, k, v_i, v_j, rho) + " " + getCNFDonorIdx(n, k, v_i, rho) + " 0\n");
@@ -446,13 +449,13 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	public ArrayList<ArrayList<Integer>> getKTClusters(int k, int t){
 		ArrayList<ArrayList<Integer>> clusters = new ArrayList<ArrayList<Integer>>();
 		if(t==0) {
-			
+
 		} else if(t==1){ //return singleton lists
 			for(int i=0;i<k;i++){
 				ArrayList<Integer> cluster = new ArrayList<Integer>();
 				cluster.add(new Integer(i));
 				clusters.add(cluster);
-			} 
+			}
 		} else if(t==k){ //return the complete list
 			ArrayList<Integer> cluster = new ArrayList<Integer>();
 			for(int i=0;i<k;i++){
@@ -506,7 +509,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			PrintWriter writer = new PrintWriter(path, "UTF-8");
 			writer.println("c " + path);
 			writer.println("c " + new Date());
-			int numVariables = 
+			int numVariables =
 					n*k +      // p_i^\rho    \forall v_i \in V, \rho \in [k]
 					n*k +      // d_i^\rho    \forall v_i \in V, \rho \in [k]
 					n*n*k;     // z_{ij}^\rho  \forall (v_i, v_j) \not\in E, \rho in [k]  (overestimate)
@@ -514,7 +517,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			StringBuilder sb = new StringBuilder();
 			ArrayList<ArrayList<Integer>> edgeClusters = getKTClusters(k,t);//clusters for edges
 			ArrayList<ArrayList<Integer>> nonEdgeClusters = getKTClusters(k,k-t);//clusters for non-edges
-			for(int v_i=0; v_i<n; v_i++) { 
+			for(int v_i=0; v_i<n; v_i++) {
 				for(int v_j=0; v_j<n; v_j++) {
 					if(v_i != v_j) {
 						if(edgeExists[v_i][v_j]) {
@@ -656,7 +659,7 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		return 1 + k*n + k*n + k*n*v_i + k*v_j + rho;
 	}
 
-	/* parameter s is the index within the list of t-clusters 
+	/* parameter s is the index within the list of t-clusters
 	 * parameter rho is index within the t-cluster
 	 */
 	private int getCNFConflictForceIdx(final int n, final int k, final int v_i, final int v_j, final int s, final int rho, final int t) {
@@ -679,5 +682,43 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			edgeExists[this.getEdgeSource(e).getID()][this.getEdgeTarget(e).getID()] = true;
 		}
 		return edgeExists;
+	}
+
+	public TreeMap<List<BloodType>, Integer> getBloodTypeAbstraction() {
+		/* Maps a list of blood types (patient, donor) to number of times it
+		 * occurs in VertexPair and VertexAltruist SortedSets.
+		 */
+		TreeMap<List<BloodType>, Integer> numberOfBloodType = new TreeMap<List<BloodType>, Integer> ();
+
+		//Map each patient-donor pair to number of it times it occurs in SortedSet.
+		for (VertexPair vp : pairs) {
+			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
+			temp.add(vp.getBloodTypePatient()).add(vp.getBloodTypeDonor());
+
+			//If pairing doesn't already exist in map, create an entry and map it to 1 occurrence.
+			//Otherwise, update # occurrences.
+			if (numberOfBloodType.get(temp) == null) {
+				numberOfBloodType.put(temp, 1);
+			} else {
+				int to_increment = numberOfBloodType.get(temp);
+				numberOfBloodType.put(temp, ++to_increment);
+			}
+		}
+
+	   /* Map each X-donor pair to number of it times it occurs in SortedSet.
+		* X is an instance variable called object_ref that I added because can't create a
+		* bogus blood type (I assume) and using null in place of patient could be loopy.
+		*/
+		for (VertexAltruist va : altruists) {
+			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
+			list.add(object_ref).add(vp.getBloodTypeDonor());
+
+			if (numberOfBloodType.get(temp) == null) {
+				numberOfBloodType.put(temp, 1);
+			} else {
+				int to_increment = numberOfBloodType.get(temp);
+				numberOfBloodType.put(temp, ++to_increment);
+			}
+		}
 	}
 }
