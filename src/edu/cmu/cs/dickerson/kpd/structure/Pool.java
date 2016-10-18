@@ -1,5 +1,8 @@
 package edu.cmu.cs.dickerson.kpd.structure;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -718,6 +721,35 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			} else {
 				int to_increment = numberOfBloodType.get(temp);
 				numberOfBloodType.put(temp, ++to_increment);
+			}
+		}
+	}
+	
+		/* 
+	 * Generates a csv file with # of each bloodtype in each column
+	 */
+	public void generateCSV () {
+		int [] numbersOnly = numberOfBloodType.values().toArray();//numbers from TreeMap mapping blood type -> # occurrences
+		FileWriter fw = null;
+		
+		try {
+			fw = new FileWriter ("inputs.csv");
+			
+			//write each number to csv file separated by blank line
+			for (int number : numbersOnly) {
+				fw.append(numbersOnly);
+				fw.append("\n");
+			}
+		} catch (Exception e) {
+			System.out.println("FileWriter failed.");
+			e.printStackTrace();
+		} finally {
+			try {
+				fw.flush();
+				fw.close();
+			} catch (IOException ioe) {
+				System.out.println("Flushing failed.");
+				ioe.printStackTrace();
 			}
 		}
 	}
