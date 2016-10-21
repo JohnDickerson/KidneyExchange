@@ -687,16 +687,18 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 		return edgeExists;
 	}
 
-	public TreeMap<List<BloodType>, Integer> getBloodTypeAbstraction() {
-		/* Maps a list of blood types (patient, donor) to number of times it
-		 * occurs in VertexPair and VertexAltruist SortedSets.
-		 */
+
+	/*public TreeMap<List<BloodType>, Integer> getBloodTypeAbstraction() {
+		// Maps a list of blood types (patient, donor) to number of times it
+		// occurs in VertexPair and VertexAltruist SortedSets.
+		//
 		TreeMap<List<BloodType>, Integer> numberOfBloodType = new TreeMap<List<BloodType>, Integer> ();
 
 		//Map each patient-donor pair to number of it times it occurs in SortedSet.
 		for (VertexPair vp : pairs) {
 			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
-			temp.add(vp.getBloodTypePatient()).add(vp.getBloodTypeDonor());
+			temp.add(vp.getBloodTypePatient());
+			temp.add(vp.getBloodTypeDonor());
 
 			//If pairing doesn't already exist in map, create an entry and map it to 1 occurrence.
 			//Otherwise, update # occurrences.
@@ -708,13 +710,14 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			}
 		}
 
-	   /* Map each X-donor pair to number of it times it occurs in SortedSet.
-		* X is an instance variable called object_ref that I added because can't create a
-		* bogus blood type (I assume) and using null in place of patient could be loopy.
-		*/
+		// Map each X-donor pair to number of it times it occurs in SortedSet.
+		// X is an instance variable called object_ref that I added because can't create a
+		// bogus blood type (I assume) and using null in place of patient could be loopy.
+		//
 		for (VertexAltruist va : altruists) {
 			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
-			list.add(object_ref).add(vp.getBloodTypeDonor());
+			temp.add(object_ref);
+			temp.add(va.getBloodTypeDonor());
 
 			if (numberOfBloodType.get(temp) == null) {
 				numberOfBloodType.put(temp, 1);
@@ -723,18 +726,18 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				numberOfBloodType.put(temp, ++to_increment);
 			}
 		}
-	}
-	
-		/* 
+	}*/
+
+	/* 
 	 * Generates a csv file with # of each bloodtype in each column
 	 */
-	public void generateCSV () {
+	/*public void generateCSV () {
 		int [] numbersOnly = numberOfBloodType.values().toArray();//numbers from TreeMap mapping blood type -> # occurrences
 		FileWriter fw = null;
-		
+
 		try {
 			fw = new FileWriter ("inputs.csv");
-			
+
 			//write each number to csv file separated by blank line
 			for (int number : numbersOnly) {
 				fw.append(numbersOnly);
@@ -752,5 +755,5 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				ioe.printStackTrace();
 			}
 		}
-	}
+	}*/
 }
