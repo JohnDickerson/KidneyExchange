@@ -19,8 +19,7 @@ import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
 import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
-
-import edu.cmu.cs.dickerson.kpd.structure.generator.SaidmanPoolGenerator;
+import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
 
 public class DriverThesis {
 	// Probabilities generated based on a match frequency of 1 day
@@ -34,8 +33,15 @@ public class DriverThesis {
 	static final double RENEGE = .5;
 
 	public static void main(String[] args) {
-		Random r = new Random();
-		PoolGenerator poolGen = new SaidmanPoolGenerator(r);
+		
+		long rFailureSeed = System.currentTimeMillis();  // for experiments, set seed explicitly, e.g. "12345L" and record
+		Random rFailure = new Random(rFailureSeed);
+		long rEntranceSeed = System.currentTimeMillis() + 1L;
+		Random rEntrance = new Random(rEntranceSeed);
+		long rDepartureSeed = System.currentTimeMillis() + 2L;
+		Random rDeparture = new Random(rDepartureSeed);
+		
+		PoolGenerator poolGen = new SparseUNOSSaidmanPoolGenerator(rEntrance);
 		ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS);
 		ExponentialArrivalDistribution a = new ExponentialArrivalDistribution(1.0/EXPECTED_ALTRUISTS);
 		Pool pool = new Pool(Edge.class);
@@ -55,11 +61,11 @@ public class DriverThesis {
 			totalSeen += poolGen.addVerticesToPool(pool, pairs, alts)
 					.size();
 			}
-			FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, r);
+			FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, rFailure);
 
 			// Remove all pairs where the patient dies
 			for (VertexPair v : pool.getPairs()) {
-				if (new Random().nextDouble() <= DEATH) {
+				if (rDeparture.nextDouble() <= DEATH) {
 					totalDeceased++;
 					pool.removeVertex(v);
 					for (Cycle c : matches) {
@@ -74,7 +80,7 @@ public class DriverThesis {
 			ArrayList<VertexAltruist> toRemove = new ArrayList<VertexAltruist>();
 			while (aiter.hasNext()) {
 				VertexAltruist alt = aiter.next();
-				if (new Random().nextDouble() <= PATIENCE) {
+				if (rDeparture.nextDouble() <= PATIENCE) {
 					toRemove.add(alt);
 				}
 			}
@@ -86,7 +92,7 @@ public class DriverThesis {
 				Cycle ci = iter.next();
 				boolean fail = false;
 				for (Edge e : ci.getEdges()) {
-					if (new Random().nextDouble() <= e.getFailureProbability()) {
+					if (rFailure.nextDouble() <= e.getFailureProbability()) {
 						iter.remove();
 						totalFailedMatches++;
 						fail = true;
@@ -102,7 +108,7 @@ public class DriverThesis {
 					//We matched a chain, now we have to make the last donor a bridge donor with some probability
 					if (Cycle.isAChain(ci, pool)) {
 						//The bridge donor reneged, remove all vertices from the pool
-						if(new Random().nextDouble() <= RENEGE){
+						if(rDeparture.nextDouble() <= RENEGE){
 							pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
 						}
 						else{

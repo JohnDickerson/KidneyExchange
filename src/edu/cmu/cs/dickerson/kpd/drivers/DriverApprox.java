@@ -50,13 +50,13 @@ public class DriverApprox {
 		
 		// Set up our random generators for pools (sample from UNOS data, sample from Saidman distribution)
 		Random r = new Random();
-		UNOSGenerator UNOSGen = UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r);
+		//UNOSGenerator UNOSGen = UNOSGenerator.makeAndInitialize(IOUtil.getBaseUNOSFilePath(), ',', r);
 		SaidmanPoolGenerator SaidmanGen = new SaidmanPoolGenerator(r);
 
 		// List of generators we want to use
 		List<PoolGenerator> genList = Arrays.asList(new PoolGenerator[] {
-				UNOSGen, 
-				//SaidmanGen,
+				//UNOSGen, 
+				SaidmanGen,
 		});
 
 		// list of |V|s we'll iterate over

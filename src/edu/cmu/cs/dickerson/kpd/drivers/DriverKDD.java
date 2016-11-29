@@ -44,8 +44,8 @@ public class DriverKDD {
 		//int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
 		//IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 		//List<Integer> graphSizeList = Arrays.asList(new Integer[] {300, 400, 500, 600, 700, 800, 900});
-		List<Integer> graphSizeList = Arrays.asList(new Integer[] {510}); // used for UNOS runs in April 2014 (start with 250 + 52*5 per week)
-		List<Double> betaList = Arrays.asList(new Double[] {1.0, 2.0, 3.0, 4.0, 5.0});
+		List<Integer> graphSizeList = Arrays.asList(new Integer[] {1024}); // used for UNOS runs in April 2014 (start with 250 + 52*5 per week)
+		List<Double> betaList = Arrays.asList(new Double[] {});//1.0, 2.0, 3.0, 4.0, 5.0});
 
 
 		// Number of base graphs to generate; note we'll generate 3x this number for the different weights
