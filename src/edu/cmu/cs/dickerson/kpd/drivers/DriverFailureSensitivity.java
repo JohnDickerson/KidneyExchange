@@ -65,15 +65,14 @@ public class DriverFailureSensitivity {
 			}
 		}));
 
-		// List of constant edge failure rates we want to use
+		// List of constant edge failure rates we want to use -- true underlying rates
 		this.realFailureRateList = Arrays.asList(new Double[] {
-				0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-				//0.5,
+				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
 		});
 
-		// List of constant edge failure rates we want to use
+		// List of constant edge failure rates we want to use -- lie to the optimizer
 		this.assumedFailureRateList = Arrays.asList(new Double[] {
-				0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+				0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
 		});
 
 
@@ -85,7 +84,7 @@ public class DriverFailureSensitivity {
 		});
 
 		// Number of repetitions for each parameter vector
-		this.numReps = 100;
+		this.numReps = 50;
 	}
 
 	public void run() {
@@ -154,13 +153,6 @@ public class DriverFailureSensitivity {
 					for(Edge e : pool.edgeSet()) {
 						edgeFailureRateMap.put(e, e.getFailureProbability());
 						edgeFailedMap.put(e, r.nextDouble() < e.getFailureProbability());
-					}
-
-					// Do a prescient max utility matching; this is the best we could do if we knew every edge success/failure
-					for(Map.Entry<Edge, Boolean> entry : edgeFailedMap.entrySet()) {
-						Edge e = entry.getKey();
-						Boolean failed = entry.getValue();
-						e.setFailureProbability(failed ? 1.0 : 0.0);
 					}
 
 					for(Double assumedFailureRate : assumedFailureRateList) {
