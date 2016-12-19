@@ -44,7 +44,7 @@ public class DriverKDD {
 		//int graphSize = initialPoolSize + (numTimePeriods * enterPerPeriod);
 		//IOUtil.dPrintln("Total graph size: " + graphSize + " (I" + initialPoolSize + " + T" + numTimePeriods + " x E" + enterPerPeriod + ")");
 		//List<Integer> graphSizeList = Arrays.asList(new Integer[] {300, 400, 500, 600, 700, 800, 900});
-		List<Integer> graphSizeList = Arrays.asList(new Integer[] {1024}); // used for UNOS runs in April 2014 (start with 250 + 52*5 per week)
+		List<Integer> graphSizeList = Arrays.asList(new Integer[] {64,128,256,512}); // used for UNOS runs in April 2014 (start with 250 + 52*5 per week)
 		List<Double> betaList = Arrays.asList(new Double[] {});//1.0, 2.0, 3.0, 4.0, 5.0});
 
 
@@ -73,19 +73,19 @@ public class DriverKDD {
 
 					// Max cardinality
 					pool.writeToUNOSKPDFile(baseOut + "_maxcard");
-
+					
 					// Max cardinality subject to fairness: set all marginalized transplants to (1+beta)
 					Set<Vertex> marginalizedVertices = DriverKDD.getMarginalizedVertices(pool);
 					for(double beta : betaList) {
 						FairnessUtil.setFairnessEdgeWeights(pool, beta, marginalizedVertices);
-						pool.writeToUNOSKPDFile(baseOut + "_maxcardfair" + beta);
+					//	pool.writeToUNOSKPDFile(baseOut + "_maxcardfair" + beta);
 					} // beta, betaList
 					
 					// Max life -- reweight via our Cox proportional hazard regression model
 					for(Edge e : pool.edgeSet()) {
 						pool.setEdgeWeight(e, DriverKDD.getCoxWeight(pool, e) );
 					}
-					pool.writeToUNOSKPDFile(baseOut + "_maxlife");
+					//pool.writeToUNOSKPDFile(baseOut + "_maxlife");
 				}
 
 		} //graphSize, graphSizeList
