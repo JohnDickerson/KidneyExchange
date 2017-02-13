@@ -1,18 +1,23 @@
 package edu.cmu.cs.dickerson.kpd.drivers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import java.util.SortedSet;
 
 import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ExponentialArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
+import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
+import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesSampleChainsIPPacker;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
+import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
@@ -25,14 +30,16 @@ public class DriverThesis {
 	// Probabilities generated based on a match frequency of 1 day
 	static final int CHAIN_CAP = 4;
 	static final int CYCLE_CAP = 3;
-	static final int EXPECTED_PAIRS = 10;
-	static final int EXPECTED_ALTRUISTS = 5;
-	static final int ITERATIONS = 3;
+	static final int EXPECTED_PAIRS = 15;
+	static final int EXPECTED_ALTRUISTS = 1;
+	static final int ITERATIONS = 200;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
 
 	public static void main(String[] args) {
+		
+		long startTime = System.currentTimeMillis();
 		
 		long rFailureSeed = System.currentTimeMillis();  // for experiments, set seed explicitly, e.g. "12345L" and record
 		Random rFailure = new Random(rFailureSeed);
@@ -64,16 +71,22 @@ public class DriverThesis {
 			FailureProbabilityUtil.setFailureProbability(pool, FailureProbabilityUtil.ProbabilityDistribution.CONSTANT, rFailure);
 
 			// Remove all pairs where the patient dies
+			ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
 			for (VertexPair v : pool.getPairs()) {
 				if (rDeparture.nextDouble() <= DEATH) {
 					totalDeceased++;
-					pool.removeVertex(v);
-					for (Cycle c : matches) {
+					Iterator<Cycle> matchIterator = matches.iterator();
+					while (matchIterator.hasNext()) {
+						Cycle c = matchIterator.next();
 						if (Cycle.getConstituentVertices(c, pool).contains(v)) {
-							matches.remove(c);
+							matchIterator.remove();
 						}
 					}
+					rm.add(v);
 				}
+			}
+			for(VertexPair v : rm){
+				pool.removeVertex(v);
 			}
 			// Remove all altruists that run out of patience
 			Iterator<VertexAltruist> aiter = pool.getAltruists().iterator();
@@ -103,42 +116,55 @@ public class DriverThesis {
 					continue;
 				}
 				//All edges in the Cycle remain, so we have a match!
-				else{
-					totalMatched += Cycle.getConstituentVertices(ci, pool).size();
-					//We matched a chain, now we have to make the last donor a bridge donor with some probability
+				else {
+					// We matched a chain, now we have to make the last
+					// donor a bridge donor with some probability
 					if (Cycle.isAChain(ci, pool)) {
-						//The bridge donor reneged, remove all vertices from the pool
-						if(rDeparture.nextDouble() <= RENEGE){
-							pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
+						ArrayList<VertexPair> trm = new ArrayList<VertexPair>();
+						List<Edge> le = new ArrayList<Edge>();
+						for(Edge e : ci.getEdges()){
+							le.add(e);
 						}
-						else{
-							VertexPair bridge = null;
-							ListIterator<Edge> reverseEdgeIt = ci.getEdges().listIterator(ci.getEdges().size());
-							while(reverseEdgeIt.hasPrevious()) {
-								if(pool.getEdgeSource(reverseEdgeIt.previous()).isAltruist()) {
-									bridge = (VertexPair) pool.getEdgeSource(reverseEdgeIt.previous()); //This is now the vertex previous to the altruist
-								}
+						Collections.reverse(le);
+						le.remove(le.size()-1);
+						for(Edge e : le){
+							// The bridge donor reneged, we stop the chain here
+							if (rDeparture.nextDouble() <= RENEGE) {
+								trm.add((VertexPair)pool.getEdgeTarget(e));
+								break;
+							} else {
+								VertexPair bridge = (VertexPair)pool.getEdgeTarget(e);
+								trm.add(bridge);
+								VertexAltruist bridgeDonor = new VertexAltruist(bridge.getID(),
+										bridge.getBloodTypeDonor());
+								pool.addAltruist(bridgeDonor);
 							}
-							VertexAltruist bridgeDonor = new VertexAltruist(bridge.getID(),bridge.getBloodTypeDonor());
-							pool.addAltruist(bridgeDonor);
+							totalMatched++;
 						}
+						pool.removeAllVertices(trm);
 					}
-					//Remove all vertices in the match from the pool
-					pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
-					
-					//Remove this match from our current set of matchings
+					else{
+						// Remove all vertices in the match from the pool
+						totalMatched += Cycle.getConstituentVertices(ci, pool).size();
+						pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
+					}
+					// Remove this match from our current set of matchings
 					iter.remove();
 				}
 			}
 
 			// Match the vertex pairs in the pool
 			CycleGenerator cg = new CycleGenerator(pool);
-			List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, CHAIN_CAP, true);
-			CycleMembership membership = new CycleMembership(pool, cycles);
-			CycleFormulationCPLEXSolver optIPS = new CycleFormulationCPLEXSolver(pool, cycles, membership);
+			List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
+			//CycleMembership membership = new CycleMembership(pool, cycles);
+			//CyclesSampleChainsIPPacker optIPS = new CyclesSampleChainsIPPacker(pool, cycles, 100, CHAIN_CAP, true);
+			
 			try{
-				Solution optSolIP = optIPS.solve();
-				for(Cycle c : optSolIP.getMatching()){
+				//Solution optSolIP = optIPS.solve();
+				GreedyPackingSolver s = new GreedyPackingSolver(pool);
+				List<Cycle> reducedCycles = (new CycleGenerator(pool)).generateCyclesAndChains(3, 0, true);
+				Solution sol = s.solve(1, new CyclesSampleChainsIPPacker(pool, reducedCycles, 100, CHAIN_CAP, true), Double.MAX_VALUE);
+				for(Cycle c : sol.getMatching()){
 					matches.add(c);
 				}
 			}
@@ -151,7 +177,13 @@ public class DriverThesis {
 			System.out.println(totalMatched + " vertices were matched");
 			System.out.println(totalFailedMatches + " matches failed");
 			System.out.println(totalDeceased + " patients died");
+			
+			long endTime = System.currentTimeMillis();
+			
+			System.out.println(endTime-startTime);
+			
 		}
+		
 	}
 
 }
