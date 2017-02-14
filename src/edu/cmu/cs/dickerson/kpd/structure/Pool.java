@@ -2,7 +2,6 @@ package edu.cmu.cs.dickerson.kpd.structure;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -12,11 +11,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
@@ -34,12 +33,14 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	private SortedSet<VertexPair> pairs;
 	private SortedSet<VertexAltruist> altruists;
 	private Object object_ref;
+	private TreeMap<List<Object>, Integer> numberOfBloodType;
 
 	public Pool(Class<? extends Edge> edgeClass) {
 		super(edgeClass);
 		pairs = new TreeSet<VertexPair>();
 		altruists = new TreeSet<VertexAltruist>();
 		object_ref = new Object();
+		numberOfBloodType = new TreeMap<List<Object>, Integer> ();
 	}
 
 	@Override
@@ -688,15 +689,14 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 	}
 
 
-	/*public TreeMap<List<BloodType>, Integer> getBloodTypeAbstraction() {
-		// Maps a list of blood types (patient, donor) to number of times it
-		// occurs in VertexPair and VertexAltruist SortedSets.
-		//
-		TreeMap<List<BloodType>, Integer> numberOfBloodType = new TreeMap<List<BloodType>, Integer> ();
+	/* Maps a list of blood types (patient, donor) to number of times it
+	 * occurs in VertexPair and VertexAltruist SortedSets.
+	 */
+	public void getBloodTypeAbstraction() {
 
 		//Map each patient-donor pair to number of it times it occurs in SortedSet.
 		for (VertexPair vp : pairs) {
-			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
+			List<Object> temp = new ArrayList<Object> ();//basically just a tuple
 			temp.add(vp.getBloodTypePatient());
 			temp.add(vp.getBloodTypeDonor());
 
@@ -710,12 +710,12 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			}
 		}
 
-		// Map each X-donor pair to number of it times it occurs in SortedSet.
-		// X is an instance variable called object_ref that I added because can't create a
-		// bogus blood type (I assume) and using null in place of patient could be loopy.
-		//
+		/* Map each X-donor pair to number of it times it occurs in SortedSet.
+		 * X is an instance variable called object_ref that I added because can't create a
+		 * bogus blood type (I assume) and using null in place of patient could be loopy.
+		 */
 		for (VertexAltruist va : altruists) {
-			List<BloodType> temp = new ArrayList<BloodType> ();//basically just a tuple
+			List<Object> temp = new ArrayList<Object> ();//basically just a tuple
 			temp.add(object_ref);
 			temp.add(va.getBloodTypeDonor());
 
@@ -726,21 +726,23 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				numberOfBloodType.put(temp, ++to_increment);
 			}
 		}
-	}*/
+	}
 
 	/* 
 	 * Generates a csv file with # of each bloodtype in each column
 	 */
-	/*public void generateCSV () {
-		int [] numbersOnly = numberOfBloodType.values().toArray();//numbers from TreeMap mapping blood type -> # occurrences
+	public void generateCSV () {
+		Collection<Integer> temp = numberOfBloodType.values();//numbers from TreeMap mapping blood type -> # occurrences
+		Integer [] numbersOnly = (Integer[]) (temp.toArray(new Integer [temp.size()]));
 		FileWriter fw = null;
-
+		
 		try {
 			fw = new FileWriter ("inputs.csv");
-
+			
 			//write each number to csv file separated by blank line
 			for (int number : numbersOnly) {
-				fw.append(numbersOnly);
+				char num = (char) number;
+				fw.append(num);
 				fw.append("\n");
 			}
 		} catch (Exception e) {
@@ -755,5 +757,5 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 				ioe.printStackTrace();
 			}
 		}
-	}*/
+	}
 }
