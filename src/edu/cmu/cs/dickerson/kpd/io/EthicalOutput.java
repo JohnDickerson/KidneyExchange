@@ -2,8 +2,6 @@ package edu.cmu.cs.dickerson.kpd.io;
 
 import java.io.IOException;
 
-import edu.cmu.cs.dickerson.kpd.io.BitwiseOutput.Col;
-
 public class EthicalOutput extends Output {
 
 	public enum Col implements OutputCol { 
@@ -38,7 +36,8 @@ public class EthicalOutput extends Output {
 	public static String[] getHeader() {
 		String[] header = new String[Col.values().length];
 		header[Col.VERSION.getColIdx()] = "Weights Version";
-		header[Col.SEED.getColIdx()] = "SEED";
+		header[Col.SEED.getColIdx()] = "Seed";
+		header[Col.NUM_ITERATIONS.getColIdx()] = "Number of Iterations";
 		header[Col.ARRIVAL_PAIRS.getColIdx()] = "Expected Arrival Rate (Pairs)";
 		header[Col.ARRIVAL_ALTS.getColIdx()] = "Expected Arrival Rate (Altruists)";
 		header[Col.SEEN_PAIRS.getColIdx()] = "Total Pairs Seen";

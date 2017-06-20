@@ -1,11 +1,19 @@
 package edu.cmu.cs.dickerson.kpd.Ethics;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ExponentialArrivalDistribution;
-import edu.cmu.cs.dickerson.kpd.solver.CycleFormulationCPLEXSolver;
-import edu.cmu.cs.dickerson.kpd.solver.GreedyPackingSolver;
-import edu.cmu.cs.dickerson.kpd.solver.approx.CyclesSampleChainsIPPacker;
+import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.io.EthicalOutput;
+import edu.cmu.cs.dickerson.kpd.io.EthicalOutput.Col;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
@@ -16,9 +24,6 @@ import edu.cmu.cs.dickerson.kpd.structure.VertexAltruist;
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleGenerator;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
-import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
-import edu.cmu.cs.dickerson.kpd.structure.generator.PoolGenerator;
-import edu.cmu.cs.dickerson.kpd.structure.generator.SparseUNOSSaidmanPoolGenerator;
 
 /*
  * Class written by Rachel Freedman, Duke University, summer 2017.
@@ -45,6 +50,17 @@ public class EthicalDriver {
 		
 		long startTime = System.currentTimeMillis();
 		
+		// Store output
+		String path = "ethical_" + System.currentTimeMillis() + ".csv";
+		EthicalOutput out = null;
+		try {
+			out = new EthicalOutput(path);
+		} catch(IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
+
 		for (int n = 0; n < NUM_RUNS; n++) {
 			
 			System.out.println("\n****TEST "+n+"****");
@@ -73,6 +89,14 @@ public class EthicalDriver {
 				ExponentialArrivalDistribution a = new ExponentialArrivalDistribution(1.0/EXPECTED_ALTRUISTS, rArrivalA);
 				Pool pool = new Pool(Edge.class);									
 				ArrayList<Cycle> matches = new ArrayList<Cycle>();
+				
+				// Write down parameters for this trajectory
+				out.set(Col.VERSION, WEIGHTS_VERSION);
+				out.set(Col.SEED, seed);
+				out.set(Col.NUM_ITERATIONS, ITERATIONS);
+				out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
+				out.set(Col.ARRIVAL_ALTS, EXPECTED_ALTRUISTS);
+				out.set(Col.ALG_TYPE, weightType);
 				
 				int totalSeen = 0;
 				int totalMatched = 0;
@@ -191,7 +215,7 @@ public class EthicalDriver {
 						}
 					}
 
-					printPool(pool, false);
+					//printPool(pool, false);
 					
 					// Match the vertex pairs in the pool
 					CycleGenerator cg = new CycleGenerator(pool);
@@ -263,6 +287,30 @@ public class EthicalDriver {
 					}
 				}
 				System.out.println(Arrays.asList(profileCounts));
+				
+				
+				// Write down results for this entire run
+				//out.set(Col.SEEN_PAIRS, o);
+				
+				// Keep me at the bottom of one run
+				// Write the  row of data
+				try {
+					out.record();
+				} catch(IOException e) {
+					IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+					e.printStackTrace();
+					System.exit(-1);
+				}
+				
+			} // end of false/true use weights
+		} // end of outer loop over NUM_ITER
+		
+		// clean up CSV writer
+		if(null != out) {
+			try {
+				out.close();
+			} catch(IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
