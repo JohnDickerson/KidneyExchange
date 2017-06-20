@@ -38,7 +38,7 @@ public class EthicalDriver {
 	static final int EXPECTED_PAIRS = 15;
 	static final int EXPECTED_ALTRUISTS = 1;
 	static final int ITERATIONS = 10;
-	static final int NUM_RUNS = 1;
+	static final int NUM_RUNS = 5;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
@@ -98,31 +98,36 @@ public class EthicalDriver {
 				out.set(Col.ARRIVAL_ALTS, EXPECTED_ALTRUISTS);
 				out.set(Col.ALG_TYPE, weightType);
 				
-				int totalSeen = 0;
-				int totalMatched = 0;
-				int totalFailedMatches = 0;
-				int totalDeceased = 0;
 				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
+				
+				// Accumulators for vertices seen, matched over an entire trajectory
+				int totalPairsSeen = 0;
+				int totalAltsSeen = 0;
+				int totalPairsDeparted = 0;
+				Map<Integer, Integer> totalTypeSeenMap = new HashMap<Integer, Integer>();
+				for(int vertType=1; vertType<=8; vertType++) {
+					totalTypeSeenMap.put(vertType, 0);
+				}
+				
 				
 				for (int i = 0; i < ITERATIONS; i++) {
 					// Add new vertices to the pool
 					int pairs = m.draw().intValue();
 					int alts = a.draw().intValue();
+					totalPairsSeen += pairs;
+					totalAltsSeen += alts;
 					System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs and "+alts+" new altruist(s)");
-					
+
 					//Add vertices with EthicalVertexPair weights for edge weights
 					if (useSpecialWeights) {
-						if(pairs > 0){
-							totalSeen += poolGen.addSpecialVerticesToPool(pool, pairs, alts).size();
-						}
+						poolGen.addSpecialVerticesToPool(pool, pairs, alts).size();
 					} 
 					//or add vertices with edge weights 1
 					else {
-						if(pairs > 0){
-							totalSeen += poolGen.addVerticesToPool(pool, pairs, alts).size();
-						}
+						poolGen.addVerticesToPool(pool, pairs, alts).size();
+
 					}
-					
+
 					//TODO: Increment timeInPool for each vertex
 					//Is there an efficient way to iterate through all vertices?
 					
@@ -130,7 +135,7 @@ public class EthicalDriver {
 					ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
 					for (VertexPair v : pool.getPairs()) {
 						if (rDeparture.nextDouble() <= DEATH) {
-							totalDeceased++;
+							totalPairsDeparted++;
 							Iterator<Cycle> matchIterator = matches.iterator();
 							while (matchIterator.hasNext()) {
 								Cycle c = matchIterator.next();
@@ -163,7 +168,6 @@ public class EthicalDriver {
 						for (Edge e : ci.getEdges()) {
 							if (rFailure.nextDouble() <= e.getFailureProbability()) {
 								iter.remove();
-								totalFailedMatches++;
 								fail = true;
 								break;
 							}
@@ -196,7 +200,6 @@ public class EthicalDriver {
 												bridge.getBloodTypeDonor());
 										pool.addAltruist(bridgeDonor);
 									}
-									totalMatched++;
 								}
 								pool.removeAllVertices(trm);
 							}
@@ -207,7 +210,6 @@ public class EthicalDriver {
 								}
 								System.out.println("");
 								// Remove all vertices in the match from the pool
-								totalMatched += Cycle.getConstituentVertices(ci, pool).size();
 								pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
 							}
 							// Remove this match from our current set of matchings
@@ -259,13 +261,6 @@ public class EthicalDriver {
 						System.exit(-1);
 					}
 					
-					
-					
-					System.out.println(totalSeen + " vertices were seen");
-					System.out.println(totalMatched + " vertices were matched");
-					System.out.println(totalFailedMatches + " matches failed");
-					System.out.println(totalDeceased + " patients died");
-					
 					long endTime = System.currentTimeMillis();
 					
 					long totalTime = endTime-startTime;
@@ -274,10 +269,13 @@ public class EthicalDriver {
 				
 				//TODO: Export matches as CSV (Cycles -> Edges -> EthicalVertexPairs -> isYoung, isNonalcoholic, isHealthy?)
 				System.out.println("\nSolved with "+weightType+" weights. Vertices matched:");
-				Map<String, Integer> profileCounts = new HashMap<String, Integer>();
+				Map<Integer, Integer> profileCounts = new HashMap<Integer, Integer>();
+				for(int vertType=1; vertType<=8; vertType++) {
+					profileCounts.put(vertType, 0);
+				}
 				for (Cycle c : totalMatches) {
 					for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
-						String profileID = ((EthicalVertexPair) v).getProfileID();
+						Integer profileID = ((EthicalVertexPair) v).getProfileID();
 						if (profileCounts.containsKey(profileID)) {
 							profileCounts.put(profileID, profileCounts.get(profileID)+1);
 						}
@@ -290,7 +288,13 @@ public class EthicalDriver {
 				
 				
 				// Write down results for this entire run
-				//out.set(Col.SEEN_PAIRS, o);
+				out.set(Col.SEEN_PAIRS, totalPairsSeen);
+				out.set(Col.SEEN_ALTS, totalAltsSeen);
+				out.set(Col.DEPARTED_PAIRS, totalPairsDeparted);
+				
+				for(Integer vertType : profileCounts.keySet()) {
+					out.set(Col.valueOf("MATCHED_TYPE"+vertType), profileCounts.get(vertType));
+				}
 				
 				// Keep me at the bottom of one run
 				// Write the  row of data

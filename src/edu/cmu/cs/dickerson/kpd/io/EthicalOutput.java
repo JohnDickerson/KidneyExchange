@@ -12,6 +12,7 @@ public class EthicalOutput extends Output {
 		ARRIVAL_ALTS,
 		SEEN_PAIRS,
 		SEEN_ALTS,
+		DEPARTED_PAIRS,
 		ALG_TYPE,
 		SEEN_TYPE1,
 		MATCHED_TYPE1,
@@ -42,6 +43,7 @@ public class EthicalOutput extends Output {
 		header[Col.ARRIVAL_ALTS.getColIdx()] = "Expected Arrival Rate (Altruists)";
 		header[Col.SEEN_PAIRS.getColIdx()] = "Total Pairs Seen";
 		header[Col.SEEN_ALTS.getColIdx()] = "Total Altruists Seen";
+		header[Col.DEPARTED_PAIRS.getColIdx()] = "Total Departed Pairs";
 		header[Col.ALG_TYPE.getColIdx()] = "Algorithm Type";
 		header[Col.SEEN_TYPE1.getColIdx()] = "Seen (Type 1)";
 		header[Col.MATCHED_TYPE1.getColIdx()] = "Matched (Type 1)";

@@ -6,7 +6,7 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class EthicalVertexPair extends VertexPair {
 	
-	private String profileID;
+	private int profileID;
 	
 	//"Special weight" stored
 	private double weight;
@@ -126,35 +126,35 @@ public class EthicalVertexPair extends VertexPair {
 		if (this.isYoung) {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					this.profileID = "1";
+					this.profileID = 1;
 				} else {
-					this.profileID = "3";
+					this.profileID = 3;
 				}
 			} else {
 				if (this.isHealthy) {
-					this.profileID = "2";
+					this.profileID = 2;
 				} else {
-					this.profileID = "4";
+					this.profileID = 4;
 				}
 			}
 		} else {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					this.profileID = "5";
+					this.profileID = 5;
 				} else {
-					this.profileID = "7";
+					this.profileID = 7;
 				}
 			} else {
 				if (this.isHealthy) {
-					this.profileID = "6";
+					this.profileID = 6;
 				} else {
-					this.profileID = "8";
+					this.profileID = 8;
 				}
 			}
 		}
 	}
 	
-	public String getProfileID() {
+	public int getProfileID() {
 		return this.profileID;
 	}
 	

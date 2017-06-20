@@ -214,7 +214,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 	@Override
 	public Pool generate(int numPairs, int numAltruists) {
 
-		assert(numPairs > 0);
+		assert(numPairs >= 0);
 		assert(numAltruists >= 0);
 
 		// Keep track of the three types of vertices we can generate: 
