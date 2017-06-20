@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.dynamic.arrivals.ExponentialArrivalDistribution;
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
@@ -119,15 +120,25 @@ public class EthicalDriver {
 					System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs and "+alts+" new altruist(s)");
 
 					//Add vertices with EthicalVertexPair weights for edge weights
+					Set<Vertex> addedVertices = null;
 					if (useSpecialWeights) {
-						poolGen.addSpecialVerticesToPool(pool, pairs, alts).size();
+						addedVertices = poolGen.addSpecialVerticesToPool(pool, pairs, alts);
 					} 
 					//or add vertices with edge weights 1
 					else {
-						poolGen.addVerticesToPool(pool, pairs, alts).size();
-
+						addedVertices = poolGen.addVerticesToPool(pool, pairs, alts);
 					}
 
+					// Keep track of how many of each ethical type of vertex arrive in the pool
+					for(Vertex v : addedVertices) {
+						if(!v.isAltruist()) {
+							EthicalVertexPair eV = (EthicalVertexPair) v;
+							totalTypeSeenMap.put(eV.getProfileID(), totalTypeSeenMap.get(eV.getProfileID())+1);
+						}
+					}
+					
+					
+					
 					//TODO: Increment timeInPool for each vertex
 					//Is there an efficient way to iterate through all vertices?
 					
@@ -295,6 +306,10 @@ public class EthicalDriver {
 				for(Integer vertType : profileCounts.keySet()) {
 					out.set(Col.valueOf("MATCHED_TYPE"+vertType), profileCounts.get(vertType));
 				}
+				for(Integer vertType : totalTypeSeenMap.keySet()) {
+					out.set(Col.valueOf("SEEN_TYPE"+vertType), totalTypeSeenMap.get(vertType));
+				}
+				
 				
 				// Keep me at the bottom of one run
 				// Write the  row of data
