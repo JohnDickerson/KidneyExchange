@@ -1,6 +1,4 @@
-package Ethics;
-
-import edu.cmu.cs.dickerson.kpd.solver.CPLEXSolver;
+package edu.cmu.cs.dickerson.kpd.Ethics;
 
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
@@ -11,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
+import edu.cmu.cs.dickerson.kpd.solver.CPLEXSolver;
 import edu.cmu.cs.dickerson.kpd.solver.exception.SolverException;
 import edu.cmu.cs.dickerson.kpd.solver.solution.Solution;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
@@ -18,7 +17,6 @@ import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
 import edu.cmu.cs.dickerson.kpd.structure.Vertex;
 import edu.cmu.cs.dickerson.kpd.structure.alg.CycleMembership;
-import edu.cmu.cs.dickerson.kpd.structure.alg.FailureProbabilityUtil;
 
 public class EthicalCPLEXSolver extends CPLEXSolver {
 

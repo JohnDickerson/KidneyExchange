@@ -1,4 +1,4 @@
-package Ethics;
+package edu.cmu.cs.dickerson.kpd.Ethics;
 
 import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;

@@ -1,4 +1,4 @@
-package Ethics;
+package edu.cmu.cs.dickerson.kpd.Ethics;
 
 import java.util.*;
 
