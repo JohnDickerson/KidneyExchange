@@ -32,11 +32,14 @@ public class EthicalDriver {
 	static final int CYCLE_CAP = 3;
 	static final int EXPECTED_PAIRS = 15;
 	static final int EXPECTED_ALTRUISTS = 1;
-	static final int ITERATIONS = 7;
+	static final int ITERATIONS = 10;
 	static final int NUM_RUNS = 1;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
+	
+	//Version of weights used
+	static final int WEIGHTS_VERSION = 1;
 
 	public static void runSimulation() {
 		
@@ -75,6 +78,7 @@ public class EthicalDriver {
 				int totalMatched = 0;
 				int totalFailedMatches = 0;
 				int totalDeceased = 0;
+				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
 				
 				for (int i = 0; i < ITERATIONS; i++) {
 					// Add new vertices to the pool
@@ -107,7 +111,7 @@ public class EthicalDriver {
 							while (matchIterator.hasNext()) {
 								Cycle c = matchIterator.next();
 								if (Cycle.getConstituentVertices(c, pool).contains(v)) {
-									matchIterator.remove();
+									matchIterator.remove();							//Does this remove from matches?
 								}
 							}
 							rm.add(v);
@@ -148,6 +152,7 @@ public class EthicalDriver {
 							// We matched a chain, now we have to make the last
 							// donor a bridge donor with some probability
 							if (Cycle.isAChain(ci, pool)) {
+								System.out.println("Matched a chain.");
 								ArrayList<VertexPair> trm = new ArrayList<VertexPair>();
 								List<Edge> le = new ArrayList<Edge>();
 								for(Edge e : ci.getEdges()){
@@ -172,6 +177,11 @@ public class EthicalDriver {
 								pool.removeAllVertices(trm);
 							}
 							else{
+								System.out.println("Matched cycle: ");
+								for (Vertex v : Cycle.getConstituentVertices(ci, pool)) {
+									System.out.print(v.getID() + "~");
+								}
+								System.out.println("");
 								// Remove all vertices in the match from the pool
 								totalMatched += Cycle.getConstituentVertices(ci, pool).size();
 								pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
@@ -181,6 +191,8 @@ public class EthicalDriver {
 						}
 					}
 
+					printPool(pool, false);
+					
 					// Match the vertex pairs in the pool
 					CycleGenerator cg = new CycleGenerator(pool);
 					List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
@@ -205,7 +217,7 @@ public class EthicalDriver {
 							//Restore original weights
 							setSpecialEdgeWeights(pool, specialWeights);
 							//Solve with cardinality constraint
-							sol = s.solve(min_cardinality);
+							sol = s.solve(0);					//TODO: Reset to min_cardinality
 						}
 						else {
 							
@@ -215,12 +227,15 @@ public class EthicalDriver {
 
 						for(Cycle c : sol.getMatching()){
 							matches.add(c);
+							totalMatches.add(c);
 						}
 					}
 					catch(SolverException e){
 						e.printStackTrace();
 						System.exit(-1);
 					}
+					
+					
 					
 					System.out.println(totalSeen + " vertices were seen");
 					System.out.println(totalMatched + " vertices were matched");
@@ -231,12 +246,45 @@ public class EthicalDriver {
 					
 					long totalTime = endTime-startTime;
 					System.out.println("Time elapsed: " + totalTime);
-					
-					//TODO: Export matches as CSV (Cycles -> Edges -> EthicalVertexPairs -> isYoung, isNonalcoholic, isHealthy?)
-					
 				}
+				
+				//TODO: Export matches as CSV (Cycles -> Edges -> EthicalVertexPairs -> isYoung, isNonalcoholic, isHealthy?)
+				System.out.println("\nSolved with "+weightType+" weights. Vertices matched:");
+				Map<String, Integer> profileCounts = new HashMap<String, Integer>();
+				for (Cycle c : totalMatches) {
+					for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
+						String profileID = ((EthicalVertexPair) v).getProfileID();
+						if (profileCounts.containsKey(profileID)) {
+							profileCounts.put(profileID, profileCounts.get(profileID)+1);
+						}
+						else {
+							profileCounts.put(profileID, 1);
+						}
+					}
+				}
+				System.out.println(Arrays.asList(profileCounts));
 			}
 		}
+	}
+	
+	//Helper method to print current state of pool
+	public static void printPool(Pool pool, boolean printAllEdges) {
+		System.out.println("\nPrinting pool.");
+		System.out.println("pairs in pool: "+pool.getNumPairs());
+		System.out.println("altruists in pool: "+pool.getNumAltruists());
+		System.out.println("edges in pool: "+pool.getNumNonDummyEdges());
+		
+		System.out.println("Vertices:");
+		for (VertexPair v : pool.getPairs()) {
+			System.out.print(v+"~");
+		}
+		
+		if (printAllEdges) {
+			for (Edge e : pool.getNonDummyEdgeSet()) {
+				System.out.println("edge "+e.toString()+" - w: "+pool.getEdgeWeight(e));
+			}
+		}
+		System.out.println("");
 	}
 	
 	public static void setBinaryEdgeWeights(Pool pool) {

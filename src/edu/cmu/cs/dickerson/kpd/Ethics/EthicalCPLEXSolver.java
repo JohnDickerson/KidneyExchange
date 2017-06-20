@@ -3,6 +3,7 @@ package edu.cmu.cs.dickerson.kpd.Ethics;
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
+import ilog.cplex.IloCplex;
 
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +72,9 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 		
 		try {
 			super.initializeCPLEX();
+			
+			//-1 is stochastic parallel (faster), 1 is deterministic parallel (slower)
+			cplex.setParam(IloCplex.IntParam.ParallelMode, 1);
 			
 			// One decision variable per cycle
 			IloNumVar[] x = cplex.boolVarArray(cycles.size());
