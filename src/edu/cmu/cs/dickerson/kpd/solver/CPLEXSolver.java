@@ -38,7 +38,6 @@ public abstract class CPLEXSolver extends Solver {
 
 	protected Solution solveCPLEX() throws IloException, SolverException {
 
-		//
 		// Solve the model
 		long solveStartTime = System.nanoTime();
 		boolean solvedOK = cplex.solve();

@@ -94,12 +94,12 @@ public class DriverKDD {
 	/**
 	 * Computes the set of vertices that are highly-sensitized (as marked by UNOS data)
 	 * or below the age of 18
-	 * @param pool
+	 * @param ethicalPool
 	 * @return
 	 */
-	public static Set<Vertex> getMarginalizedVertices(Pool pool) {
+	public static Set<Vertex> getMarginalizedVertices(Pool ethicalPool) {
 		Set<Vertex> marginalized = new HashSet<Vertex>();
-		for(VertexPair pair : pool.getPairs()) {
+		for(VertexPair pair : ethicalPool.getPairs()) {
 			if(null==pair.getUnderlyingPair()) { continue; }
 			UNOSRecipient r = pair.getUnderlyingPair().getRecipient();
 			if(r.highlySensitized || r.age < 18) {
@@ -108,8 +108,6 @@ public class DriverKDD {
 		}
 		return marginalized;
 	}
-
-
 
 	/**
 	 * Sets edge weights based on the weight function defined in the KDD submission,

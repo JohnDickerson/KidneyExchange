@@ -4,6 +4,7 @@ import java.util.ListIterator;
 import java.util.Random;
 import java.util.Set;
 
+import Ethics.EthicalVertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
@@ -149,8 +150,7 @@ public final class FailureProbabilityUtil {
 
 		return utilSum * succProb;
 	}
-
-
+	
 	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, Set<Vertex> specialV) {
 		return calculateDiscountedChainUtility(c, pool, specialV, false);
 	}
@@ -186,6 +186,70 @@ public final class FailureProbabilityUtil {
 			if(specialV.contains(pool.getEdgeTarget(e))) {
 				rawPathWeight += ( forceCardinality ? 1.0 : pool.getEdgeWeight(e) );
 			}
+			edgeIdx++;
+		}
+
+		return discountedPathWeight;
+	}
+	
+	/*
+	 * Overloads for use by EthicalCPLEXSolver below this point.
+	 * All vertices in pools must be EthicalVertexPairs.
+	 * Vertex weights are determined by "ethical" characteristics of recipient.
+	 */
+	
+	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool) {
+		return calculateDiscountedCycleUtility(c, pool, false);
+	}
+
+	public static double calculateDiscountedCycleUtility(Cycle c, Pool pool, boolean forceCardinality) {
+
+		double utilSum = 0.0;
+		double succProb = 1.0;
+		for(Edge e : c.getEdges()) {
+			EthicalVertexPair recipient = (EthicalVertexPair) pool.getEdgeTarget(e);
+			utilSum += ( forceCardinality ? 1.0 : recipient.getWeight() );
+			succProb *= (1.0 - e.getFailureProbability());
+		}
+
+		return utilSum * succProb;
+	}
+	
+	public static double calculateDiscountedChainUtility(Cycle c, Pool pool) {
+		return calculateDiscountedChainUtility(c, pool, false);
+	}
+
+	public static double calculateDiscountedChainUtility(Cycle c, Pool pool, boolean forceCardinality) {
+
+		int edgeIdx = 0;
+		double pathSuccProb = 1.0;
+		double rawPathWeight = 0.0;
+		double discountedPathWeight = 0.0;
+
+		// Iterate from last to first in the list of edges, since altruists start at the end
+		ListIterator<Edge> reverseEdgeIt = c.getEdges().listIterator(c.getEdges().size());
+		while(reverseEdgeIt.hasPrevious()) {
+
+			Edge e = reverseEdgeIt.previous();
+
+			// We're looking at the (infallible) dummy edge heading back to the altruist
+			// We're also assuming that the altruist is not in specialV (or if she is, it doesn't matter)
+			if(edgeIdx == c.getEdges().size() - 1) {
+				discountedPathWeight += rawPathWeight*pathSuccProb;
+				break;
+			}
+
+			if(edgeIdx == 0 && !pool.getEdgeSource(e).isAltruist()) {
+				throw new IllegalArgumentException("Our generator generates chains with altruists sourcing the first edge.  I haven't coded up the discounted utility code for non-0-index altruists.");
+			} else {
+				discountedPathWeight += rawPathWeight*pathSuccProb*e.getFailureProbability();
+			}
+
+			pathSuccProb *= (1.0 - e.getFailureProbability());
+			
+			EthicalVertexPair recipient = (EthicalVertexPair) pool.getEdgeTarget(e);
+			rawPathWeight += ( forceCardinality ? 1.0 : recipient.getWeight() );
+
 			edgeIdx++;
 		}
 

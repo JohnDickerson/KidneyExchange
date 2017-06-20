@@ -2,7 +2,6 @@ package edu.cmu.cs.dickerson.kpd.structure;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -21,6 +20,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 
+import Ethics.EthicalVertexPair;
 import edu.cmu.cs.dickerson.kpd.drivers.DriverKDD;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;

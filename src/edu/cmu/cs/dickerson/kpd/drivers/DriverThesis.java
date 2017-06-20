@@ -51,7 +51,7 @@ public class DriverThesis {
 		PoolGenerator poolGen = new SparseUNOSSaidmanPoolGenerator(rEntrance);
 		ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS);
 		ExponentialArrivalDistribution a = new ExponentialArrivalDistribution(1.0/EXPECTED_ALTRUISTS);
-		Pool pool = new Pool(Edge.class);
+		Pool pool = new Pool(Edge.class);										//REPLACE WITH MY GENERATOR
 		ArrayList<Cycle> matches = new ArrayList<Cycle>();
 
 		int totalSeen = 0;
@@ -161,7 +161,7 @@ public class DriverThesis {
 			
 			try{
 				//Solution optSolIP = optIPS.solve();
-				GreedyPackingSolver s = new GreedyPackingSolver(pool);
+				GreedyPackingSolver s = new GreedyPackingSolver(pool);				// 	REPLACE WITH MY SOLVER
 				List<Cycle> reducedCycles = (new CycleGenerator(pool)).generateCyclesAndChains(3, 0, true);
 				Solution sol = s.solve(1, new CyclesSampleChainsIPPacker(pool, reducedCycles, 100, CHAIN_CAP, true), Double.MAX_VALUE);
 				for(Cycle c : sol.getMatching()){
