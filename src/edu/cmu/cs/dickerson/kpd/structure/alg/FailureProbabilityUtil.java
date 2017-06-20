@@ -4,7 +4,7 @@ import java.util.ListIterator;
 import java.util.Random;
 import java.util.Set;
 
-import Ethics.EthicalVertexPair;
+import edu.cmu.cs.dickerson.kpd.Ethics.EthicalVertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.Cycle;
 import edu.cmu.cs.dickerson.kpd.structure.Edge;
 import edu.cmu.cs.dickerson.kpd.structure.Pool;
