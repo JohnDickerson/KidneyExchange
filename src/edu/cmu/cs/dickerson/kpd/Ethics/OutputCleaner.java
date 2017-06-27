@@ -35,10 +35,33 @@ public class OutputCleaner {
 		}
 	}
 	
-	public static void main(String[] args) {
-		String filename = "/Users/Rachel/Documents/Summer 2017/Research/Summer Work/Simulation/Output/output_130_iters.txt";
+	// Reads console output from txt file, writes pool size data to csv 
+	public static void profileGeneration(String filename) throws IOException {
+		
+		BufferedReader in = new BufferedReader(new FileReader(filename));
 		try {
-			poolSize(filename);
+		    String line = in.readLine();
+		    while (line != null) {
+		    	if (line.startsWith("temp: ")){
+		    		String[] split = line.split(" ");
+		    		System.out.println(split[5]+"\t"+split[1]+"\t"+split[2]+"\t"+split[3]);
+		    	}
+		    	if (line.startsWith("Testing weights ")){
+		    		System.out.println("\n\nWEIGHTS VERSION "+line.split(" ")[3]);
+		    	}
+		    	line = in.readLine();
+		    }
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		    in.close();
+		}
+	}
+	
+	public static void main(String[] args) {
+		String filename = "/Users/Rachel/Documents/Summer 2017/Research/Summer Work/Simulation/Output/vertex_types.txt";
+		try {
+			profileGeneration(filename);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

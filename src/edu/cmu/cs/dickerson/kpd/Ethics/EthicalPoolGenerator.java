@@ -158,32 +158,32 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		boolean isYoung = false;
 		boolean isNonalcoholic = false;
 		boolean isHealthy = false;
-		double r = random.nextDouble();
-		if (r <= this.Pr_YOUNG) {
+		double rAge = random.nextDouble();
+		double rAlcohol = random.nextDouble();
+		double rHealth = random.nextDouble();
+		if (rAge <= this.Pr_YOUNG) {
 			isYoung = true;
-		}
-		if (isYoung) {
-			r = random.nextDouble();
-			if (r <= this.Pr_YOUNG_NONALCOHOLIC) {
+			if (rAlcohol <= this.Pr_YOUNG_NONALCOHOLIC) {
 				isNonalcoholic = true;
 			}
-			r = random.nextDouble();
-			if (r <= this.Pr_YOUNG_HEALTHY) {
+			if (rHealth <= this.Pr_YOUNG_HEALTHY) {
 				isHealthy = true;
 			}
 		} else {
-			r = random.nextDouble();
-			if (r <= this.Pr_OLD_NONALCOHOLIC) {
+			if (rAlcohol <= this.Pr_OLD_NONALCOHOLIC) {
 				isNonalcoholic = true;
 			}
-			r = random.nextDouble();
-			if (r <= this.Pr_OLD_HEALTHY) {
+			if (rHealth <= this.Pr_OLD_HEALTHY) {
 				isHealthy = true;
 			}
 		}
-
-		return new EthicalVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, 
+		
+		EthicalVertexPair v = new EthicalVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, 
 				compatible, isYoung, isNonalcoholic, isHealthy, this.weightsVersion);
+		
+		//System.out.println("temp: "+rAge+" "+rAlcohol+" "+rHealth+" profile "+v.getProfileID());
+
+		return v;
 	}
 
 	/**
@@ -286,7 +286,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		return pool;
 	}
 
-	// Adds vertices with edge weights of
+	// Adds vertices with edge weights of 1.0
 	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		
 		//Weights of all non-dummy edges = 1
