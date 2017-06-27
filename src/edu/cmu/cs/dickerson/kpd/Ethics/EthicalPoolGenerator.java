@@ -16,6 +16,9 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class EthicalPoolGenerator extends PoolGenerator {
 	
+	//Which weights version from EthicalVertexPair to use
+	int weightsVersion;
+	
 	//"Ethically relevant" demographics
 	protected double Pr_YOUNG = 0.275;
 	protected double Pr_YOUNG_NONALCOHOLIC = 0.728;
@@ -50,9 +53,10 @@ public class EthicalPoolGenerator extends PoolGenerator {
 	// Current unused vertex ID for optimization graphs
 	private int currentVertexID;
 
-	public EthicalPoolGenerator(Random random) {
+	public EthicalPoolGenerator(Random random, int weightsVersion) {
 		super(random);
 		this.currentVertexID = 0;
+		this.weightsVersion = weightsVersion;
 	}
 
 	/**
@@ -154,7 +158,6 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		boolean isYoung = false;
 		boolean isNonalcoholic = false;
 		boolean isHealthy = false;
-		
 		double r = random.nextDouble();
 		if (r <= this.Pr_YOUNG) {
 			isYoung = true;
@@ -180,7 +183,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		}
 
 		return new EthicalVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, 
-				compatible, isYoung, isNonalcoholic, isHealthy);
+				compatible, isYoung, isNonalcoholic, isHealthy, this.weightsVersion);
 	}
 
 	/**
@@ -247,12 +250,10 @@ public class EthicalPoolGenerator extends PoolGenerator {
 			pool.addPair(pair);	
 		}
 
-
 		// Add altruists to the pool
 		for(VertexAltruist altruist : altruists) {
 			pool.addAltruist(altruist);
 		}
-
 
 		// Add edges between compatible donors and other patients
 		for(EthicalVertexPair donorPair : incompatiblePairs) {
@@ -285,7 +286,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		return pool;
 	}
 
-	//Sets all edge weights to 1
+	// Adds vertices with edge weights of
 	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		
 		//Weights of all non-dummy edges = 1
@@ -321,7 +322,6 @@ public class EthicalPoolGenerator extends PoolGenerator {
 			}
 		}
 		
-		
 		// Add edges from/to the new altruists from all (old+new) vertices
 		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }
 		for(VertexAltruist altN : more.getAltruists()) {
@@ -341,7 +341,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 	}
 
 	
-	//Sets edge weights by weight of receiving EthicalVertexPair
+	// Adds vertices with "ethical" edge weights
 	public Set<Vertex> addSpecialVerticesToPool(Pool pool, int numPairs, int numAltruists) {
 		
 		// Generate new vertices
@@ -375,7 +375,6 @@ public class EthicalPoolGenerator extends PoolGenerator {
 				pool.setEdgeWeight(pool.addEdge(vN, altO), 0.0);
 			}
 		}
-		
 		
 		// Add edges from/to the new altruists from all (old+new) vertices
 		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }

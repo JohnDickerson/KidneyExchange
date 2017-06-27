@@ -5,9 +5,7 @@ import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import edu.cmu.cs.dickerson.kpd.helper.IOUtil;
 import edu.cmu.cs.dickerson.kpd.solver.CPLEXSolver;
@@ -25,8 +23,11 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 	private CycleMembership membership;
 	protected List<Cycle> cycles;
 	
+	// Toggle printing debugging info to console
+	static final boolean DEBUG = false;
+	
 	public EthicalCPLEXSolver(Pool pool, List<Cycle> cycles, CycleMembership membership) {
-		// Use the normal fairness solver without any failure probabilities
+		// Use the normal solver without any failure probabilities
 		this(pool, cycles, membership, false);
 	}
 	
@@ -34,9 +35,9 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 		super(pool);
 		this.cycles = cycles;
 		this.membership = membership;
-		
 		if(usingFailureProbabilities) {
-			throw new UnsupportedOperationException("Only implemented for deterministic matching so far.");
+			throw new UnsupportedOperationException("Only implemented for deterministic matching so far. Please run without "
+					+ "failure probabilities.");
 		}
 		createCardinalityWeightVector();
 	}
@@ -45,16 +46,12 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 	 * Computes a vector of cycle cardinalities and stores in altWeights.
 	 */
 	private void createCardinalityWeightVector() {
-		
-		// Each cycle will have a new, adjusted weight
 		altWeights = new double[cycles.size()];
 		int cycleIdx = 0;
-
-		// For each cycle, create a new weight that takes special "ethical" weights into account
+		// Calculate and store cardinality of each cycle
 		for(Cycle c : cycles) {
 			double altWeight = 0.0;
 			for(Edge e : c.getEdges()) {
-				//Special weight is stored in EthicalVertexPair
 				if( !pool.getEdgeTarget(e).isAltruist() ) {
 					altWeight += 1.0;
 				}
@@ -64,11 +61,10 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 	}
 	
 	
-	
-	//Solve with cardinality constraint
+	//Solve IP with cardinality constraint
 	public Solution solve(double min_cardinality) throws SolverException {
 		
-		IOUtil.dPrintln(getClass().getSimpleName(), "Solving 'ethical' IP");
+		if (DEBUG) { IOUtil.dPrintln(getClass().getSimpleName(), "Solving 'ethical' IP"); }
 		
 		try {
 			super.initializeCPLEX();
@@ -90,7 +86,6 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 			// Maximize \sum_{all cycles c} altWeight_c * decVar_c
 			cplex.addMaximize(cplex.scalProd(weights, x));
 			
-
 			// Subject to: 
 			// \sum_{cycles c containing v} decVar_c <=1   \forall v
 			for(Vertex v : pool.vertexSet()) {
@@ -107,13 +102,10 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 				cplex.addLe(sum, 1.0);
 			}
 			
-			//Subect to: 
+			//Subject to: 
 			//total cardinality >= min cardinality
-			if (min_cardinality > 0) {
-				IOUtil.dPrintln(getClass().getSimpleName(), "Enforcing ethics; solution must be " + (min_cardinality-0.0001) );
-			}
 			cplex.addGe(cplex.scalProd(altWeights, x), min_cardinality - 0.0001);
-			
+			if (DEBUG) { IOUtil.dPrintln(getClass().getSimpleName(), "Enforcing ethics; objective value must be >=" + (min_cardinality-0.0001) ); }
 			
 			// Solve the model, get base statistics (solve time, objective value, etc)
 			Solution sol = super.solveCPLEX();
@@ -127,25 +119,13 @@ public class EthicalCPLEXSolver extends CPLEXSolver {
 				}
 			}
 			
-			IOUtil.dPrintln(getClass().getSimpleName(), "Solved IP!  Objective value: " + sol.getObjectiveValue());
-			IOUtil.dPrintln(getClass().getSimpleName(), "Number of cycles in matching: " + sol.getMatching().size());
-			
-			// move to a JUnit test
-			// Sanity check to make sure the matching is vertex disjoint
-			Set<Vertex> seenVerts = new HashSet<Vertex>();
-			for(Cycle c : sol.getMatching()) {
-				for(Edge e : c.getEdges()) {
-					Vertex v = pool.getEdgeSource(e);
-					if(seenVerts.contains(v)) {
-						IOUtil.dPrintln(getClass().getSimpleName(), "A vertex (" + v + ") was in more than one matched cycle; aborting.");
-					}
-					seenVerts.add(v);
-				}
+			if (DEBUG) {
+				IOUtil.dPrintln(getClass().getSimpleName(), "Solved IP!  Objective value: " + sol.getObjectiveValue());
+				IOUtil.dPrintln(getClass().getSimpleName(), "Number of cycles in matching: " + sol.getMatching().size());
 			}
 			
 			cplex.clearModel();
 			//cplex.end();		
-			
 			return sol;
 			
 		} catch(IloException e) {

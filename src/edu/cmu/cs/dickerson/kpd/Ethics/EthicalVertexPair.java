@@ -6,6 +6,7 @@ import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
 public class EthicalVertexPair extends VertexPair {
 	
+	//Store profile type
 	private int profileID;
 	
 	//"Special weight" stored
@@ -16,38 +17,42 @@ public class EthicalVertexPair extends VertexPair {
 	private boolean isNonalcoholic;
 	private boolean isHealthy;
 	
-	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights
+	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights (weights2)
 	private boolean usePatientWeights = true;
 	
 	//Patient weights estimated by Bradley-Terry model (in R script)
-	double weight_000 = 1;//1.000000000;	//young, sober, healthy
-	double weight_001 = 1;//0.236280167;	//young, sober, cancer
-	double weight_010 = 1;//0.103243396;	//young, alcohol, healthy
-	double weight_100 = 1;//0.070045054;	//old, sober, healthy
-	double weight_011 = 1;//0.035722844;	//young, alcohol, cancer
-	double weight_101 = 1;//0.024072427;	//old, sober, cancer
-	double weight_110 = 1;//0.011349772;	//old, alcohol, healthy
-	double weight_111 = 1;//0.002769801;	//old, alcohol, cancer
+	double[] weights;
+	//default
+	double[] weights1 = {1.000000000, 0.103243396, 0.236280167, 0.035722844, 0.070045054, 0.011349772, 0.024072427, 0.002769801};
+	//alternates
+	double[] weights0 = {1, 1, 1, 1, 1, 1, 1, 1};
+	double[] weights3 = {1.000000000, 0.998, 0.999, 0.996, 0.997, 0.994, 0.995, 0.993};
+	double[] weights4 = {0.8, 0.6, 0.4, 0.3, 1, 0.7, 0.9, 0.5};
+	double[] weights5 = {0.5, 0.7, 0.9, 1, 0.3, 0.6, 0.4, 0.8};
 	
 	//Characteristic weights estimated by Bradley-Terry model (in R script)
 	double weight_age = -2.419075;
 	double weight_alcohol = -2.026236;
 	double weight_cancer = -1.234208;
 	
-	//Track number of iterations spent in pool before matched
-	int timeInPool;
-	
 	public EthicalVertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor, 
 			boolean isWifePatient, double patientCPRA, boolean isCompatible, boolean isYoung,
-			boolean isNonalcoholic, boolean isHealthy) {
+			boolean isNonalcoholic, boolean isHealthy, int weightsType) {
 		super(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, isCompatible);
 		this.isYoung = isYoung;
 		this.isNonalcoholic = isNonalcoholic;
 		this.isHealthy = isHealthy;
-		this.weight = calcWeight();
-		this.timeInPool = 0;
+		this.weight = calcWeight(weightsType);
 		setProfileID();
-		
+		//System.out.println("ID: "+this.profileID+" age: "+this.isYoung+" alc: "+this.isNonalcoholic+" hlth: "+this.isHealthy);
+	}
+	
+	public EthicalVertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor, 
+			boolean isWifePatient, double patientCPRA, boolean isCompatible, boolean isYoung,
+			boolean isNonalcoholic, boolean isHealthy) {
+		this(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, isCompatible, 
+				isYoung, isNonalcoholic, isHealthy, 1);
+		System.out.println("\t\t\t\t\tDEFAULT WEIGHTS USED.");
 	}
 	
 	public EthicalVertexPair(int ID, UNOSPair underlyingPair) {
@@ -59,11 +64,18 @@ public class EthicalVertexPair extends VertexPair {
 	 * on their "ethical" characteristics (age, alcohol, health)
 	 * @return vertex weight 
 	 */
-	private double calcWeight() {
-		if (this.usePatientWeights) {
-			return calcPatientWeight();
+	private double calcWeight(int weightsType) {
+		if (weightsType == 2) { return calcCharacteristicWeight(); }
+		if (weightsType == 0) { this.weights = this.weights0; }
+		if (weightsType == 1) { this.weights = this.weights1; }
+		if (weightsType == 3) { this.weights = this.weights3; }
+		if (weightsType == 4) { this.weights = this.weights4; }
+		if (weightsType == 5) { this.weights = this.weights5; }
+		if ((weightsType > 5) || (weightsType < 0)) {
+			throw new UnsupportedOperationException("There is no weights type "+weightsType+". Please choose one of "
+					+ "types 1-5.");
 		}
-		return calcCharacteristicWeight();
+		return calcPatientWeight();
 	}
 	
 	/**
@@ -74,29 +86,29 @@ public class EthicalVertexPair extends VertexPair {
 		if (this.isYoung) {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					return this.weight_000;
+					return this.weights[0];		// 1 - 000
 				} else {
-					return this.weight_001;
+					return this.weights[2];		// 3 - 001
 				}
 			} else {
 				if (this.isHealthy) {
-					return this.weight_010;
+					return this.weights[1];		// 2 - 010
 				} else {
-					return this.weight_011;
+					return this.weights[3];		// 4 - 011
 				}
 			}
 		} else {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					return this.weight_100;
+					return this.weights[4];		// 5 - 100
 				} else {
-					return this.weight_101;
+					return this.weights[6];		// 7 - 101
 				}
 			} else {
 				if (this.isHealthy) {
-					return this.weight_110;
+					return this.weights[5];		// 6 - 110
 				} else {
-					return this.weight_111;
+					return this.weights[7];		// 8 - 111
 				}
 			}
 		}
@@ -126,29 +138,29 @@ public class EthicalVertexPair extends VertexPair {
 		if (this.isYoung) {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					this.profileID = 1;
+					this.profileID = 1;		//000
 				} else {
-					this.profileID = 3;
+					this.profileID = 3;		//001
 				}
 			} else {
 				if (this.isHealthy) {
-					this.profileID = 2;
+					this.profileID = 2;		//010
 				} else {
-					this.profileID = 4;
+					this.profileID = 4;		//011
 				}
 			}
 		} else {
 			if (this.isNonalcoholic) {
 				if (this.isHealthy) {
-					this.profileID = 5;
+					this.profileID = 5;		//100
 				} else {
-					this.profileID = 7;
+					this.profileID = 7;		//101
 				}
 			} else {
 				if (this.isHealthy) {
-					this.profileID = 6;
+					this.profileID = 6;		//110
 				} else {
-					this.profileID = 8;
+					this.profileID = 8;		//111
 				}
 			}
 		}
@@ -196,68 +208,20 @@ public class EthicalVertexPair extends VertexPair {
 	}
 	
 	public static void main(String[] args) {
-		EthicalVertexPair v1 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				true, true, true);
-		double p1 = v1.calcPatientWeight();
-		double c1 = v1.calcCharacteristicWeight();
-		System.out.println("\nPatient 1");
-		System.out.println("\tProfile weight: "+p1);
-		System.out.println("\tCharacteristic weight: "+c1);
 		
-		EthicalVertexPair v2 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				true, false, true);
-		double p = v2.calcPatientWeight();
-		double c = v2.calcCharacteristicWeight();
-		System.out.println("\nPatient 2");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v3 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				true, true, false);
-		p = v3.calcPatientWeight();
-		c = v3.calcCharacteristicWeight();
-		System.out.println("\nPatient 3");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v4 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				true, false, false);
-		p = v4.calcPatientWeight();
-		c = v4.calcCharacteristicWeight();
-		System.out.println("\nPatient 4");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v5 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				false, true, true);
-		p = v5.calcPatientWeight();
-		c = v5.calcCharacteristicWeight();
-		System.out.println("\nPatient 5");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v6 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				false, false, true);
-		p = v6.calcPatientWeight();
-		c = v6.calcCharacteristicWeight();
-		System.out.println("\nPatient 6");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v7 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				false, true, false);
-		p = v7.calcPatientWeight();
-		c = v7.calcCharacteristicWeight();
-		System.out.println("\nPatient 7");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
-		
-		EthicalVertexPair v8 = new EthicalVertexPair(1, null, null, true, 0.5, true,
-				false, false, false);
-		p = v8.calcPatientWeight();
-		c = v8.calcCharacteristicWeight();
-		System.out.println("\nPatient 8");
-		System.out.println("\tProfile weight: "+p);
-		System.out.println("\tCharacteristic weight: "+c);
+		boolean[] profs = {true, true, true, true, false, true, true, true, false,
+				true, false, false, false, true, true, false, false, true,
+				false, true, false, false, false, false};
+		System.out.println("\t\t\t1\t\t2\t\t3\t\t4\t\t5\t\t6\t\t7\t\t8");
+		for (int weightsType = 0; weightsType < 6; weightsType++) {
+			System.out.print("Weights type: "+weightsType+"\t\t");
+			for (int prof = 1; prof < 9; prof++) {
+				EthicalVertexPair v = new EthicalVertexPair(1, null, null, true, 0.5, true,
+						profs[(3*(prof-1))], profs[(3*(prof-1))+1], profs[(3*(prof-1))+2], weightsType);
+				//System.out.println((3*(prof-1))+" "+((3*(prof-1))+1)+" "+((3*(prof-1))+2));
+				System.out.printf("%.3f", v.getWeight());
+				System.out.print("\t\t");
+			} System.out.println("");
+		}
 	}
 }
