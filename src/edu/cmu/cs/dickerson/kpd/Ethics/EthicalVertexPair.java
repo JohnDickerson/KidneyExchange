@@ -9,6 +9,9 @@ public class EthicalVertexPair extends VertexPair {
 	//Store profile type
 	private int profileID;
 	
+	//Store profile and blood type
+	private String bloodID;
+	
 	//"Special weight" stored
 	private double weight;
 	
@@ -44,6 +47,7 @@ public class EthicalVertexPair extends VertexPair {
 		this.isHealthy = isHealthy;
 		this.weight = calcWeight(weightsType);
 		setProfileID();
+		setBloodID();
 		//System.out.println("ID: "+this.profileID+" age: "+this.isYoung+" alc: "+this.isNonalcoholic+" hlth: "+this.isHealthy);
 	}
 	
@@ -57,6 +61,20 @@ public class EthicalVertexPair extends VertexPair {
 	
 	public EthicalVertexPair(int ID, UNOSPair underlyingPair) {
 		super(ID, BloodType.O, BloodType.O, false, underlyingPair.getRecipient().cpra, false);
+	}
+	
+	// bloodID = profile ID# - patient blood type - donor blood type (ex. "1_AB_O")
+	private void setBloodID() {
+		String patient = this.bloodTypePatient.toString();
+		String donor = this.bloodTypeDonor.toString();
+		this.bloodID = profileID + "_" + patient + "_" + donor;
+		//System.out.print("\t\t\t\tBlood ID: "+this.bloodID);
+		//if (!this.isCompatible) { System.out.println("  (incompatible)"); }
+		//else { System.out.println(""); }
+	}
+	
+	public String getBloodID() {
+		return this.bloodID;
 	}
 	
 	/**
@@ -208,7 +226,7 @@ public class EthicalVertexPair extends VertexPair {
 	}
 	
 	public static void main(String[] args) {
-		
+
 		boolean[] profs = {true, true, true, true, false, true, true, true, false,
 				true, false, false, false, true, true, false, false, true,
 				false, true, false, false, false, false};

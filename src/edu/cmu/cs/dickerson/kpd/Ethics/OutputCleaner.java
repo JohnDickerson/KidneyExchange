@@ -14,7 +14,7 @@ public class OutputCleaner {
 		
 		PrintWriter out = new PrintWriter("pool_size_" + System.currentTimeMillis() + ".csv");
 		
-		out.println("iteration,size,run,type");
+		out.println("iteration,size,run,weights_version");
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		try {
 		    String line = in.readLine();
@@ -41,13 +41,16 @@ public class OutputCleaner {
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		try {
 		    String line = in.readLine();
+		    int i = 1;
 		    while (line != null) {
 		    	if (line.startsWith("temp: ")){
 		    		String[] split = line.split(" ");
-		    		System.out.println(split[5]+"\t"+split[1]+"\t"+split[2]+"\t"+split[3]);
+		    		System.out.println("vertex "+i+"\t"+split[5]+"\t"+split[1]+"\t"+split[2]+"\t"+split[3]);
+		    		i++;
 		    	}
 		    	if (line.startsWith("Testing weights ")){
 		    		System.out.println("\n\nWEIGHTS VERSION "+line.split(" ")[3]);
+		    		i = 1;
 		    	}
 		    	line = in.readLine();
 		    }
@@ -59,7 +62,7 @@ public class OutputCleaner {
 	}
 	
 	public static void main(String[] args) {
-		String filename = "/Users/Rachel/Documents/Summer 2017/Research/Summer Work/Simulation/Output/vertex_types.txt";
+		String filename = "/Users/Rachel/Documents/Summer 2017/Research/Summer Work/Simulation/Output/vertex_types2.txt";
 		try {
 			profileGeneration(filename);
 		} catch (IOException e) {

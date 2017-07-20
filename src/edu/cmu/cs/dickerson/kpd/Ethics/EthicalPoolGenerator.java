@@ -181,7 +181,7 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		EthicalVertexPair v = new EthicalVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, 
 				compatible, isYoung, isNonalcoholic, isHealthy, this.weightsVersion);
 		
-		//System.out.println("temp: "+rAge+" "+rAlcohol+" "+rHealth+" profile "+v.getProfileID());
+		System.out.println("temp: "+rAge+" "+rAlcohol+" "+rHealth+" profile "+v.getProfileID());
 
 		return v;
 	}
