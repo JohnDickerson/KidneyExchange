@@ -1,5 +1,7 @@
 package edu.cmu.cs.dickerson.kpd.Ethics;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -49,6 +51,9 @@ public class EthicalPoolGenerator extends PoolGenerator {
 	protected double Pr_HIGH_PRA_INCOMPATIBILITY = 0.90;
 
 	protected double Pr_SPOUSAL_PRA_COMPATIBILITY = 0.75;
+	
+	protected PrintWriter out;
+	protected int vertexCount;
 
 	// Current unused vertex ID for optimization graphs
 	private int currentVertexID;
@@ -57,6 +62,15 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		super(random);
 		this.currentVertexID = 0;
 		this.weightsVersion = weightsVersion;
+		
+		//Initialize output file
+		try {
+			this.out = new PrintWriter("vertices_" + weightsVersion + ".csv");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		this.out.println("#,bloodID,rAge,rAlcohol,rHealth");
+		this.vertexCount = 1;
 	}
 
 	/**
@@ -181,8 +195,10 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		EthicalVertexPair v = new EthicalVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA, 
 				compatible, isYoung, isNonalcoholic, isHealthy, this.weightsVersion);
 		
-		System.out.println("temp: "+rAge+" "+rAlcohol+" "+rHealth+" profile "+v.getProfileID());
-
+		//Write generated vertex to output file
+		this.out.println(this.vertexCount+","+v.getBloodID()+","+rAge+","+rAlcohol+","+rHealth);
+		this.vertexCount++;
+		
 		return v;
 	}
 
@@ -393,6 +409,11 @@ public class EthicalPoolGenerator extends PoolGenerator {
 		
 		// Return only the new vertices that were generated
 		return more.vertexSet();
+	}
+	
+	public void close(long seed) {
+		this.out.println("SEED: "+seed+",,,");
+		this.out.close();
 	}
 
 }

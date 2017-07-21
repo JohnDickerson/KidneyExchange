@@ -43,8 +43,8 @@ public class EthicalDriver {
 	static final int CYCLE_CAP = 3;
 	static final int EXPECTED_PAIRS = 2;
 	static final int EXPECTED_ALTRUISTS = 0;
-	static final int ITERATIONS = 1094;
-	static final int NUM_RUNS = 10;
+	static final int ITERATIONS = 150;
+	static final int NUM_RUNS = 1;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
@@ -313,6 +313,9 @@ public class EthicalDriver {
 						}
 					}
 				}
+				
+				//Close vertices-generated output file in EthicalPoolGenerator
+				poolGen.close(seed);
 
 				if (DEBUG) { System.out.println(Arrays.asList(profileCounts)); }
 
@@ -342,7 +345,7 @@ public class EthicalDriver {
 
 		// Experiment complete
 		long time = (System.currentTimeMillis()-startTime)/60000;
-		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.");
+		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.\n\n\n");
 
 		// clean up CSV writer
 		if(null != out) {
@@ -593,6 +596,8 @@ public class EthicalDriver {
 					poolOut.write(i+","+size+","+n+","+weightsVersion+"\n");
 					
 				} // end of iterations loop
+				
+				//TODO: vertexOut.close();
 
 				if (DEBUG) { System.out.println("\nSolved with weights version"+weightsVersion+". Vertices matched:"); }
 
@@ -612,6 +617,9 @@ public class EthicalDriver {
 						}
 					}
 				}
+				
+				//Close vertices-generated output file in EthicalPoolGenerator
+				poolGen.close(seed);
 
 				if (DEBUG) { System.out.println(Arrays.asList(profileCounts)); }
 
@@ -642,7 +650,7 @@ public class EthicalDriver {
 		// Experiment complete
 		long time = (System.currentTimeMillis()-startTime)/60000;
 		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations for "+weightsToTest.size()+
-				" different weights versions. Total time: "+time+" minutes.");
+				" different weights versions. Total time: "+time+" minutes.\n\n\n");
 
 		// close pool file
 		poolOut.close();
@@ -898,7 +906,7 @@ public class EthicalDriver {
 
 				// Count vertices of each type matched
 				Map<String, Integer> totalTypeMatchedMap = new HashMap<String, Integer>();
-				// String[] vertTypes = {"1_O_O", "1_A_O", "1_B_O", "1_AB_O", "1_O_A", "1_A_A", "1_B_A", "1_AB_A", "1_O_B", "1_A_B", "1_B_B", "1_AB_B", "1_O_AB", "1_A_AB", "1_B_AB", "1_AB_AB", "2_O_O", "2_A_O", "2_B_O", "2_AB_O", "2_O_A", "2_A_A", "2_B_A", "2_AB_A", "2_O_B", "2_A_B", "2_B_B", "2_AB_B", "2_O_AB", "2_A_AB", "2_B_AB", "2_AB_AB", "3_O_O", "3_A_O", "3_B_O", "3_AB_O", "3_O_A", "3_A_A", "3_B_A", "3_AB_A", "3_O_B", "3_A_B", "3_B_B", "3_AB_B", "3_O_AB", "3_A_AB", "3_B_AB", "3_AB_AB", "4_O_O", "4_A_O", "4_B_O", "4_AB_O", "4_O_A", "4_A_A", "4_B_A", "4_AB_A", "4_O_B", "4_A_B", "4_B_B", "4_AB_B", "4_O_AB", "4_A_AB", "4_B_AB", "4_AB_AB", "5_O_O", "5_A_O", "5_B_O", "5_AB_O", "5_O_A", "5_A_A", "5_B_A", "5_AB_A", "5_O_B", "5_A_B", "5_B_B", "5_AB_B", "5_O_AB", "5_A_AB", "5_B_AB", "5_AB_AB", "6_O_O", "6_A_O", "6_B_O", "6_AB_O", "6_O_A", "6_A_A", "6_B_A", "6_AB_A", "6_O_B", "6_A_B", "6_B_B", "6_AB_B", "6_O_AB", "6_A_AB", "6_B_AB", "6_AB_AB", "7_O_O", "7_A_O", "7_B_O", "7_AB_O", "7_O_A", "7_A_A", "7_B_A", "7_AB_A", "7_O_B", "7_A_B", "7_B_B", "7_AB_B", "7_O_AB", "7_A_AB", "7_B_AB", "7_AB_AB", "8_O_O", "8_A_O", "8_B_O", "8_AB_O", "8_O_A", "8_A_A", "8_B_A", "8_AB_A", "8_O_B", "8_A_B", "8_B_B", "8_AB_B", "8_O_AB", "8_A_AB", "8_B_AB", "8_AB_AB"};
+				//String[] vertTypes = {"1_O_O", "1_A_O", "1_B_O", "1_AB_O", "1_O_A", "1_A_A", "1_B_A", "1_AB_A", "1_O_B", "1_A_B", "1_B_B", "1_AB_B", "1_O_AB", "1_A_AB", "1_B_AB", "1_AB_AB", "2_O_O", "2_A_O", "2_B_O", "2_AB_O", "2_O_A", "2_A_A", "2_B_A", "2_AB_A", "2_O_B", "2_A_B", "2_B_B", "2_AB_B", "2_O_AB", "2_A_AB", "2_B_AB", "2_AB_AB", "3_O_O", "3_A_O", "3_B_O", "3_AB_O", "3_O_A", "3_A_A", "3_B_A", "3_AB_A", "3_O_B", "3_A_B", "3_B_B", "3_AB_B", "3_O_AB", "3_A_AB", "3_B_AB", "3_AB_AB", "4_O_O", "4_A_O", "4_B_O", "4_AB_O", "4_O_A", "4_A_A", "4_B_A", "4_AB_A", "4_O_B", "4_A_B", "4_B_B", "4_AB_B", "4_O_AB", "4_A_AB", "4_B_AB", "4_AB_AB", "5_O_O", "5_A_O", "5_B_O", "5_AB_O", "5_O_A", "5_A_A", "5_B_A", "5_AB_A", "5_O_B", "5_A_B", "5_B_B", "5_AB_B", "5_O_AB", "5_A_AB", "5_B_AB", "5_AB_AB", "6_O_O", "6_A_O", "6_B_O", "6_AB_O", "6_O_A", "6_A_A", "6_B_A", "6_AB_A", "6_O_B", "6_A_B", "6_B_B", "6_AB_B", "6_O_AB", "6_A_AB", "6_B_AB", "6_AB_AB", "7_O_O", "7_A_O", "7_B_O", "7_AB_O", "7_O_A", "7_A_A", "7_B_A", "7_AB_A", "7_O_B", "7_A_B", "7_B_B", "7_AB_B", "7_O_AB", "7_A_AB", "7_B_AB", "7_AB_AB", "8_O_O", "8_A_O", "8_B_O", "8_AB_O", "8_O_A", "8_A_A", "8_B_A", "8_AB_A", "8_O_B", "8_A_B", "8_B_B", "8_AB_B", "8_O_AB", "8_A_AB", "8_B_AB", "8_AB_AB"};
 				for(String vertType : vertTypes) {
 					totalTypeMatchedMap.put(vertType, 0);
 				}
@@ -915,6 +923,9 @@ public class EthicalDriver {
 						//}
 					}
 				}
+				
+				//Close vertices-generated output file in EthicalPoolGenerator
+				poolGen.close(seed);
 
 				if (DEBUG) { System.out.println(Arrays.asList(totalTypeMatchedMap)); }
 
@@ -945,7 +956,7 @@ public class EthicalDriver {
 		// Experiment complete
 		long time = (System.currentTimeMillis()-startTime)/60000;
 		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations for "+weightsToTest.size()+
-				" different weights versions. Total time: "+time+" minutes.");
+				" different weights versions. Total time: "+time+" minutes.\n\n\n");
 
 		// close pool file
 		poolOut.close();
