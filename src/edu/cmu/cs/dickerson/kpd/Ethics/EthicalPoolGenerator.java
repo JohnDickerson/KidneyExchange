@@ -25,9 +25,8 @@ public class EthicalPoolGenerator extends PoolGenerator {
 	protected double Pr_YOUNG = 0.275;
 	protected double Pr_YOUNG_NONALCOHOLIC = 0.728;
 	protected double Pr_OLD_NONALCOHOLIC = 0.828;
-	//(These numbers are completely made up)
-	protected double Pr_YOUNG_HEALTHY = 0.8;
-	protected double Pr_OLD_HEALTHY = 0.6;
+	protected double Pr_YOUNG_HEALTHY = 0.9999063;
+	protected double Pr_OLD_HEALTHY = 0.999275;
 	
 	//Blood type demographics
 	protected double Pr_PATIENT_TYPE_O = 0.4814;
