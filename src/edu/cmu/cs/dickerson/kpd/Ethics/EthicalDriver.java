@@ -43,7 +43,7 @@ public class EthicalDriver {
 	static final int CYCLE_CAP = 3;
 	static final int EXPECTED_PAIRS = 2;
 	static final int EXPECTED_ALTRUISTS = 0;
-	static final int ITERATIONS = 150;
+	static final int ITERATIONS = 365;
 	static final int NUM_RUNS = 1;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
@@ -669,7 +669,7 @@ public class EthicalDriver {
 	 * Performs same function as runSimulationWithWeights, except also tracks and
 	 * outputs blood types of patients matched using EthicalBloodOutput
 	 */
-	public static void runSimWeightsBlood(ArrayList<Integer> weightsToTest) {
+	public static void runSimWeightsBlood(ArrayList<Integer> weightsToTest) throws Exception {
 
 		long startTime = System.currentTimeMillis();
 
@@ -692,6 +692,7 @@ public class EthicalDriver {
 		}
 		poolOut.println("iteration,size,run,weights_version\n");
 
+		//Start of runs loop (each run is a new test)
 		for (int n = 0; n < NUM_RUNS; n++) {
 
 			if (DEBUG) { System.out.println("\n****TEST "+n+"****"); }
@@ -703,7 +704,6 @@ public class EthicalDriver {
 			long rArrivalSeedM = seed + 4L;
 			long rArrivalSeedA = seed + 6L;
 			
-
 			for (Integer weightsVersion : weightsToTest) {
 
 				if (DEBUG) { System.out.println("\n-------------\nTesting weights version " + weightsVersion + ".\n"); }
@@ -738,15 +738,24 @@ public class EthicalDriver {
 				int totalPairsSeen = 0;
 				int totalAltsSeen = 0;
 				int totalPairsDeparted = 0;
-				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();		
-				Map<String, Integer> totalTypeSeenMap = new HashMap<String, Integer>();
+				
+				// Store vertices of each type SEEN
 				String[] vertTypes = {"1_O_O", "1_A_O", "1_B_O", "1_AB_O", "1_O_A", "1_A_A", "1_B_A", "1_AB_A", "1_O_B", "1_A_B", "1_B_B", "1_AB_B", "1_O_AB", "1_A_AB", "1_B_AB", "1_AB_AB", "2_O_O", "2_A_O", "2_B_O", "2_AB_O", "2_O_A", "2_A_A", "2_B_A", "2_AB_A", "2_O_B", "2_A_B", "2_B_B", "2_AB_B", "2_O_AB", "2_A_AB", "2_B_AB", "2_AB_AB", "3_O_O", "3_A_O", "3_B_O", "3_AB_O", "3_O_A", "3_A_A", "3_B_A", "3_AB_A", "3_O_B", "3_A_B", "3_B_B", "3_AB_B", "3_O_AB", "3_A_AB", "3_B_AB", "3_AB_AB", "4_O_O", "4_A_O", "4_B_O", "4_AB_O", "4_O_A", "4_A_A", "4_B_A", "4_AB_A", "4_O_B", "4_A_B", "4_B_B", "4_AB_B", "4_O_AB", "4_A_AB", "4_B_AB", "4_AB_AB", "5_O_O", "5_A_O", "5_B_O", "5_AB_O", "5_O_A", "5_A_A", "5_B_A", "5_AB_A", "5_O_B", "5_A_B", "5_B_B", "5_AB_B", "5_O_AB", "5_A_AB", "5_B_AB", "5_AB_AB", "6_O_O", "6_A_O", "6_B_O", "6_AB_O", "6_O_A", "6_A_A", "6_B_A", "6_AB_A", "6_O_B", "6_A_B", "6_B_B", "6_AB_B", "6_O_AB", "6_A_AB", "6_B_AB", "6_AB_AB", "7_O_O", "7_A_O", "7_B_O", "7_AB_O", "7_O_A", "7_A_A", "7_B_A", "7_AB_A", "7_O_B", "7_A_B", "7_B_B", "7_AB_B", "7_O_AB", "7_A_AB", "7_B_AB", "7_AB_AB", "8_O_O", "8_A_O", "8_B_O", "8_AB_O", "8_O_A", "8_A_A", "8_B_A", "8_AB_A", "8_O_B", "8_A_B", "8_B_B", "8_AB_B", "8_O_AB", "8_A_AB", "8_B_AB", "8_AB_AB"};
+				Map<String, Integer> totalTypeSeenMap = new HashMap<String, Integer>();
 				for(String vertType : vertTypes) {
-					totalTypeSeenMap.put(vertType, 0);
+					totalTypeSeenMap.put(vertType, 0);		//Initialize each count to 0
 				}
 				
+				// Store vertices of each type MATCHED
+				Map<String, Integer> totalTypeMatchedMap = new HashMap<String, Integer>();
+				for(String vertType : vertTypes) {
+					totalTypeMatchedMap.put(vertType, 0);	//Initialize each count to 0
+				}
+				//Store all matched cycles (for later inclusion in totalTypeMatchedMap)
+				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();		
+				
 				for (int i = 0; i < ITERATIONS; i++) {
-					// Add new vertices to the pool
+					// Select num of new vertices to add to the pool
 					int pairs = m.draw().intValue();
 					int alts = a.draw().intValue();
 					// Count new vertices
@@ -758,7 +767,7 @@ public class EthicalDriver {
 					Set<Vertex> addedVertices = null;
 					addedVertices = poolGen.addSpecialVerticesToPool(pool, pairs, alts);
 
-					// Keep track of how many of each type of vertex (profile x patient blood x donor blood) arrive in the pool
+					// Keep track of how many of each type of vertex (profile _ patient blood _ donor blood) arrive in the pool
 					for(Vertex v : addedVertices) {
 						if(!v.isAltruist()) {
 							EthicalVertexPair eV = (EthicalVertexPair) v;
@@ -883,7 +892,7 @@ public class EthicalDriver {
 						// Record matches
 						for(Cycle c : sol.getMatching()){
 							matches.add(c);
-							totalMatches.add(c);
+							totalMatches.add(c);	// Store cycles (for later inclusion in totalTypeMatchedMap)	
 						}
 					}
 					catch(SolverException e){
@@ -892,7 +901,6 @@ public class EthicalDriver {
 					}
 
 					long endTime = System.currentTimeMillis();
-
 					long totalTime = endTime-startTime;
 					if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
 
@@ -903,24 +911,12 @@ public class EthicalDriver {
 				} // end of iterations loop
 
 				if (DEBUG) { System.out.println("\nSolved with weights version"+weightsVersion+". Vertices matched:"); }
-
-				// Count vertices of each type matched
-				Map<String, Integer> totalTypeMatchedMap = new HashMap<String, Integer>();
-				//String[] vertTypes = {"1_O_O", "1_A_O", "1_B_O", "1_AB_O", "1_O_A", "1_A_A", "1_B_A", "1_AB_A", "1_O_B", "1_A_B", "1_B_B", "1_AB_B", "1_O_AB", "1_A_AB", "1_B_AB", "1_AB_AB", "2_O_O", "2_A_O", "2_B_O", "2_AB_O", "2_O_A", "2_A_A", "2_B_A", "2_AB_A", "2_O_B", "2_A_B", "2_B_B", "2_AB_B", "2_O_AB", "2_A_AB", "2_B_AB", "2_AB_AB", "3_O_O", "3_A_O", "3_B_O", "3_AB_O", "3_O_A", "3_A_A", "3_B_A", "3_AB_A", "3_O_B", "3_A_B", "3_B_B", "3_AB_B", "3_O_AB", "3_A_AB", "3_B_AB", "3_AB_AB", "4_O_O", "4_A_O", "4_B_O", "4_AB_O", "4_O_A", "4_A_A", "4_B_A", "4_AB_A", "4_O_B", "4_A_B", "4_B_B", "4_AB_B", "4_O_AB", "4_A_AB", "4_B_AB", "4_AB_AB", "5_O_O", "5_A_O", "5_B_O", "5_AB_O", "5_O_A", "5_A_A", "5_B_A", "5_AB_A", "5_O_B", "5_A_B", "5_B_B", "5_AB_B", "5_O_AB", "5_A_AB", "5_B_AB", "5_AB_AB", "6_O_O", "6_A_O", "6_B_O", "6_AB_O", "6_O_A", "6_A_A", "6_B_A", "6_AB_A", "6_O_B", "6_A_B", "6_B_B", "6_AB_B", "6_O_AB", "6_A_AB", "6_B_AB", "6_AB_AB", "7_O_O", "7_A_O", "7_B_O", "7_AB_O", "7_O_A", "7_A_A", "7_B_A", "7_AB_A", "7_O_B", "7_A_B", "7_B_B", "7_AB_B", "7_O_AB", "7_A_AB", "7_B_AB", "7_AB_AB", "8_O_O", "8_A_O", "8_B_O", "8_AB_O", "8_O_A", "8_A_A", "8_B_A", "8_AB_A", "8_O_B", "8_A_B", "8_B_B", "8_AB_B", "8_O_AB", "8_A_AB", "8_B_AB", "8_AB_AB"};
-				for(String vertType : vertTypes) {
-					totalTypeMatchedMap.put(vertType, 0);
-				}
 				
+				// Count all vertices from matched cycles and store in totalTypeMatchedMap
 				for (Cycle c : totalMatches) {
 					for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
 						String bloodID = ((EthicalVertexPair) v).getBloodID();
 						totalTypeMatchedMap.put(bloodID, totalTypeMatchedMap.get(bloodID)+1);
-						//if (totalTypeMatchedMap.containsKey(bloodID)) {
-						//	totalTypeMatchedMap.put(bloodID, totalTypeMatchedMap.get(bloodID)+1);
-						//}
-						//else {
-						//	totalTypeMatchedMap.put(bloodID, 1);
-						//}
 					}
 				}
 				
@@ -934,6 +930,19 @@ public class EthicalDriver {
 				out.set(EthicalBloodOutput.Col.SEEN_ALTS, totalAltsSeen);
 				out.set(EthicalBloodOutput.Col.DEPARTED_PAIRS, totalPairsDeparted);
 
+				// Check for MATCH > SEEN bug
+				for(String vertType : totalTypeMatchedMap.keySet()) {
+					int match = totalTypeMatchedMap.get(vertType);
+					int seen = totalTypeSeenMap.get(vertType);
+					if (match > seen) {
+						System.out.println("\n\t\tERROR: MORE VERTICES MATCHED THEN SEEN.");
+						System.out.println("\t\tType: "+vertType+"\tSeen: "+seen+"\tMatch: "+match);
+						System.out.println("\t\tWeights Version: "+weightsVersion+"\tSeed: "+seed+"\tIterations: "+ITERATIONS);
+						throw new java.lang.Exception("More vertices matched then seen. See details above.");
+					}
+				}
+				
+				// Write totalTypeMatchedMap and totalTypeSeenMap to file
 				for(String vertType : totalTypeMatchedMap.keySet()) {
 					out.set(EthicalBloodOutput.Col.valueOf("MATCH_"+vertType), totalTypeMatchedMap.get(vertType));
 				}
@@ -1004,10 +1013,9 @@ public class EthicalDriver {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		//runSimulation();
-		ArrayList<Integer> weightsToTest = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 3, 4, 5));
-		//runSimulationWithWeights(weightsToTest);
+		ArrayList<Integer> weightsToTest = new ArrayList<Integer>(Arrays.asList(1));
 		runSimWeightsBlood(weightsToTest);
 	}
 

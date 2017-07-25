@@ -23,15 +23,18 @@ public class EthicalVertexPair extends VertexPair {
 	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights (weights2)
 	private boolean usePatientWeights = true;
 	
-	//Patient weights estimated by Bradley-Terry model (in R script)
+	//Weights used by "special" algorithm to prioritize pairs
 	double[] weights;
 	//default
 	double[] weights1 = {1.000000000, 0.103243396, 0.236280167, 0.035722844, 0.070045054, 0.011349772, 0.024072427, 0.002769801};
+	
 	//alternates
 	double[] weights0 = {1, 1, 1, 1, 1, 1, 1, 1};
-	double[] weights3 = {1.000000000, 0.998, 0.999, 0.996, 0.997, 0.994, 0.995, 0.993};
+	double[] weights3 = {1, 0.998, 0.999, 0.996, 0.997, 0.994, 0.995, 0.993};
 	double[] weights4 = {0.8, 0.6, 0.4, 0.3, 1, 0.7, 0.9, 0.5};
 	double[] weights5 = {0.5, 0.7, 0.9, 1, 0.3, 0.6, 0.4, 0.8};
+	double[] weights6 = {1, 0.8, 0.9, 0.6, 0.7, 0.4, 0.5, 0.3};
+	double[] weights7 = {1, 0.978697374, 0.991420029, 0.932724747, 0.967046957, 0.766489634, 0.899526405, 0.002769801};
 	
 	//Characteristic weights estimated by Bradley-Terry model (in R script)
 	double weight_age = -2.419075;
@@ -89,10 +92,8 @@ public class EthicalVertexPair extends VertexPair {
 		if (weightsType == 3) { this.weights = this.weights3; }
 		if (weightsType == 4) { this.weights = this.weights4; }
 		if (weightsType == 5) { this.weights = this.weights5; }
-		if ((weightsType > 5) || (weightsType < 0)) {
-			throw new UnsupportedOperationException("There is no weights type "+weightsType+". Please choose one of "
-					+ "types 1-5.");
-		}
+		if (weightsType == 6) { this.weights = this.weights6; }
+		if (weightsType == 7) { this.weights = this.weights7; }
 		return calcPatientWeight();
 	}
 	

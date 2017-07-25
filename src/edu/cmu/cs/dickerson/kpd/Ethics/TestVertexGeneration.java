@@ -55,7 +55,7 @@ public class TestVertexGeneration {
 	public static void main(String[] args) throws IOException {
 		
 		//Must only test two versions at a time (or adapt compareVertices method above)
-		int[] versionsToTest = {0, 4};
+		int[] versionsToTest = {4, 5};
 		
 		//Run Ethical Driver
 		runSimulation(versionsToTest);
