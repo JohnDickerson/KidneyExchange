@@ -1,9 +1,12 @@
 package edu.cmu.cs.dickerson.kpd.structure.generator;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,6 +25,7 @@ import edu.cmu.cs.dickerson.kpd.structure.real.UNOSDonor;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSRecipient;
 import edu.cmu.cs.dickerson.kpd.structure.real.sampler.ExactSplitUNOSSampler;
+import edu.cmu.cs.dickerson.kpd.structure.real.sampler.InOrderUNOSSampler;
 import edu.cmu.cs.dickerson.kpd.structure.real.sampler.RealSplitUNOSSampler;
 import edu.cmu.cs.dickerson.kpd.structure.real.sampler.UNOSSampler;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
@@ -58,6 +62,64 @@ public class UNOSGenerator extends PoolGenerator {
 		this.threshold = threshold;
 	}
 
+	/**
+	 * Given N UNOSPairs (either patient-donor pairs or altruists), creates an
+	 * NxN adjacency matrix where cell i,j represents whether UNOSPair i could
+	 * give to UNOSPair j, according to our compatibility function.
+	 * 
+	 * Writes this matrix and an additional information matrix (one row per 
+	 * vertex, tells whether this vertex is alt/pair, blood type, etc) to two 
+	 * CSV files with baseFileName as head of file
+	 */
+	public void writeSamplingFiles(String baseFileName) {
+		
+		// Generate a pool containing exactly one of every pair or altruist
+		// loaded into the generator from real data
+		this.currentVertexID = 0;  // have to reset so this doesn't keep incrementing as we make independent pools
+		this.vertexMap = new HashMap<Vertex, UNOSPair>();
+		Pool pool = new Pool(Edge.class);
+		addVerticesToPool(pool, pairs.size(), new InOrderUNOSSampler(pairs));
+		int N = pool.vertexSet().size();
+		assert(N == pairs.size());
+		IOUtil.dPrintln("Generated pool with " + N + " unique UNOS altruists and pairs.");
+		
+		// Write the dense adjacency matrix to a CSV file
+		pool.writeUNOSGraphToDenseAdjacencyMatrix(baseFileName+"_adj.csv");
+		
+		// Create an N x F matrix recording other features of each vertex,
+		// and write to a CSV file as well
+		String[] detailsArray = new String[N];
+		for(Vertex v : pool.vertexSet()) {
+			int idx = v.getID();
+			assert(idx>=0 && idx<N);
+			UNOSPair pair = v.getUnderlyingPair();
+			
+			String donorABO = "-";
+			if(v.getUnderlyingPair().getDonors().size() > 0) {
+				donorABO = pair.getDonors().iterator().next().abo.toString();
+			}
+			detailsArray[idx] = idx + "," + 
+					(pair.isAltruist() ? "1," : "0,") + 
+					(pair.getRecipient() == null ? "-" : pair.getRecipient().abo) + "," + 
+					donorABO + ",";
+		}
+		
+		try {
+			PrintWriter writer = new PrintWriter(baseFileName+"_details.csv", "UTF-8");
+			for(int v_i=0; v_i<N; v_i++) {
+				writer.println(detailsArray[v_i]);
+			}
+
+			writer.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		return;
+		
+	}
+	
 	public void printStatistics() {
 		
 		Map<BloodType, Double> donorABO = new HashMap<BloodType, Double>();
@@ -343,6 +405,19 @@ public class UNOSGenerator extends PoolGenerator {
 
 	public void setThreshold(int threshold) {
 		this.threshold = threshold;
+	}
+	
+	
+	
+	/** 
+	 * Load all the files in, generate a graph with one of each vertex ever
+	 * seen, and output an adjacency matrix
+	 */
+	public static void main(String[] args) {
+		String basePath = IOUtil.getBaseUNOSFilePath();
+		UNOSGenerator gen = UNOSGenerator.makeAndInitialize(basePath, ',');
+		
+		gen.writeSamplingFiles("unos_data");
 	}
 
 	

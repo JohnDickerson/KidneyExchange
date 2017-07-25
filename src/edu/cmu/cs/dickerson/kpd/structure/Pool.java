@@ -680,6 +680,9 @@ public class Pool extends DefaultDirectedWeightedGraph<Vertex, Edge> {
 			// Otherwise, set (v_i, v_j) to True in our existence array
 			edgeExists[this.getEdgeSource(e).getID()][this.getEdgeTarget(e).getID()] = true;
 		}
+		for(Vertex v : this.vertexSet()) {
+			System.out.println(v.getID() + " " + v.isAltruist());
+		}
 		return edgeExists;
 	}
 
