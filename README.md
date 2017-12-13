@@ -28,6 +28,13 @@ To use any of the solvers that inherit from `CPLEXSolver`, you will need to add 
 IBM offers a free academic license for CPLEX as well as a 90-day free trial available on their website.
 
 
+Personal Contributions
+==============
+I wrote the "ethics" portion of the codebase and used it for my paper:
+
+_Adapting a Kidney Exchange to ALign With Human Values_.  Rachel Freedman, Jana Schaich Borg, Walter Sinnott-Armstrong, John P. Dickerson, Vincent Conitzer.  **AAAI-2018**.  [Link](http://jpdickerson.com/pubs/freedman18adapting.pdf "John P. Dickerson")
+
+
 Related Research
 ================
 
