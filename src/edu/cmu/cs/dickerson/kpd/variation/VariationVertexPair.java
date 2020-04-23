@@ -4,9 +4,17 @@ import edu.cmu.cs.dickerson.kpd.structure.VertexPair;
 import edu.cmu.cs.dickerson.kpd.structure.real.UNOSPair;
 import edu.cmu.cs.dickerson.kpd.structure.types.BloodType;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
 public class VariationVertexPair extends VertexPair {
 	
-	//Store profile type
+	//Store profile type of patient
 	private int profileID;
 	
 	//Store profile and blood type
@@ -19,6 +27,9 @@ public class VariationVertexPair extends VertexPair {
 	private boolean isYoung;		
 	private boolean isNonalcoholic;
 	private boolean isHealthy;
+
+	//Sampled societal preferences
+	private PreferenceOrdering preferenceOrdering;
 	
 	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights (weights2)
 	private boolean usePatientWeights = true;
@@ -49,6 +60,7 @@ public class VariationVertexPair extends VertexPair {
 		this.isNonalcoholic = isNonalcoholic;
 		this.isHealthy = isHealthy;
 		this.weight = calcWeight(weightsType);
+		this.preferenceOrdering = samplePreferenceOrdering();
 		setProfileID();
 		setBloodID();
 		//System.out.println("ID: "+this.profileID+" age: "+this.isYoung+" alc: "+this.isNonalcoholic+" hlth: "+this.isHealthy);
@@ -79,7 +91,15 @@ public class VariationVertexPair extends VertexPair {
 	public String getBloodID() {
 		return this.bloodID;
 	}
-	
+
+	public int getRankOfRecipient(VariationVertexPair pair) {
+		return this.getRankOfRecipient(pair.getProfileID());
+	}
+
+	public int getRankOfRecipient(int patientProfileId) {
+		return this.preferenceOrdering.rank(patientProfileId);
+	}
+
 	/**
 	 * Calculates the special weight of the VariationVertexPair, based
 	 * on their "ethical" characteristics (age, alcohol, health)
@@ -95,6 +115,30 @@ public class VariationVertexPair extends VertexPair {
 		if (weightsType == 6) { this.weights = this.weights6; }
 		if (weightsType == 7) { this.weights = this.weights7; }
 		return calcPatientWeight();
+	}
+
+	private PreferenceOrdering samplePreferenceOrdering() {
+		// read in preference orderings
+		List<List<Integer>> orderings = new ArrayList<>();
+		try (BufferedReader br = new BufferedReader(new FileReader(VariationDriver.INPUT_PATH + "preference_orderings.csv"))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				String[] vals = line.split(",");
+				orderings.add(Arrays.asList(vals).stream()
+						.map(s -> Integer.parseInt(s))
+						.collect(Collectors.toList()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// sample one ordering from list
+		int r = new Random().nextInt(orderings.size());
+		List<Integer> ordering_list = orderings.get(r);
+		int[] ordering = ordering_list.stream().mapToInt(i->i).toArray();
+
+		// initialize PreferenceOrdering with that ordering
+		return new PreferenceOrdering(ordering);
 	}
 	
 	/**

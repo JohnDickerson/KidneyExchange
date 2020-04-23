@@ -34,6 +34,10 @@ public class VariationDriver {
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
 
+	// File Directories
+	public static final String INPUT_PATH = "src/edu/cmu/cs/dickerson/kpd/variation/input/";
+	public static final String OUTPUT_PATH = "src/edu/cmu/cs/dickerson/kpd/variation/output/";
+
 	// Toggle printing debugging info to console
 	static final boolean DEBUG = true;
 
