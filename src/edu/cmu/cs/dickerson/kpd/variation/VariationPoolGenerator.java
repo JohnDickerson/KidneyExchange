@@ -353,7 +353,7 @@ public class VariationPoolGenerator extends PoolGenerator {
 
 
 	// Adds vertices with "ethical" edge weights
-	public Set<Vertex> addSpecialVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+	public Set<Vertex> addVerticesWithRecipientEdgeWeights(Pool pool, int numPairs, int numAltruists) {
 
 		// Generate new vertices
 		Pool more = this.generate(numPairs, numAltruists);
@@ -405,7 +405,61 @@ public class VariationPoolGenerator extends PoolGenerator {
 		// Return only the new vertices that were generated
 		return more.vertexSet();
 	}
-	
+
+	// Adds vertices with "variation" edge weights
+	public Set<Vertex> addVerticesWithDonorRecipientEdgeWeights(Pool pool, int numPairs, int numAltruists) {
+
+		// Generate new vertices
+		Pool more = this.generate(numPairs, numAltruists);
+
+		// Add edges from/to the new vertices
+		for(VertexPair v : more.getPairs()) { pool.addPair(v); }
+		for(VertexPair vN : more.getPairs()) {
+			for(VertexPair vO : pool.getPairs()) {
+				if(vN.equals(vO)) { continue; }  // Don't add self-edges
+
+				// Donate from new vertex to other vertex
+				if(isCompatible(vN, vO) && !pool.containsEdge(vN, vO)) {
+					double weight = ((VariationVertexPair) vO).getWeight();
+					pool.setEdgeWeight(pool.addEdge(vN, vO), weight);
+				}
+				// Donate from other vertex to new vertex
+				if(isCompatible(vO, vN)&& !pool.containsEdge(vO, vN)) {
+					double weight = ((VariationVertexPair) vN).getWeight();
+					pool.setEdgeWeight(pool.addEdge(vO, vN), weight);
+				}
+			}
+
+			// Adds edges from old altruists to new vertices
+			for(VertexAltruist altO : pool.getAltruists()) {
+				if(isCompatible(altO, vN)) {
+					double weight = ((VariationVertexPair) vN).getWeight();
+					pool.setEdgeWeight(pool.addEdge(altO, vN), weight);
+				}
+				// Add dummy edges from a non-altruist donor to each of the altruists
+				pool.setEdgeWeight(pool.addEdge(vN, altO), 0.0);
+			}
+		}
+
+		// Add edges from/to the new altruists from all (old+new) vertices
+		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }
+		for(VertexAltruist altN : more.getAltruists()) {
+			// No edges between altruists
+			for(VertexPair v : pool.getPairs()) {
+				if(isCompatible(altN, v)) {
+					double weight = ((VariationVertexPair) v).getWeight();
+					pool.setEdgeWeight(pool.addEdge(altN, v), weight);
+				}
+
+				// Add dummy edges from a non-altruist donor to each of the altruists
+				pool.setEdgeWeight(pool.addEdge(v, altN), 0.0);
+			}
+		}
+
+		// Return only the new vertices that were generated
+		return more.vertexSet();
+	}
+
 	public void close(long seed) {
 		this.out.println("SEED: "+seed+",,,");
 		this.out.close();

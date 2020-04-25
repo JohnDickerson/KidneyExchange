@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class VariationVertexPair extends VertexPair {
-	
+
 	//Store profile type of patient
 	private int profileID;
 	
@@ -22,6 +22,9 @@ public class VariationVertexPair extends VertexPair {
 	
 	//"Special weight" stored
 	private double weight;
+
+	//Store BLP model;
+	private BLPModel blpModel;
 	
 	//"Ethical" demographics
 	private boolean isYoung;		
@@ -29,7 +32,7 @@ public class VariationVertexPair extends VertexPair {
 	private boolean isHealthy;
 
 	//Sampled societal preferences
-	private PreferenceOrdering preferenceOrdering;
+	public PreferenceOrdering preferenceOrdering;
 	
 	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights (weights2)
 	private boolean usePatientWeights = true;
@@ -63,6 +66,7 @@ public class VariationVertexPair extends VertexPair {
 		this.preferenceOrdering = samplePreferenceOrdering();
 		setProfileID();
 		setBloodID();
+		this.blpModel = new BLPModel();
 		//System.out.println("ID: "+this.profileID+" age: "+this.isYoung+" alc: "+this.isNonalcoholic+" hlth: "+this.isHealthy);
 	}
 	
@@ -268,6 +272,14 @@ public class VariationVertexPair extends VertexPair {
 
 	public void setBloodTypeDonor(BloodType bloodTypeDonor) {
 		this.bloodTypeDonor = bloodTypeDonor;
+	}
+
+	public double getWeight(VariationVertexPair toVertex) {
+		return this.blpModel.getWeight(toVertex.profileID);
+	}
+
+	public int getRank(VariationVertexPair toVertex) {
+		return this.blpModel.getRank(toVertex.profileID);
 	}
 	
 	public static void main(String[] args) {

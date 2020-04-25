@@ -27,8 +27,8 @@ public class VariationDriver {
 	static final int CHAIN_CAP = 4;
 	static final int CYCLE_CAP = 3;
 	static final int EXPECTED_PAIRS = 2;
-	static final int EXPECTED_ALTRUISTS = 0;
-	static final int ITERATIONS = 365;
+	static final int EXPECTED_ALTRUISTS = 0; //should always be 0
+	static final int ITERATIONS = 10;
 	static final int NUM_RUNS = 30;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
@@ -130,7 +130,7 @@ public class VariationDriver {
 					// Add vertices with VariationVertexPair weights for edge weights
 					Set<Vertex> addedVertices = null;
 					if (useSpecialWeights) {
-						addedVertices = poolGen.addSpecialVerticesToPool(pool, pairs, alts);
+						addedVertices = poolGen.addVerticesWithRecipientEdgeWeights(pool, pairs, alts);
 					} 
 					// ...or add vertices with edge weights 1
 					else {
@@ -268,6 +268,7 @@ public class VariationDriver {
 						}
 						// Record matches
 						for(Cycle c : sol.getMatching()){
+							c.getEdges();
 							matches.add(c);
 							totalMatches.add(c);
 						}
@@ -440,7 +441,7 @@ public class VariationDriver {
 
 					// Add vertices with VariationVertexPair weights for edge weights
 					Set<Vertex> addedVertices = null;
-					addedVertices = poolGen.addSpecialVerticesToPool(pool, pairs, alts);
+					addedVertices = poolGen.addVerticesWithRecipientEdgeWeights(pool, pairs, alts);
 
 					// Keep track of how many of each ethical type of vertex arrive in the pool
 					for(Vertex v : addedVertices) {
