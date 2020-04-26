@@ -31,8 +31,8 @@ public class VariationDriver {
 	// Probabilities generated based on a match frequency of 1 day
 	static final int CYCLE_CAP = 3;
 	static final int EXPECTED_PAIRS = 4;
-	static final int ITERATIONS = 50;
-	static final int NUM_RUNS = 30;
+	static final int ITERATIONS = 365*5;
+	static final int NUM_RUNS = 50;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
 	static final double RENEGE = .5;
