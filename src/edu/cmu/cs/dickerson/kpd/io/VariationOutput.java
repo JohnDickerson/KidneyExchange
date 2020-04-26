@@ -46,7 +46,6 @@ public class VariationOutput extends Output {
 		header[Col.NUM_ITERATIONS.getColIdx()] = "Number of Iterations";
 		header[Col.ARRIVAL_PAIRS.getColIdx()] = "Expected Arrival Rate (Pairs)";
 		header[Col.SEEN_PAIRS.getColIdx()] = "Total Pairs Seen";
-		header[Col.SEEN_ALTS.getColIdx()] = "Total Altruists Seen";
 		header[Col.DEPARTED_PAIRS.getColIdx()] = "Total Departed Pairs";
 		header[Col.SEEN_TYPE1.getColIdx()] = "Seen (Type 1)";
 		header[Col.SEEN_TYPE2.getColIdx()] = "Seen (Type 2)";

@@ -29,12 +29,9 @@ public class VariationDriver {
 	}
 
 	// Probabilities generated based on a match frequency of 1 day
-//	static int days = 7;	//Days in a week
-//	static final int CHAIN_CAP = 4;
 	static final int CYCLE_CAP = 3;
-	static final int EXPECTED_PAIRS = 2;
-//	static final int EXPECTED_ALTRUISTS = 0;
-	static final int ITERATIONS = 100;
+	static final int EXPECTED_PAIRS = 4;
+	static final int ITERATIONS = 50;
 	static final int NUM_RUNS = 30;
 	static final double DEATH = 0.000580725433182381168050643691;
 	static final double PATIENCE = 0.02284;
@@ -45,328 +42,26 @@ public class VariationDriver {
 	public static final String OUTPUT_PATH = "src/edu/cmu/cs/dickerson/kpd/variation/output/";
 
 	// Toggle printing debugging info to console
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
 
 	public static void runExperiments(){
-
+		String expID = Long.toString(System.currentTimeMillis());
+		runSimulationWithEqualWeights(expID);
+		runSimulationWithPatientWeights(expID);
+		runSimulationWithDonorPatientWeights(expID);
 	}
-
-	/*
-	 * For each run in NUM_RUNS, creates 2 simulations of ITERATIONS days. The "STANDARD"
-	 * algorithm gives all patients weight 1, while the "SPECIAL" algorithm gives patients
-	 * weights defined by their "ethical" characteristics.
-	 */
-//	public static void runSimulation() {
-//
-//		// Set which weights version used for "special" weights (versions stored in VariationVertexPair)
-//		final int WEIGHTS_VERSION = 1;
-//
-//		long startTime = System.currentTimeMillis();
-//
-//		// Store output for csv export
-//		String path = "ethical_" + System.currentTimeMillis() + ".csv";
-//		EthicalOutput out = null;
-//		try {
-//			out = new EthicalOutput(path);
-//		} catch(IOException e) {
-//			e.printStackTrace();
-//			return;
-//		}
-//
-//		for (int n = 0; n < NUM_RUNS; n++) {
-//
-//			if (DEBUG) { System.out.println("\n****TEST "+n+"****"); }
-//
-//			long seed = 10L + n;
-//			long rFailureSeed = seed + 1L;
-//			long rEntranceSeed = seed + 2L;
-//			long rDepartureSeed = seed + 3L;
-//			long rArrivalSeedM = seed + 4L;
-//			long rArrivalSeedA = seed + 6L;
-//
-//			boolean[] wgt = {false, true};
-//			for (boolean useSpecialWeights : wgt) {
-//
-//				String weightType = (useSpecialWeights) ? "SPECIAL" : "STANDARD";
-//
-//				if (DEBUG) { System.out.println("\n-------------\nRUNNING WITH " + weightType + " WEIGHTS.\n"); }
-//
-//				if (useSpecialWeights) {
-//					out.set(Col.VERSION, WEIGHTS_VERSION);
-//				}
-//				else {
-//					// STANDARD is weights version 0
-//					out.set(Col.VERSION, 0);
-//				}
-//
-//				Random rFailure = new Random(rFailureSeed);
-//				Random rEntrance = new Random(rEntranceSeed);
-//				Random rDeparture = new Random(rDepartureSeed);
-//				Random rArrivalM = new Random(rArrivalSeedM);
-//				Random rArrivalA = new Random(rArrivalSeedA);
-//
-//				VariationPoolGenerator poolGen = new VariationPoolGenerator(rEntrance, WEIGHTS_VERSION);
-//				ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS, rArrivalM);
-//				ExponentialArrivalDistribution a = new ExponentialArrivalDistribution(1.0/EXPECTED_ALTRUISTS, rArrivalA);
-//				Pool pool = new Pool(Edge.class);
-//				ArrayList<Cycle> matches = new ArrayList<Cycle>();
-//
-//				// Record parameters for this set of runs
-//				out.set(Col.SEED, seed);
-//				out.set(Col.NUM_ITERATIONS, ITERATIONS);
-//				out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
-//				out.set(Col.ARRIVAL_ALTS, EXPECTED_ALTRUISTS);
-//				out.set(Col.ALG_TYPE, weightType);
-//
-//				// Accumulators for vertices seen,
-//				int totalPairsSeen = 0;
-//				int totalAltsSeen = 0;
-//				int totalPairsDeparted = 0;
-//				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
-//				Map<Integer, Integer> totalTypeSeenMap = new HashMap<Integer, Integer>();
-//				for(int vertType=1; vertType<=8; vertType++) {
-//					totalTypeSeenMap.put(vertType, 0);
-//				}
-//
-//				for (int i = 0; i < ITERATIONS; i++) {
-//					// Add new vertices to the pool
-//					int pairs = m.draw().intValue();
-//					int alts = a.draw().intValue();
-//					// Count new vertices
-//					totalPairsSeen += pairs;
-//					totalAltsSeen += alts;
-//					if (DEBUG) { System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs and "+alts+" new altruist(s)"); }
-//
-//					// Add vertices with VariationVertexPair weights for edge weights
-//					Set<Vertex> addedVertices = null;
-//					if (useSpecialWeights) {
-//						addedVertices = poolGen.addVerticesWithRecipientEdgeWeights(pool, pairs, alts);
-//					}
-//					// ...or add vertices with edge weights 1
-//					else {
-//						addedVertices = poolGen.addVerticesToPool(pool, pairs, alts);
-//					}
-//
-//					// Keep track of how many of each ethical type of vertex arrive in the pool
-//					for(Vertex v : addedVertices) {
-//						if(!v.isAltruist()) {
-//							VariationVertexPair eV = (VariationVertexPair) v;
-//							totalTypeSeenMap.put(eV.getProfileID(), totalTypeSeenMap.get(eV.getProfileID())+1);
-//						}
-//					}
-//
-//					// Remove all pairs where the patient dies
-//					ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
-//					for (VertexPair v : pool.getPairs()) {
-//						if (rDeparture.nextDouble() <= DEATH) {
-//							totalPairsDeparted++;
-//							Iterator<Cycle> matchIterator = matches.iterator();
-//							while (matchIterator.hasNext()) {
-//								Cycle c = matchIterator.next();
-//								if (Cycle.getConstituentVertices(c, pool).contains(v)) {
-//									matchIterator.remove();
-//								}
-//							}
-//							rm.add(v);
-//						}
-//					}
-//					for(VertexPair v : rm){
-//						pool.removeVertex(v);
-//					}
-//					// Remove all altruists that run out of patience
-//					Iterator<VertexAltruist> aiter = pool.getAltruists().iterator();
-//					ArrayList<VertexAltruist> toRemove = new ArrayList<VertexAltruist>();
-//					while (aiter.hasNext()) {
-//						VertexAltruist alt = aiter.next();
-//						if (rDeparture.nextDouble() <= PATIENCE) {
-//							toRemove.add(alt);
-//						}
-//					}
-//					pool.removeAllVertices(toRemove);
-//
-//					// Remove edges matched in previous iteration
-//					Iterator<Cycle> iter = matches.iterator();
-//					while(iter.hasNext()) {
-//						Cycle ci = iter.next();
-//						boolean fail = false;
-//						for (Edge e : ci.getEdges()) {
-//							if (rFailure.nextDouble() <= e.getFailureProbability()) {
-//								iter.remove();
-//								fail = true;
-//								break;
-//							}
-//						}
-//						if(fail){
-//							continue;
-//						}
-//						//All edges in the Cycle remain, so we have a match!
-//						else {
-//							// We matched a chain, now we have to make the last donor a bridge donor with some probability
-//							if (Cycle.isAChain(ci, pool)) {
-//								if (DEBUG) { System.out.println("Matched a chain."); }
-//								ArrayList<VertexPair> trm = new ArrayList<VertexPair>();
-//								List<Edge> le = new ArrayList<Edge>();
-//								for(Edge e : ci.getEdges()){
-//									le.add(e);
-//								}
-//								Collections.reverse(le);
-//								le.remove(le.size()-1);
-//								for(Edge e : le){
-//									// The bridge donor reneged, we stop the chain here
-//									if (rDeparture.nextDouble() <= RENEGE) {
-//										trm.add((VertexPair)pool.getEdgeTarget(e));
-//										break;
-//									} else {
-//										VertexPair bridge = (VertexPair)pool.getEdgeTarget(e);
-//										trm.add(bridge);
-//										VertexAltruist bridgeDonor = new VertexAltruist(bridge.getID(),
-//												bridge.getBloodTypeDonor());
-//										pool.addAltruist(bridgeDonor);
-//									}
-//								}
-//								pool.removeAllVertices(trm);
-//							}
-//							else{
-//								if (DEBUG) {
-//									System.out.println("Matched cycle: ");
-//									for (Vertex v : Cycle.getConstituentVertices(ci, pool)) {
-//										System.out.print(v.getID() + "~");
-//									}
-//									System.out.println("");
-//								}
-//								// Remove all vertices in the match from the pool
-//								pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
-//							}
-//							// Remove this match from our current set of matchings
-//							iter.remove();
-//						}
-//					}
-//
-//					if (DEBUG) { printPool(pool, false); }
-//
-//					// Match the vertex pairs in the pool
-//					CycleGenerator cg = new CycleGenerator(pool);
-//					List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
-//					CycleMembership membership = new CycleMembership(pool, cycles);
-//
-//					try{
-//						VariationCPLEXSolver s = new VariationCPLEXSolver(pool, cycles, membership);
-//
-//						Solution sol = null;
-//						// "SPECIAL" solution
-//						if (useSpecialWeights) {
-//							// Store all weights in specialWeights
-//							Map<Edge, Double> specialWeights = new HashMap<Edge, Double>();
-//							for (Edge e : pool.getNonDummyEdgeSet()) {
-//								specialWeights.put(e, pool.getEdgeWeight(e));
-//							}
-//							// Set all weights to 1
-//							setBinaryEdgeWeights(pool);
-//							// Solve w/no cardinality constraint
-//							Solution intermediate = s.solve(0);
-//							// Set minimum cardinality
-//							double min_cardinality = intermediate.getObjectiveValue();
-//							// Restore original weights
-//							setStoredEdgeWeights(pool, specialWeights);
-//							// Solve with cardinality constraint
-//							sol = s.solve(min_cardinality);
-//						}
-//						// "STANDARD" solution
-//						else {
-//							// Solve w/no cardinality constraint
-//							sol = s.solve(0);
-//						}
-//						// Record matches
-//						for(Cycle c : sol.getMatching()){
-//							c.getEdges();
-//							matches.add(c);
-//							totalMatches.add(c);
-//						}
-//					}
-//					catch(SolverException e){
-//						e.printStackTrace();
-//						System.exit(-1);
-//					}
-//
-//					long endTime = System.currentTimeMillis();
-//
-//					long totalTime = endTime-startTime;
-//					if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
-//
-//				} // end of iterations loop
-//
-//				if (DEBUG) { System.out.println("\nSolved with "+weightType+" weights. Vertices matched:"); }
-//
-//				// Count vertices of each type matched
-//				Map<Integer, Integer> profileCounts = new HashMap<Integer, Integer>();
-//				for(int vertType=1; vertType<=8; vertType++) {
-//					profileCounts.put(vertType, 0);
-//				}
-//				for (Cycle c : totalMatches) {
-//					for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
-//						Integer profileID = ((VariationVertexPair) v).getProfileID();
-//						if (profileCounts.containsKey(profileID)) {
-//							profileCounts.put(profileID, profileCounts.get(profileID)+1);
-//						}
-//						else {
-//							profileCounts.put(profileID, 1);
-//						}
-//					}
-//				}
-//
-//				//Close vertices-generated output file in VariationPoolGenerator
-//				poolGen.close(seed);
-//
-//				if (DEBUG) { System.out.println(Arrays.asList(profileCounts)); }
-//
-//				// Record results for this entire run
-//				out.set(Col.SEEN_PAIRS, totalPairsSeen);
-//				out.set(Col.SEEN_ALTS, totalAltsSeen);
-//				out.set(Col.DEPARTED_PAIRS, totalPairsDeparted);
-//
-//				for(Integer vertType : profileCounts.keySet()) {
-//					out.set(Col.valueOf("MATCHED_TYPE"+vertType), profileCounts.get(vertType));
-//				}
-//				for(Integer vertType : totalTypeSeenMap.keySet()) {
-//					out.set(Col.valueOf("SEEN_TYPE"+vertType), totalTypeSeenMap.get(vertType));
-//				}
-//
-//				// Keep me at the bottom of one run
-//				// Write the row of data
-//				try {
-//					out.record();
-//				} catch(IOException e) {
-//					IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
-//					e.printStackTrace();
-//					System.exit(-1);
-//				}
-//			} // end of special/standard weights loop
-//		} // end of runs loop
-//
-//		// Experiment complete
-//		long time = (System.currentTimeMillis()-startTime)/60000;
-//		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.\n\n\n");
-//
-//		// clean up CSV writer
-//		if(null != out) {
-//			try {
-//				out.close();
-//			} catch(IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
 
 	/*
 	 * For each run in NUM_RUNS, creates a simulation of ITERATIONS days.
 	 * Break ties (equal-cardinality matchings) using weights based on donor
 	 * preference and recipient profile (calculated with BLP model).
 	 */
-	public static void runSimulationWithDonorPatientWeights() {
+	public static void runSimulationWithDonorPatientWeights(String expId) {
 		long startTime = System.currentTimeMillis();
 
 		// Store output for csv export
-		String path = OUTPUT_PATH + "variation_" + System.currentTimeMillis() + ".csv";
+		String condition = Condition.DONOR_PATIENT_WEIGHTS.toString();
+		String path = OUTPUT_PATH + condition + "_" + expId + ".csv";
 		VariationOutput out = null;
 		try {
 			out = new VariationOutput(path);
@@ -379,18 +74,16 @@ public class VariationDriver {
 
 			if (DEBUG) { System.out.println("\n****RUN "+n+"****"); }
 
-			long seed = 10L + n;
+			long seed = 100L + n;
 			long rFailureSeed = seed + 1L;
 			long rEntranceSeed = seed + 2L;
 			long rDepartureSeed = seed + 3L;
 			long rArrivalSeedM = seed + 4L;
-			long rArrivalSeedA = seed + 6L;
 
 			Random rFailure = new Random(rFailureSeed);
 			Random rEntrance = new Random(rEntranceSeed);
 			Random rDeparture = new Random(rDepartureSeed);
 			Random rArrivalM = new Random(rArrivalSeedM);
-			Random rArrivalA = new Random(rArrivalSeedA);
 
 			VariationPoolGenerator poolGen = new VariationPoolGenerator(rEntrance);
 			ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS, rArrivalM);
@@ -398,7 +91,7 @@ public class VariationDriver {
 			ArrayList<Cycle> matches = new ArrayList<Cycle>();
 
 			// Record parameters for this set of runs
-			out.set(Col.CONDITION, Condition.DONOR_PATIENT_WEIGHTS.toString());
+			out.set(Col.CONDITION, condition);
 			out.set(Col.SEED, seed);
 			out.set(Col.NUM_ITERATIONS, ITERATIONS);
 			out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
@@ -424,10 +117,8 @@ public class VariationDriver {
 
 				// Keep track of how many of each patient profile arrive in the pool
 				for(Vertex v : addedVertices) {
-					if(!v.isAltruist()) {
-						VariationVertexPair eV = (VariationVertexPair) v;
-						totalPairsSeenByProfile.put(eV.getProfileID(), totalPairsSeenByProfile.get(eV.getProfileID())+1);
-					}
+					VariationVertexPair eV = (VariationVertexPair) v;
+					totalPairsSeenByProfile.put(eV.getProfileID(), totalPairsSeenByProfile.get(eV.getProfileID())+1);
 				}
 
 				// Remove all pairs where the patient dies
@@ -489,7 +180,7 @@ public class VariationDriver {
 				try{
 					VariationCPLEXSolver s = new VariationCPLEXSolver(pool, cycles, membership);
 
-					// Store all weights in specialWeights
+					// Temporarily store all weights
 					Map<Edge, Double> storedEdgeWeights = new HashMap<Edge, Double>();
 					for (Edge e : pool.getNonDummyEdgeSet()) {
 						storedEdgeWeights.put(e, pool.getEdgeWeight(e));
@@ -502,7 +193,6 @@ public class VariationDriver {
 					double min_cardinality = intermediate.getObjectiveValue();
 					// Restore original weights
 					setStoredEdgeWeights(pool, storedEdgeWeights);
-
 					// Solve with cardinality constraint
 					Solution sol = s.solve(min_cardinality);
 
@@ -522,18 +212,19 @@ public class VariationDriver {
 				long totalTime = endTime-startTime;
 				if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
 
-			} // end of iterations loop
+			}
 
-			if (DEBUG) { System.out.println("\nSolved with weights condition "+Condition.DONOR_PATIENT_WEIGHTS.toString()+". Vertices matched:"); }
+			// Run complete. Record data.
+			if (DEBUG) { System.out.println("\nSolved with weights condition "+condition); }
 
 			// Count vertices of each profile ID matched
-			Map<Integer, Integer> totalPairsMatchedByProfile = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> totalPairsMatchedByProfile = new HashMap();
 			for(int vertType=1; vertType<=8; vertType++) {
 				totalPairsMatchedByProfile.put(vertType, 0);
 			}
 
 			//Count edges of each rank matched
-			Map<Integer, Integer> totalPairsMatchedByRank = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> totalPairsMatchedByRank = new HashMap();
 			for(int rank=1; rank<=8; rank++) {
 				totalPairsMatchedByRank.put(rank, 0);
 			}
@@ -541,29 +232,22 @@ public class VariationDriver {
 			for (Cycle c : totalMatches) {
 				for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
 					Integer profileID = ((VariationVertexPair) v).getProfileID();
-//					if (totalPairsMatchedByProfile.containsKey(profileID)) {
-						totalPairsMatchedByProfile.put(profileID, totalPairsMatchedByProfile.get(profileID)+1);
-//					}
-//					else {
-//						totalPairsMatchedByProfile.put(profileID, 1);
-//					}
+					totalPairsMatchedByProfile.put(profileID, totalPairsMatchedByProfile.get(profileID)+1);
 				}
 				for (Edge edge : c.getEdges()) {
 					VariationVertexPair fromVertex = (VariationVertexPair) pool.getEdgeSource(edge);
 					VariationVertexPair toVertex = (VariationVertexPair) pool.getEdgeTarget(edge);
 					int rank = fromVertex.getRank(toVertex);
-//					System.out.println("RANK: rank");
-
-//					if (totalPairsMatchedByRank.containsKey(rank)) {
-						totalPairsMatchedByRank.put(rank, totalPairsMatchedByRank.get(rank)+1);
-//					}
-//					else {
-//						totalPairsMatchedByRank.put(rank, 1);
-					}
-//				}
+					totalPairsMatchedByRank.put(rank, totalPairsMatchedByRank.get(rank)+1);
+				}
 			}
 
-			if (DEBUG) { System.out.println(Arrays.asList(totalPairsMatchedByProfile)); }
+			if (DEBUG) {
+				System.out.println("Total pairs matched by profile:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+				System.out.println("Total pairs matched by rank:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+			}
 
 			// Record results for this entire run
 			out.set(Col.SEEN_PAIRS, totalPairsSeen);
@@ -588,9 +272,9 @@ public class VariationDriver {
 				e.printStackTrace();
 				System.exit(-1);
 			}
-		} // end of runs loop
+		}
 
-		// Experiment complete
+		// All runs complete
 		long time = (System.currentTimeMillis()-startTime)/60000;
 		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.\n\n\n");
 
@@ -610,317 +294,460 @@ public class VariationDriver {
 	 * Break ties (equal-cardinality matchings) using weights based only on
 	 * recipient profile (calculated with BT model).
 	 */
-	public static void runSimulationWithPatientWeights() {
+	public static void runSimulationWithPatientWeights(String expId) {
+		long startTime = System.currentTimeMillis();
 
+		// Store output for csv export
+		String condition = Condition.PATIENT_WEIGHTS.toString();
+		String path = OUTPUT_PATH + condition + "_" + expId + ".csv";
+		VariationOutput out = null;
+		try {
+			out = new VariationOutput(path);
+		} catch(IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		for (int n = 0; n < NUM_RUNS; n++) {
+
+			if (DEBUG) { System.out.println("\n****RUN "+n+"****"); }
+
+			long seed = 100L + n;
+			long rFailureSeed = seed + 1L;
+			long rEntranceSeed = seed + 2L;
+			long rDepartureSeed = seed + 3L;
+			long rArrivalSeedM = seed + 4L;
+
+			Random rFailure = new Random(rFailureSeed);
+			Random rEntrance = new Random(rEntranceSeed);
+			Random rDeparture = new Random(rDepartureSeed);
+			Random rArrivalM = new Random(rArrivalSeedM);
+
+			VariationPoolGenerator poolGen = new VariationPoolGenerator(rEntrance);
+			ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS, rArrivalM);
+			Pool pool = new Pool(Edge.class);
+			ArrayList<Cycle> matches = new ArrayList<Cycle>();
+
+			// Record parameters for this set of runs
+			out.set(Col.CONDITION, condition);
+			out.set(Col.SEED, seed);
+			out.set(Col.NUM_ITERATIONS, ITERATIONS);
+			out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
+
+			// Accumulators for this run
+			int totalPairsSeen = 0;
+			int totalPairsDeparted = 0;
+			ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
+			Map<Integer, Integer> totalPairsSeenByProfile = new HashMap<Integer, Integer>();
+			for(int vertType=1; vertType<=8; vertType++) {
+				totalPairsSeenByProfile.put(vertType, 0);
+			}
+
+			for (int i = 0; i < ITERATIONS; i++) {
+				// Add new vertices to the pool
+				int pairs = m.draw().intValue();
+				totalPairsSeen += pairs;
+				if (DEBUG) { System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs"); }
+
+				// Add vertices with VariationVertexPair weights for edge weights
+				Set<Vertex> addedVertices = null;
+				addedVertices = poolGen.addVerticesWithPatientEdgeWeights(pool, pairs);
+
+				// Keep track of how many of each patient profile arrive in the pool
+				for(Vertex v : addedVertices) {
+					VariationVertexPair eV = (VariationVertexPair) v;
+					totalPairsSeenByProfile.put(eV.getProfileID(), totalPairsSeenByProfile.get(eV.getProfileID())+1);
+				}
+
+				// Remove all pairs where the patient dies
+				ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
+				for (VertexPair v : pool.getPairs()) {
+					if (rDeparture.nextDouble() <= DEATH) {
+						totalPairsDeparted++;
+						Iterator<Cycle> matchIterator = matches.iterator();
+						while (matchIterator.hasNext()) {
+							Cycle c = matchIterator.next();
+							if (Cycle.getConstituentVertices(c, pool).contains(v)) {
+								matchIterator.remove();
+							}
+						}
+						rm.add(v);
+					}
+				}
+				for(VertexPair v : rm){
+					pool.removeVertex(v);
+				}
+
+				// Remove edges matched in previous iteration
+				Iterator<Cycle> iter = matches.iterator();
+				while(iter.hasNext()) {
+					Cycle ci = iter.next();
+					boolean fail = false;
+					for (Edge e : ci.getEdges()) {
+						if (rFailure.nextDouble() <= e.getFailureProbability()) {
+							iter.remove();
+							fail = true;
+							break;
+						}
+					}
+					if(fail){
+						continue;
+					}
+					//All edges in the Cycle remain, so we have a match!
+					else {
+						if (DEBUG) {
+							System.out.println("Matched cycle: ");
+							for (Vertex v : Cycle.getConstituentVertices(ci, pool)) {
+								System.out.print(v.getID() + "~");
+							}
+							System.out.println("");
+						}
+						// Remove all vertices in the match from the pool
+						pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
+						iter.remove();
+					}
+				}
+
+				if (DEBUG) { printPool(pool, false); }
+
+				// Match the vertex pairs in the pool
+				CycleGenerator cg = new CycleGenerator(pool);
+				List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
+				CycleMembership membership = new CycleMembership(pool, cycles);
+
+				try{
+					VariationCPLEXSolver s = new VariationCPLEXSolver(pool, cycles, membership);
+
+					// Temporarily store all weights
+					Map<Edge, Double> storedEdgeWeights = new HashMap<Edge, Double>();
+					for (Edge e : pool.getNonDummyEdgeSet()) {
+						storedEdgeWeights.put(e, pool.getEdgeWeight(e));
+					}
+					// Set all weights to 1
+					setBinaryEdgeWeights(pool);
+					// Solve w/no cardinality constraint
+					Solution intermediate = s.solve(0);
+					// Set minimum cardinality
+					double min_cardinality = intermediate.getObjectiveValue();
+					// Restore original weights
+					setStoredEdgeWeights(pool, storedEdgeWeights);
+					// Solve with cardinality constraint
+					Solution sol = s.solve(min_cardinality);
+
+					// Record matches
+					for(Cycle c : sol.getMatching()){
+						matches.add(c);
+						totalMatches.add(c);
+					}
+				}
+				catch(SolverException e){
+					e.printStackTrace();
+					System.exit(-1);
+				}
+
+				long endTime = System.currentTimeMillis();
+
+				long totalTime = endTime-startTime;
+				if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
+
+			}
+
+			// Run complete. Record data.
+			if (DEBUG) { System.out.println("\nSolved with weights condition "+condition); }
+
+			// Count vertices of each profile ID matched
+			Map<Integer, Integer> totalPairsMatchedByProfile = new HashMap();
+			for(int vertType=1; vertType<=8; vertType++) {
+				totalPairsMatchedByProfile.put(vertType, 0);
+			}
+
+			//Count edges of each rank matched
+			Map<Integer, Integer> totalPairsMatchedByRank = new HashMap();
+			for(int rank=1; rank<=8; rank++) {
+				totalPairsMatchedByRank.put(rank, 0);
+			}
+
+			for (Cycle c : totalMatches) {
+				for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
+					Integer profileID = ((VariationVertexPair) v).getProfileID();
+					totalPairsMatchedByProfile.put(profileID, totalPairsMatchedByProfile.get(profileID)+1);
+				}
+				for (Edge edge : c.getEdges()) {
+					VariationVertexPair fromVertex = (VariationVertexPair) pool.getEdgeSource(edge);
+					VariationVertexPair toVertex = (VariationVertexPair) pool.getEdgeTarget(edge);
+					int rank = fromVertex.getRank(toVertex);
+					totalPairsMatchedByRank.put(rank, totalPairsMatchedByRank.get(rank)+1);
+				}
+			}
+
+			if (DEBUG) {
+				System.out.println("Total pairs matched by profile:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+				System.out.println("Total pairs matched by rank:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+			}
+
+			// Record results for this entire run
+			out.set(Col.SEEN_PAIRS, totalPairsSeen);
+			out.set(Col.DEPARTED_PAIRS, totalPairsDeparted);
+
+			for(Integer vertType : totalPairsMatchedByProfile.keySet()) {
+				out.set(Col.valueOf("MATCHED_TYPE"+vertType), totalPairsMatchedByProfile.get(vertType));
+			}
+			for(Integer vertRank : totalPairsMatchedByRank.keySet()) {
+				out.set(Col.valueOf("MATCHED_RANK"+vertRank), totalPairsMatchedByRank.get(vertRank));
+			}
+			for(Integer vertType : totalPairsSeenByProfile.keySet()) {
+				out.set(Col.valueOf("SEEN_TYPE"+vertType), totalPairsSeenByProfile.get(vertType));
+			}
+
+			// Keep me at the bottom of one run
+			// Write the row of data
+			try {
+				out.record();
+			} catch(IOException e) {
+				IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+
+		// All runs complete
+		long time = (System.currentTimeMillis()-startTime)/60000;
+		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.\n\n\n");
+
+		// clean up CSV writer
+		if(null != out) {
+			try {
+				out.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/*
-	 * For each run in NUM_RUNS, creates a simulation of ITERATIONS days using each
-	 * weights version passed in weightsToTest. The weights versions are enumerated
-	 * in VariationVertexPair class.
+	 * For each run in NUM_RUNS, creates a simulation of ITERATIONS days.
+	 * Weight all edges equally. Break ties between equal-cardinality matching
+	 * randomly.
 	 */
-//	public static void runSimulationWithWeights(ArrayList<Integer> weightsToTest) {
-//
-//		long startTime = System.currentTimeMillis();
-//
-//		// Store output for csv export
-//		String path = "ethical_" + System.currentTimeMillis() + ".csv";
-//		EthicalOutput out = null;
-//		try {
-//			out = new EthicalOutput(path);
-//		} catch(IOException e) {
-//			e.printStackTrace();
-//			return;
-//		}
-//
-//		// Intialize file to write pool size stats to
-//		PrintWriter poolOut = null;
-//		try {
-//			poolOut = new PrintWriter("pool_size_" + System.currentTimeMillis() + ".csv");
-//		} catch (FileNotFoundException e1) {
-//			e1.printStackTrace();
-//		}
-//		poolOut.println("iteration,size,run,weights_version\n");
-//
-//		for (int n = 0; n < NUM_RUNS; n++) {
-//
-//			if (DEBUG) { System.out.println("\n****TEST "+n+"****"); }
-//
-//			long seed = 10L + n;
-//			long rFailureSeed = seed + 1L;
-//			long rEntranceSeed = seed + 2L;
-//			long rDepartureSeed = seed + 3L;
-//			long rArrivalSeedM = seed + 4L;
-//			long rArrivalSeedA = seed + 6L;
-//
-//
-//			for (Integer weightsVersion : weightsToTest) {
-//
-//				//if (DEBUG) {
-//					System.out.println("\n-------------\nTesting weights version " + weightsVersion + ".\n"); //}
-//
-//				Random rFailure = new Random(rFailureSeed);
-//				Random rEntrance = new Random(rEntranceSeed);
-//				Random rDeparture = new Random(rDepartureSeed);
-//				Random rArrivalM = new Random(rArrivalSeedM);
-//				Random rArrivalA = new Random(rArrivalSeedA);
-//
-//				VariationPoolGenerator poolGen = new VariationPoolGenerator(rEntrance, weightsVersion);
-//				ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS, rArrivalM);
-//				ExponentialArrivalDistribution a = new ExponentialArrivalDistribution(1.0/EXPECTED_ALTRUISTS, rArrivalA);
-//				Pool pool = new Pool(Edge.class);
-//				ArrayList<Cycle> matches = new ArrayList<Cycle>();
-//
-//				// Record parameters for this set of runs
-//				out.set(Col.VERSION, weightsVersion);
-//				out.set(Col.SEED, seed);
-//				out.set(Col.NUM_ITERATIONS, ITERATIONS);
-//				out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
-//				out.set(Col.ARRIVAL_ALTS, EXPECTED_ALTRUISTS);
-//				if (weightsVersion == 0) {
-//					// STANDARD is weights version 0
-//					out.set(Col.ALG_TYPE, "STANDARD");
-//				}
-//				else {
-//					out.set(Col.ALG_TYPE, "SPECIAL");
-//				}
-//
-//				// Accumulators for vertices seen, matched over an entire set of runs
-//				int totalPairsSeen = 0;
-//				int totalAltsSeen = 0;
-//				int totalPairsDeparted = 0;
-//				ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
-//				Map<Integer, Integer> totalTypeSeenMap = new HashMap<Integer, Integer>();
-//				for(int vertType=1; vertType<=8; vertType++) {
-//					totalTypeSeenMap.put(vertType, 0);
-//				}
-//
-//
-//
-//				for (int i = 0; i < ITERATIONS; i++) {
-//					// Add new vertices to the pool
-//					int pairs = m.draw().intValue();
-//					int alts = a.draw().intValue();
-//					// Count new vertices
-//					totalPairsSeen += pairs;
-//					totalAltsSeen += alts;
-//					if (DEBUG) { System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs and "+alts+" new altruist(s)"); }
-//
-//					// Add vertices with VariationVertexPair weights for edge weights
-//					Set<Vertex> addedVertices = null;
-//					addedVertices = poolGen.addVerticesWithRecipientEdgeWeights(pool, pairs, alts);
-//
-//					// Keep track of how many of each ethical type of vertex arrive in the pool
-//					for(Vertex v : addedVertices) {
-//						if(!v.isAltruist()) {
-//							VariationVertexPair eV = (VariationVertexPair) v;
-//							totalTypeSeenMap.put(eV.getProfileID(), totalTypeSeenMap.get(eV.getProfileID())+1);
-//						}
-//					}
-//
-//					// Remove all pairs where the patient dies
-//					ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
-//					for (VertexPair v : pool.getPairs()) {
-//						if (rDeparture.nextDouble() <= DEATH) {
-//							totalPairsDeparted++;
-//							Iterator<Cycle> matchIterator = matches.iterator();
-//							while (matchIterator.hasNext()) {
-//								Cycle c = matchIterator.next();
-//								if (Cycle.getConstituentVertices(c, pool).contains(v)) {
-//									matchIterator.remove();
-//								}
-//							}
-//							rm.add(v);
-//						}
-//					}
-//					for(VertexPair v : rm){
-//						pool.removeVertex(v);
-//					}
-//					// Remove all altruists that run out of patience
-//					Iterator<VertexAltruist> aiter = pool.getAltruists().iterator();
-//					ArrayList<VertexAltruist> toRemove = new ArrayList<VertexAltruist>();
-//					while (aiter.hasNext()) {
-//						VertexAltruist alt = aiter.next();
-//						if (rDeparture.nextDouble() <= PATIENCE) {
-//							toRemove.add(alt);
-//						}
-//					}
-//					pool.removeAllVertices(toRemove);
-//
-//					// Remove edges matched in previous iteration
-//					Iterator<Cycle> iter = matches.iterator();
-//					while(iter.hasNext()) {
-//						Cycle ci = iter.next();
-//						boolean fail = false;
-//						for (Edge e : ci.getEdges()) {
-//							if (rFailure.nextDouble() <= e.getFailureProbability()) {
-//								iter.remove();
-//								fail = true;
-//								break;
-//							}
-//						}
-//						if(fail){
-//							continue;
-//						}
-//						//All edges in the Cycle remain, so we have a match!
-//						else {
-//							// We matched a chain, now we have to make the last donor a bridge donor with some probability
-//							if (Cycle.isAChain(ci, pool)) {
-//								if (DEBUG) { System.out.println("Matched a chain."); }
-//								ArrayList<VertexPair> trm = new ArrayList<VertexPair>();
-//								List<Edge> le = new ArrayList<Edge>();
-//								for(Edge e : ci.getEdges()){
-//									le.add(e);
-//								}
-//								Collections.reverse(le);
-//								le.remove(le.size()-1);
-//								for(Edge e : le){
-//									// The bridge donor reneged, we stop the chain here
-//									if (rDeparture.nextDouble() <= RENEGE) {
-//										trm.add((VertexPair)pool.getEdgeTarget(e));
-//										break;
-//									} else {
-//										VertexPair bridge = (VertexPair)pool.getEdgeTarget(e);
-//										trm.add(bridge);
-//										VertexAltruist bridgeDonor = new VertexAltruist(bridge.getID(),
-//												bridge.getBloodTypeDonor());
-//										pool.addAltruist(bridgeDonor);
-//									}
-//								}
-//								pool.removeAllVertices(trm);
-//							}
-//							else{
-//								if (DEBUG) {
-//									System.out.println("Matched cycle: ");
-//									for (Vertex v : Cycle.getConstituentVertices(ci, pool)) {
-//										System.out.print(v.getID() + "~");
-//									}
-//									System.out.println("");
-//								}
-//								// Remove all vertices in the match from the pool
-//								pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
-//							}
-//							// Remove this match from our current set of matchings
-//							iter.remove();
-//						}
-//					}
-//
-//					if (DEBUG) { printPool(pool, false); }
-//
-//					// Match the vertex pairs in the pool
-//					CycleGenerator cg = new CycleGenerator(pool);
-//					List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
-//					CycleMembership membership = new CycleMembership(pool, cycles);
-//
-//					try{
-//						VariationCPLEXSolver s = new VariationCPLEXSolver(pool, cycles, membership);
-//
-//						// Store all weights in specialWeights
-//						Map<Edge, Double> specialWeights = new HashMap<Edge, Double>();
-//						for (Edge e : pool.getNonDummyEdgeSet()) {
-//							specialWeights.put(e, pool.getEdgeWeight(e));
-//						}
-//						// Set all weights to 1
-//						setBinaryEdgeWeights(pool);
-//						// Solve w/no cardinality constraint
-//						Solution intermediate = s.solve(0);
-//						// Set minimum cardinality
-//						double min_cardinality = intermediate.getObjectiveValue();
-//						// Restore original weights
-//						setStoredEdgeWeights(pool, specialWeights);
-//
-//						// Solve with cardinality constraint
-//						Solution sol = s.solve(min_cardinality);
-//
-//						// Record matches
-//						for(Cycle c : sol.getMatching()){
-//							matches.add(c);
-//							totalMatches.add(c);
-//						}
-//					}
-//					catch(SolverException e){
-//						e.printStackTrace();
-//						System.exit(-1);
-//					}
-//
-//					long endTime = System.currentTimeMillis();
-//
-//					long totalTime = endTime-startTime;
-//					if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
-//
-//					//Track pool size
-//					int size = pool.getNumPairs() + pool.getNumAltruists();
-//					poolOut.write(i+","+size+","+n+","+weightsVersion+"\n");
-//
-//				} // end of iterations loop
-//
-//				//TODO: vertexOut.close();
-//
-//				if (DEBUG) { System.out.println("\nSolved with weights version"+weightsVersion+". Vertices matched:"); }
-//
-//				// Count vertices of each type matched
-//				Map<Integer, Integer> profileCounts = new HashMap<Integer, Integer>();
-//				for(int vertType=1; vertType<=8; vertType++) {
-//					profileCounts.put(vertType, 0);
-//				}
-//				for (Cycle c : totalMatches) {
-//					for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
-//						Integer profileID = ((VariationVertexPair) v).getProfileID();
-//						if (profileCounts.containsKey(profileID)) {
-//							profileCounts.put(profileID, profileCounts.get(profileID)+1);
-//						}
-//						else {
-//							profileCounts.put(profileID, 1);
-//						}
-//					}
-//				}
-//
-//				//Close vertices-generated output file in VariationPoolGenerator
-//				poolGen.close(seed);
-//
-//				if (DEBUG) { System.out.println(Arrays.asList(profileCounts)); }
-//
-//				// Record results for this entire run
-//				out.set(Col.SEEN_PAIRS, totalPairsSeen);
-//				out.set(Col.SEEN_ALTS, totalAltsSeen);
-//				out.set(Col.DEPARTED_PAIRS, totalPairsDeparted);
-//
-//				for(Integer vertType : profileCounts.keySet()) {
-//					out.set(Col.valueOf("MATCHED_TYPE"+vertType), profileCounts.get(vertType));
-//				}
-//				for(Integer vertType : totalTypeSeenMap.keySet()) {
-//					out.set(Col.valueOf("SEEN_TYPE"+vertType), totalTypeSeenMap.get(vertType));
-//				}
-//
-//				// Keep me at the bottom of one run
-//				// Write the row of data
-//				try {
-//					out.record();
-//				} catch(IOException e) {
-//					IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
-//					e.printStackTrace();
-//					System.exit(-1);
-//				}
-//			} // end of weightsVersions loop
-//		} // end of runs loop
-//
-//		// Experiment complete
-//		long time = (System.currentTimeMillis()-startTime)/60000;
-//		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations for "+weightsToTest.size()+
-//				" different weights versions. Total time: "+time+" minutes.\n\n\n");
-//
-//		// close pool file
-//		poolOut.close();
-//
-//		// clean up CSV writer
-//		if(null != out) {
-//			try {
-//				out.close();
-//			} catch(IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
+	public static void runSimulationWithEqualWeights(String expId) {
+		long startTime = System.currentTimeMillis();
+
+		// Store output for csv export
+		String condition = Condition.EQUAL_WEIGHTS.toString();
+		String path = OUTPUT_PATH + condition + "_" + expId + ".csv";
+		VariationOutput out = null;
+		try {
+			out = new VariationOutput(path);
+		} catch(IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		for (int n = 0; n < NUM_RUNS; n++) {
+
+			if (DEBUG) { System.out.println("\n****RUN "+n+"****"); }
+
+			long seed = 100L + n;
+			long rFailureSeed = seed + 1L;
+			long rEntranceSeed = seed + 2L;
+			long rDepartureSeed = seed + 3L;
+			long rArrivalSeedM = seed + 4L;
+
+			Random rFailure = new Random(rFailureSeed);
+			Random rEntrance = new Random(rEntranceSeed);
+			Random rDeparture = new Random(rDepartureSeed);
+			Random rArrivalM = new Random(rArrivalSeedM);
+
+			VariationPoolGenerator poolGen = new VariationPoolGenerator(rEntrance);
+			ExponentialArrivalDistribution m = new ExponentialArrivalDistribution(1.0/EXPECTED_PAIRS, rArrivalM);
+			Pool pool = new Pool(Edge.class);
+			ArrayList<Cycle> matches = new ArrayList<Cycle>();
+
+			// Record parameters for this set of runs
+			out.set(Col.CONDITION, condition);
+			out.set(Col.SEED, seed);
+			out.set(Col.NUM_ITERATIONS, ITERATIONS);
+			out.set(Col.ARRIVAL_PAIRS, EXPECTED_PAIRS);
+
+			// Accumulators for this run
+			int totalPairsSeen = 0;
+			int totalPairsDeparted = 0;
+			ArrayList<Cycle> totalMatches = new ArrayList<Cycle>();
+			Map<Integer, Integer> totalPairsSeenByProfile = new HashMap<Integer, Integer>();
+			for(int vertType=1; vertType<=8; vertType++) {
+				totalPairsSeenByProfile.put(vertType, 0);
+			}
+
+			for (int i = 0; i < ITERATIONS; i++) {
+				// Add new vertices to the pool
+				int pairs = m.draw().intValue();
+				totalPairsSeen += pairs;
+				if (DEBUG) { System.out.println("ITERATION: "+i+"\t"+pairs+" new pairs"); }
+
+				// Add vertices with VariationVertexPair weights for edge weights
+				Set<Vertex> addedVertices = null;
+				addedVertices = poolGen.addVerticesToPool(pool, pairs);
+
+				// Keep track of how many of each patient profile arrive in the pool
+				for(Vertex v : addedVertices) {
+					VariationVertexPair eV = (VariationVertexPair) v;
+					totalPairsSeenByProfile.put(eV.getProfileID(), totalPairsSeenByProfile.get(eV.getProfileID())+1);
+				}
+
+				// Remove all pairs where the patient dies
+				ArrayList<VertexPair> rm = new ArrayList<VertexPair>();
+				for (VertexPair v : pool.getPairs()) {
+					if (rDeparture.nextDouble() <= DEATH) {
+						totalPairsDeparted++;
+						Iterator<Cycle> matchIterator = matches.iterator();
+						while (matchIterator.hasNext()) {
+							Cycle c = matchIterator.next();
+							if (Cycle.getConstituentVertices(c, pool).contains(v)) {
+								matchIterator.remove();
+							}
+						}
+						rm.add(v);
+					}
+				}
+				for(VertexPair v : rm){
+					pool.removeVertex(v);
+				}
+
+				// Remove edges matched in previous iteration
+				Iterator<Cycle> iter = matches.iterator();
+				while(iter.hasNext()) {
+					Cycle ci = iter.next();
+					boolean fail = false;
+					for (Edge e : ci.getEdges()) {
+						if (rFailure.nextDouble() <= e.getFailureProbability()) {
+							iter.remove();
+							fail = true;
+							break;
+						}
+					}
+					if(fail){
+						continue;
+					}
+					//All edges in the Cycle remain, so we have a match!
+					else {
+						if (DEBUG) {
+							System.out.println("Matched cycle: ");
+							for (Vertex v : Cycle.getConstituentVertices(ci, pool)) {
+								System.out.print(v.getID() + "~");
+							}
+							System.out.println("");
+						}
+						// Remove all vertices in the match from the pool
+						pool.removeAllVertices(Cycle.getConstituentVertices(ci, pool));
+						iter.remove();
+					}
+				}
+
+				if (DEBUG) { printPool(pool, false); }
+
+				// Match the vertex pairs in the pool
+				CycleGenerator cg = new CycleGenerator(pool);
+				List<Cycle> cycles = cg.generateCyclesAndChains(CYCLE_CAP, 0, true);
+				CycleMembership membership = new CycleMembership(pool, cycles);
+
+				try{
+					// Solve w/no cardinality constraint
+					VariationCPLEXSolver s = new VariationCPLEXSolver(pool, cycles, membership);
+					Solution sol = s.solve(0);
+
+					// Record matches
+					for(Cycle c : sol.getMatching()){
+						matches.add(c);
+						totalMatches.add(c);
+					}
+				}
+				catch(SolverException e){
+					e.printStackTrace();
+					System.exit(-1);
+				}
+
+				long endTime = System.currentTimeMillis();
+
+				long totalTime = endTime-startTime;
+				if (DEBUG) { System.out.println("Time elapsed: " + totalTime); }
+
+			}
+
+			// Run complete. Record data.
+			if (DEBUG) { System.out.println("\nSolved with weights condition "+condition); }
+
+			// Count vertices of each profile ID matched
+			Map<Integer, Integer> totalPairsMatchedByProfile = new HashMap();
+			for(int vertType=1; vertType<=8; vertType++) {
+				totalPairsMatchedByProfile.put(vertType, 0);
+			}
+
+			//Count edges of each rank matched
+			Map<Integer, Integer> totalPairsMatchedByRank = new HashMap();
+			for(int rank=1; rank<=8; rank++) {
+				totalPairsMatchedByRank.put(rank, 0);
+			}
+
+			for (Cycle c : totalMatches) {
+				for (Vertex v : Cycle.getConstituentVertices(c, pool)) {
+					Integer profileID = ((VariationVertexPair) v).getProfileID();
+					totalPairsMatchedByProfile.put(profileID, totalPairsMatchedByProfile.get(profileID)+1);
+				}
+				for (Edge edge : c.getEdges()) {
+					VariationVertexPair fromVertex = (VariationVertexPair) pool.getEdgeSource(edge);
+					VariationVertexPair toVertex = (VariationVertexPair) pool.getEdgeTarget(edge);
+					int rank = fromVertex.getRank(toVertex);
+					totalPairsMatchedByRank.put(rank, totalPairsMatchedByRank.get(rank)+1);
+				}
+			}
+
+			if (DEBUG) {
+				System.out.println("Total pairs matched by profile:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+				System.out.println("Total pairs matched by rank:");
+				System.out.println(Arrays.asList(totalPairsMatchedByProfile));
+			}
+
+			// Record results for this entire run
+			out.set(Col.SEEN_PAIRS, totalPairsSeen);
+			out.set(Col.DEPARTED_PAIRS, totalPairsDeparted);
+
+			for(Integer vertType : totalPairsMatchedByProfile.keySet()) {
+				out.set(Col.valueOf("MATCHED_TYPE"+vertType), totalPairsMatchedByProfile.get(vertType));
+			}
+			for(Integer vertRank : totalPairsMatchedByRank.keySet()) {
+				out.set(Col.valueOf("MATCHED_RANK"+vertRank), totalPairsMatchedByRank.get(vertRank));
+			}
+			for(Integer vertType : totalPairsSeenByProfile.keySet()) {
+				out.set(Col.valueOf("SEEN_TYPE"+vertType), totalPairsSeenByProfile.get(vertType));
+			}
+
+			// Keep me at the bottom of one run
+			// Write the row of data
+			try {
+				out.record();
+			} catch(IOException e) {
+				IOUtil.dPrintln("Had trouble writing experimental output to file.  We assume this kills everything; quitting.");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+
+		// All runs complete
+		long time = (System.currentTimeMillis()-startTime)/60000;
+		System.out.println("\n\nDone running "+NUM_RUNS+" tests of "+ITERATIONS+" iterations. Total time: "+time+" minutes.\n\n\n");
+
+		// clean up CSV writer
+		if(null != out) {
+			try {
+				out.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	// Helper method to print current state of pool
 	public static void printPool(Pool pool, boolean printAllEdges) {
@@ -956,7 +783,7 @@ public class VariationDriver {
 	}
 
 	public static void main(String[] args) throws Exception {
-		runSimulationWithDonorPatientWeights();
+		runExperiments();
 	}
 
 }

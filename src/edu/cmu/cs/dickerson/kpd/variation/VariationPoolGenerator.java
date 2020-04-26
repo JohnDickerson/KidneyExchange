@@ -298,12 +298,18 @@ public class VariationPoolGenerator extends PoolGenerator {
 
 	// Adds vertices with edge weights of 1.0
 	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs, int numAltruists) {
+		System.out.println("ERROR: Variation package does not support altruists.");
+		return addVerticesToPool(pool, numPairs);
+	}
+
+	// Adds vertices with "equal" edge weights
+	public Set<Vertex> addVerticesToPool(Pool pool, int numPairs) {
 
 		//Weights of all non-dummy edges = 1
 		double weight = 1;
 
 		// Generate new vertices
-		Pool more = this.generate(numPairs, numAltruists);
+		Pool more = this.generate(numPairs, 0);
 
 		// Add edges from/to the new vertices
 		for(VertexPair v : more.getPairs()) { pool.addPair(v); }
@@ -321,29 +327,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 					pool.setEdgeWeight(pool.addEdge(vO, vN), weight);
 				}
 			}
-
-			// Adds edges from old altruists to new vertices
-			for(VertexAltruist altO : pool.getAltruists()) {
-				if(isCompatible(altO, vN)) {
-					pool.setEdgeWeight(pool.addEdge(altO, vN), weight);
-				}
-				// Add dummy edges from a non-altruist donor to each of the altruists
-				pool.setEdgeWeight(pool.addEdge(vN, altO), 0.0);
-			}
-		}
-
-		// Add edges from/to the new altruists from all (old+new) vertices
-		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }
-		for(VertexAltruist altN : more.getAltruists()) {
-			// No edges between altruists
-			for(VertexPair v : pool.getPairs()) {
-				if(isCompatible(altN, v)) {
-					pool.setEdgeWeight(pool.addEdge(altN, v), weight);
-				}
-
-				// Add dummy edges from a non-altruist donor to each of the altruists
-				pool.setEdgeWeight(pool.addEdge(v, altN), 0.0);
-			}
 		}
 
 		// Return only the new vertices that were generated
@@ -352,10 +335,10 @@ public class VariationPoolGenerator extends PoolGenerator {
 
 
 	// Adds vertices with "ethical" edge weights
-	public Set<Vertex> addVerticesWithRecipientEdgeWeights(Pool pool, int numPairs, int numAltruists) {
+	public Set<Vertex> addVerticesWithPatientEdgeWeights(Pool pool, int numPairs) {
 
 		// Generate new vertices
-		Pool more = this.generate(numPairs, numAltruists);
+		Pool more = this.generate(numPairs, 0);
 
 		// Add edges from/to the new vertices
 		for(VertexPair v : more.getPairs()) { pool.addPair(v); }
@@ -373,31 +356,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 					double weight = ((VariationVertexPair) vN).getPatientWeight();
 					pool.setEdgeWeight(pool.addEdge(vO, vN), weight);
 				}
-			}
-
-			// Adds edges from old altruists to new vertices
-			for(VertexAltruist altO : pool.getAltruists()) {
-				if(isCompatible(altO, vN)) {
-					double weight = ((VariationVertexPair) vN).getPatientWeight();
-					pool.setEdgeWeight(pool.addEdge(altO, vN), weight);
-				}
-				// Add dummy edges from a non-altruist donor to each of the altruists
-				pool.setEdgeWeight(pool.addEdge(vN, altO), 0.0);
-			}
-		}
-		
-		// Add edges from/to the new altruists from all (old+new) vertices
-		for(VertexAltruist a : more.getAltruists()) { pool.addAltruist(a); }
-		for(VertexAltruist altN : more.getAltruists()) {
-			// No edges between altruists
-			for(VertexPair v : pool.getPairs()) {
-				if(isCompatible(altN, v)) {
-					double weight = ((VariationVertexPair) v).getPatientWeight();
-					pool.setEdgeWeight(pool.addEdge(altN, v), weight);
-				}
-				
-				// Add dummy edges from a non-altruist donor to each of the altruists
-				pool.setEdgeWeight(pool.addEdge(v, altN), 0.0);
 			}
 		}
 		
@@ -420,13 +378,11 @@ public class VariationPoolGenerator extends PoolGenerator {
 				// Donate from new vertex to other vertex
 				if(isCompatible(vN, vO) && !pool.containsEdge(vN, vO)) {
 					double weight = ((VariationVertexPair) vN).getDonorPatientWeight((VariationVertexPair) vO);
-					int rank = ((VariationVertexPair) vN).getRank((VariationVertexPair) vO);
 					pool.setEdgeWeight(pool.addEdge(vN, vO), weight);
 				}
 				// Donate from other vertex to new vertex
 				if(isCompatible(vO, vN)&& !pool.containsEdge(vO, vN)) {
 					double weight = ((VariationVertexPair) vO).getDonorPatientWeight((VariationVertexPair) vN);
-					int rank = ((VariationVertexPair) vO).getRank((VariationVertexPair) vN);
 					pool.setEdgeWeight(pool.addEdge(vO, vN), weight);
 				}
 			}
