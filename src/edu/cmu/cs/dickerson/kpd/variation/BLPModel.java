@@ -72,7 +72,17 @@ public class BLPModel {
             System.out.println("");
         }
 
-        return scoreMap;
+//        System.out.println("Unnormalized:");
+//        scoreMap.forEach((key, value) -> System.out.print(key + " : profile " + value + ";\t"));
+//        System.out.println("");
+
+        TreeMap<Double, Integer> normalizedScoreMap = normalize(scoreMap);
+
+//        System.out.println("Normalized:");
+//        normalizedScoreMap.forEach((key, value) -> System.out.print(key + " : profile " + value + ";\t"));
+//        System.out.println("");
+
+        return normalizedScoreMap;
     }
 
     public double[] getBeta() {
@@ -102,6 +112,23 @@ public class BLPModel {
         System.out.println("ERROR: scoreMap does not contain score for profile ID " + Integer.toString(toVertexProfileID) + ". ScoreMap: ");
         this.printScores();
         return -1;
+    }
+
+    private static TreeMap<Double, Integer> normalize(TreeMap<Double, Integer> scoreMap) {
+        Object[] scores = scoreMap.keySet().toArray();
+        double max = (double) scores[scores.length-1];
+        double min = (double) scores[0];
+        double ratio = 1/(max - min);
+
+        TreeMap<Double, Integer> normalized = new TreeMap();
+        for (Object s : scores) {
+            double score = (double) s;
+            double newScore = ratio*(score - max) + 1;
+            normalized.put(newScore, scoreMap.get(s));
+//            System.out.println("old score: " + Double.toString(score) + "\tnew score: " + Double.toString(newScore) +
+//                    "\tprofile: " + normalized.get(newScore));
+        }
+        return normalized;
     }
 
     public static void main(String[] args) {
