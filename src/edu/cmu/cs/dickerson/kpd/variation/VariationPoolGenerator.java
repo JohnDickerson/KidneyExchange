@@ -11,11 +11,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import static edu.cmu.cs.dickerson.kpd.variation.VariationDriver.OUTPUT_PATH;
+
 
 public class VariationPoolGenerator extends PoolGenerator {
-	
-	//Which weights version from VariationVertexPair to use
-	int weightsVersion = 1;
 	
 	//"Ethically relevant" demographics
 	protected double Pr_YOUNG = 0.275;
@@ -59,7 +58,7 @@ public class VariationPoolGenerator extends PoolGenerator {
 
 		//Initialize output file
 		try {
-			this.out = new PrintWriter("vertices_" + weightsVersion + ".csv");
+			this.out = new PrintWriter(OUTPUT_PATH + "vertices.csv");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -187,7 +186,7 @@ public class VariationPoolGenerator extends PoolGenerator {
 		}
 
 		VariationVertexPair v = new VariationVertexPair(ID, bloodTypePatient, bloodTypeDonor, isWifePatient, patientCPRA,
-				compatible, isYoung, isNonalcoholic, isHealthy, this.weightsVersion);
+				compatible, isYoung, isNonalcoholic, isHealthy);
 
 		//Write generated vertex to output file
 		this.out.println(this.vertexCount+","+v.getBloodID()+","+rAge+","+rAlcohol+","+rHealth);
@@ -195,20 +194,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 
 		return v;
 	}
-
-	/**
-	 * Random rolls an altruistic donor (donor with no attached patient)
-	 * @param ID unique identifier for the vertex
-	 * @return altruistic donor vertex KPDVertexAltruist
-	 */
-	private VertexAltruist generateAltruist(int ID) {
-
-		// Draw blood type for the altruist
-		BloodType bloodTypeAltruist = drawDonorBloodType();
-
-		return new VertexAltruist(ID, bloodTypeAltruist);
-	}
-
 
 	public boolean isCompatible(VertexPair donorPair, VertexPair patientPair) {
 		boolean compatible = donorPair.getBloodTypeDonor().canGiveTo(patientPair.getBloodTypePatient())    // Donor must be blood type compatible with patient
@@ -222,8 +207,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 		return compatible;
 	}
 
-
-
 	@Override
 	public Pool generate(int numPairs, int numAltruists) {
 
@@ -234,7 +217,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 		// altruist-no_donor, patient-compatible_donor, patient-incompatible_donor
 		List<VariationVertexPair> incompatiblePairs = new ArrayList<VariationVertexPair>();
 		List<VariationVertexPair> compatiblePairs = new ArrayList<VariationVertexPair>();
-		List<VertexAltruist> altruists = new ArrayList<VertexAltruist>();
 
 		// Generate enough incompatible and compatible patient-donor pair vertices
 		while(incompatiblePairs.size() < numPairs) {
@@ -248,21 +230,10 @@ public class VariationPoolGenerator extends PoolGenerator {
 			}
 		}
 
-		// Generate altruistic donor vertices
-		while(altruists.size() < numAltruists) {
-			VertexAltruist altruist = generateAltruist(currentVertexID++);
-			altruists.add(altruist);
-		}
-
 		// Only add the incompatible pairs to the pool
 		Pool pool = new Pool(Edge.class);
 		for(VariationVertexPair pair : incompatiblePairs) {
 			pool.addPair(pair);
-		}
-
-		// Add altruists to the pool
-		for(VertexAltruist altruist : altruists) {
-			pool.addAltruist(altruist);
 		}
 
 		// Add edges between compatible donors and other patients
@@ -275,21 +246,6 @@ public class VariationPoolGenerator extends PoolGenerator {
 					Edge e = pool.addEdge(donorPair, patientPair);
 					pool.setEdgeWeight(e, 1.0);			//All edges have weight 1.0
 				}
-			}
-		}
-
-		for(VertexAltruist alt : altruists) {
-			for(VariationVertexPair patientPair : incompatiblePairs) {
-
-				// Add edges from a donor to a compatible patient elsewhere
-				if(isCompatible(alt, patientPair)) {
-					Edge e = pool.addEdge(alt, patientPair);
-					pool.setEdgeWeight(e, 1.0);
-				}
-
-				// Add dummy edges from a non-altruist donor to each of the altruists
-				Edge dummy = pool.addEdge(patientPair, alt);
-				pool.setEdgeWeight(dummy, 0.0);
 			}
 		}
 

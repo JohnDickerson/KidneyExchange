@@ -23,38 +23,17 @@ public class VariationVertexPair extends VertexPair {
 	//"Special weight" stored
 	private double weight;
 
-	//Store BLP model;
-	private BLPModel blpModel;
-	
 	//"Ethical" demographics
 	private boolean isYoung;		
 	private boolean isNonalcoholic;
 	private boolean isHealthy;
 
-	//Sampled societal preferences
-	public PreferenceOrdering preferenceOrdering;
+	//Store BLP model;
+	private BLPModel blpModel;
 	
-	//Set to true to use directly estimated patient weights, set to false to derive from characteristic weights (weights2)
-	private boolean usePatientWeights = true;
-	
-	//Weights used by "special" algorithm to prioritize pairs
-	double[] weights;
-	//default
-	double[] weights1 = {1.000000000, 0.103243396, 0.236280167, 0.035722844, 0.070045054, 0.011349772, 0.024072427, 0.002769801};
-	
-	//alternates
-	double[] weights0 = {1, 1, 1, 1, 1, 1, 1, 1};
-//	double[] weights3 = {1, 0.998, 0.999, 0.996, 0.997, 0.994, 0.995, 0.993};
-//	double[] weights4 = {0.8, 0.6, 0.4, 0.3, 1, 0.7, 0.9, 0.5};
-//	double[] weights5 = {0.5, 0.7, 0.9, 1, 0.3, 0.6, 0.4, 0.8};
-//	double[] weights6 = {1, 0.8, 0.9, 0.6, 0.7, 0.4, 0.5, 0.3};
-//	double[] weights7 = {1, 0.978697374, 0.991420029, 0.932724747, 0.967046957, 0.766489634, 0.899526405, 0.002769801};
-	
-	//Characteristic weights estimated by Bradley-Terry model (in R script)
-	double weight_age = -2.419075;
-	double weight_alcohol = -2.026236;
-	double weight_cancer = -1.234208;
-	
+	// precomputed weights from BT model
+	double[] weights = {1.000000000, 0.103243396, 0.236280167, 0.035722844, 0.070045054, 0.011349772, 0.024072427, 0.002769801};
+
 	public VariationVertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor,
 							   boolean isWifePatient, double patientCPRA, boolean isCompatible, boolean isYoung,
 							   boolean isNonalcoholic, boolean isHealthy, int weightsType) {
@@ -62,12 +41,10 @@ public class VariationVertexPair extends VertexPair {
 		this.isYoung = isYoung;
 		this.isNonalcoholic = isNonalcoholic;
 		this.isHealthy = isHealthy;
-		this.weight = calcWeight(weightsType);
-		this.preferenceOrdering = samplePreferenceOrdering();
+		this.weight = calcPatientWeight();
 		setProfileID();
 		setBloodID();
 		this.blpModel = new BLPModel();
-		//System.out.println("ID: "+this.profileID+" age: "+this.isYoung+" alc: "+this.isNonalcoholic+" hlth: "+this.isHealthy);
 	}
 	
 	public VariationVertexPair(int ID, BloodType bloodTypePatient, BloodType bloodTypeDonor,
@@ -87,62 +64,10 @@ public class VariationVertexPair extends VertexPair {
 		String patient = this.bloodTypePatient.toString();
 		String donor = this.bloodTypeDonor.toString();
 		this.bloodID = profileID + "_" + patient + "_" + donor;
-		//System.out.print("\t\t\t\tBlood ID: "+this.bloodID);
-		//if (!this.isCompatible) { System.out.println("  (incompatible)"); }
-		//else { System.out.println(""); }
 	}
 	
 	public String getBloodID() {
 		return this.bloodID;
-	}
-
-	public int getRankOfRecipient(VariationVertexPair pair) {
-		return this.getRankOfRecipient(pair.getProfileID());
-	}
-
-	public int getRankOfRecipient(int patientProfileId) {
-		return this.preferenceOrdering.rank(patientProfileId);
-	}
-
-	/**
-	 * Calculates the special weight of the VariationVertexPair, based
-	 * on their "ethical" characteristics (age, alcohol, health)
-	 * @return vertex weight 
-	 */
-	private double calcWeight(int weightsType) {
-		if (weightsType == 2) { return calcCharacteristicWeight(); }
-		if (weightsType == 0) { this.weights = this.weights0; }
-		if (weightsType == 1) { this.weights = this.weights1; }
-//		if (weightsType == 3) { this.weights = this.weights3; }
-//		if (weightsType == 4) { this.weights = this.weights4; }
-//		if (weightsType == 5) { this.weights = this.weights5; }
-//		if (weightsType == 6) { this.weights = this.weights6; }
-//		if (weightsType == 7) { this.weights = this.weights7; }
-		return calcPatientWeight();
-	}
-
-	private PreferenceOrdering samplePreferenceOrdering() {
-		// read in preference orderings
-		List<List<Integer>> orderings = new ArrayList<>();
-		try (BufferedReader br = new BufferedReader(new FileReader(VariationDriver.INPUT_PATH + "preference_orderings.csv"))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				String[] vals = line.split(",");
-				orderings.add(Arrays.asList(vals).stream()
-						.map(s -> Integer.parseInt(s))
-						.collect(Collectors.toList()));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		// sample one ordering from list
-		int r = new Random().nextInt(orderings.size());
-		List<Integer> ordering_list = orderings.get(r);
-		int[] ordering = ordering_list.stream().mapToInt(i->i).toArray();
-
-		// initialize PreferenceOrdering with that ordering
-		return new PreferenceOrdering(ordering);
 	}
 	
 	/**
@@ -179,26 +104,6 @@ public class VariationVertexPair extends VertexPair {
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Calculates vertex weight as a function of the patient's characteristics
-	 * True = 1, False = 0
-	 * Patient weight = e^(weight_age*isYoung + weight_alcohol*isNonalcoholic + weight_cancer*isHealthy)
-	 * @return vertex weight 
-	 */
-	private double calcCharacteristicWeight() {
-		double log_score = 0;
-		if (!isYoung) {
-			log_score += weight_age;
-		}
-		if (!isNonalcoholic) {
-			log_score += weight_alcohol;
-		}
-		if (!isHealthy) {
-			log_score += weight_cancer;
-		}
-		return Math.exp(log_score);
 	}
 	
 	private void setProfileID() {
@@ -288,23 +193,5 @@ public class VariationVertexPair extends VertexPair {
 
 	public int getRank(VariationVertexPair toVertex) {
 		return this.blpModel.getRank(toVertex.profileID);
-	}
-	
-	public static void main(String[] args) {
-
-		boolean[] profs = {true, true, true, true, false, true, true, true, false,
-				true, false, false, false, true, true, false, false, true,
-				false, true, false, false, false, false};
-		System.out.println("\t\t\t1\t\t2\t\t3\t\t4\t\t5\t\t6\t\t7\t\t8");
-		for (int weightsType = 0; weightsType < 6; weightsType++) {
-			System.out.print("Weights type: "+weightsType+"\t\t");
-			for (int prof = 1; prof < 9; prof++) {
-				VariationVertexPair v = new VariationVertexPair(1, null, null, true, 0.5, true,
-						profs[(3*(prof-1))], profs[(3*(prof-1))+1], profs[(3*(prof-1))+2], weightsType);
-				//System.out.println((3*(prof-1))+" "+((3*(prof-1))+1)+" "+((3*(prof-1))+2));
-				System.out.printf("%.3f", v.getPatientWeight());
-				System.out.print("\t\t");
-			} System.out.println("");
-		}
 	}
 }

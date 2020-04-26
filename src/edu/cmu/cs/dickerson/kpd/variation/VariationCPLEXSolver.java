@@ -52,9 +52,7 @@ public class VariationCPLEXSolver extends CPLEXSolver {
 		for(Cycle c : cycles) {
 			double altWeight = 0.0;
 			for(Edge e : c.getEdges()) {
-				if( !pool.getEdgeTarget(e).isAltruist() ) {
-					altWeight += 1.0;
-				}
+				altWeight += 1.0;
 			}
 			altWeights[cycleIdx++] = altWeight;
 		}

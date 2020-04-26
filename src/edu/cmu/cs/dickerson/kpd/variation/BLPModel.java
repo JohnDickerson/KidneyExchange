@@ -72,15 +72,7 @@ public class BLPModel {
             System.out.println("");
         }
 
-//        System.out.println("Unnormalized:");
-//        scoreMap.forEach((key, value) -> System.out.print(key + " : profile " + value + ";\t"));
-//        System.out.println("");
-
         TreeMap<Double, Integer> normalizedScoreMap = normalize(scoreMap);
-
-//        System.out.println("Normalized:");
-//        normalizedScoreMap.forEach((key, value) -> System.out.print(key + " : profile " + value + ";\t"));
-//        System.out.println("");
 
         return normalizedScoreMap;
     }
@@ -125,19 +117,8 @@ public class BLPModel {
             double score = (double) s;
             double newScore = ratio*(score - max) + 1;
             normalized.put(newScore, scoreMap.get(s));
-//            System.out.println("old score: " + Double.toString(score) + "\tnew score: " + Double.toString(newScore) +
-//                    "\tprofile: " + normalized.get(newScore));
         }
         return normalized;
-    }
-
-    public static void main(String[] args) {
-        BLPModel model = new BLPModel();
-//        System.out.println(model.getRank(1));
-//        System.out.println(model.getRank(2));
-//        System.out.println(model.getWeight(1));
-//        System.out.println(model.getWeight(2));
-
     }
 
 }
