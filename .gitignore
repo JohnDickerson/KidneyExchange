@@ -25,4 +25,3 @@
 # Exceptions #
 !lib/*
 lib/cplex.jar  # do not include CPLEX (licensing? who knows)
-.idea/libraries/cplex.xml
